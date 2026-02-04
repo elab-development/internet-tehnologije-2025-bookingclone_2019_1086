@@ -1,0 +1,67 @@
+############################
+# Python
+############################
+__pycache__/
+*.py[cod]
+*$py.class
+
+############################
+# Virtual environments
+############################
+venv/
+.venv/
+env/
+
+############################
+# Environment variables
+############################
+.env
+.env.*
+
+############################
+# Databases (local only)
+############################
+*.db
+*.sqlite
+*.sqlite3
+
+############################
+# Runtime uploads (keep static assets!)
+############################
+backend/static/uploads/
+backend/static/images/apartments/
+
+############################
+# Logs
+############################
+*.log
+
+############################
+# Testing / tooling
+############################
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+############################
+# Node / Frontend
+############################
+node_modules/
+dist/
+build/
+.vite/
+
+############################
+# IDEs
+############################
+.vscode/
+.idea/
+*.swp
+
+############################
+# OS
+############################
+.DS_Store
+Thumbs.db
