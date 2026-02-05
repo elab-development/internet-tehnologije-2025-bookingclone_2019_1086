@@ -1,7 +1,6 @@
-
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Column, Numeric
 from sqlmodel import SQLModel, Field, Relationship
 

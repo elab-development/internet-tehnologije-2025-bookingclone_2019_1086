@@ -4,7 +4,7 @@ from datetime import timedelta
 from sqlalchemy.exc import IntegrityError
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -15,7 +15,6 @@ from app.models.user_session import UserSession
 from app.auth.dependencies import get_auth_service
 from app.auth.auth_helper import AuthHelper
 from app.enums.role_enum import Role
-from app.auth.authorization import Policy
 from app.auth.current_user import get_current_user
 
 
