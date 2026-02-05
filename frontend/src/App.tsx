@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
+import HomePage from "./pages/HomePage";
+
 
 
 
@@ -17,7 +19,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
-     
+          <Route path="/" element={<HomePage />} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFoundPage />} />
