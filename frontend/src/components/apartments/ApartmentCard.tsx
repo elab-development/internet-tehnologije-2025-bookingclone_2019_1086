@@ -45,7 +45,7 @@ export default function ApartmentCard({ id, name, country, city, imageUrl }: Pro
             // TODO: wishlist later
           }}
         >
-          ❤️
+          ❤
         </button>
       </div>
 

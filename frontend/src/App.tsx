@@ -1,9 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import HomePage from "./pages/HomePage";
-
-
-
+import HostApartmentsPage from "./pages/host/HostApartmentsPage";
+import CreateApartmentWizard from "./pages/host/CreateApartmentWizard";
 
 function NotFoundPage() {
   return (
@@ -20,6 +19,10 @@ export default function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
+
+          {/* HOST */}
+          <Route path="/host/apartments" element={<HostApartmentsPage />} />
+          <Route path="/host/apartments/create" element={<CreateApartmentWizard />} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFoundPage />} />
