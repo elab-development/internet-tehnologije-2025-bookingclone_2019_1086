@@ -34,12 +34,12 @@ SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # create tables
-    await db.create_tables()
+    # await db.create_tables()
 
-    # seed roles
-    async with db.session_factory() as session:
-        await seed_database(session)
-        await session.commit()
+    # # seed roles
+    # async with db.session_factory() as session:
+    #     await seed_database(session)
+    #     await session.commit()
 
     yield
 
