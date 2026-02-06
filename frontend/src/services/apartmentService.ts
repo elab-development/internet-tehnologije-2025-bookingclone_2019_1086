@@ -274,3 +274,23 @@ export async function getMyApartments(args?: {
     items: (json.items ?? []).map(normalizeApartment),
   } as BasePagedResponse<ApartmentDto>;
 }
+
+export async function deleteApartment(apartmentId: number) {
+  const token = getAccessToken();
+  if (!token) throw new Error("Not logged in");
+
+  const res = await fetch(`${API_BASE}/apartments/${apartmentId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Failed to delete apartment (${res.status})`);
+  }
+
+  // backend returns 204 no content, so nothing to parse
+  return;
+}
