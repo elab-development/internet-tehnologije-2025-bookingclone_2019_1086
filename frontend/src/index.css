@@ -15,6 +15,7 @@ body {
   color: #101828;
 }
 
+/* remove default weird styles */
 h1, h2, h3, p {
   margin: 0;
 }
