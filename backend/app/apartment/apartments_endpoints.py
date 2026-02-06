@@ -211,6 +211,64 @@ async def get_apartments(
     }
 
 
+@router.get(
+    "/my", response_model=BasePagedResponse[ApartmentDto]
+)  # this endpoint is used for filtering only apparmets that belongs to host
+async def get_my_apartments(
+    session: SessionDep,
+    q: Annotated[ApartmentFilter, Depends()],
+    current_user: User = Depends(get_current_user),
+    allowed: bool = Depends(Policy({Role.HOST}).check_access),
+):
+    query = select(Apartment).where(Apartment.user_id == current_user.id)
+
+    # filters (same as get_apartments)
+    if q.name:
+        query = query.where(Apartment.name.ilike(f"%{q.name}%"))
+
+    if q.address:
+        query = query.where(Apartment.address.ilike(f"%{q.address}%"))
+
+    if q.city:
+        query = query.where(Apartment.city.ilike(f"%{q.city}%"))
+
+    if q.country:
+        query = query.where(Apartment.country.ilike(f"%{q.country}%"))
+
+    if q.price_per_night_min is not None:
+        query = query.where(Apartment.price_per_night >= q.price_per_night_min)
+
+    if q.price_per_night_max is not None:
+        query = query.where(Apartment.price_per_night <= q.price_per_night_max)
+
+    if q.max_guests is not None:
+        query = query.where(Apartment.max_guests >= q.max_guests)
+
+    if q.rating_average_min is not None:
+        query = query.where(Apartment.rating_average >= q.rating_average_min)
+
+    if q.rating_average_max is not None:
+        query = query.where(Apartment.rating_average <= q.rating_average_max)
+
+    count_query = select(func.count()).select_from(query.subquery())
+    total = (await session.exec(count_query)).one()
+
+    offset = (q.page_number - 1) * q.page_size
+    query = (
+        query.options(selectinload(Apartment.photos)).offset(offset).limit(q.page_size)
+    )
+
+    items = (await session.exec(query)).all()
+    dto_items = [map_apartment_to_list_dto(a) for a in items]
+
+    return {
+        "page_number": q.page_number,
+        "page_size": q.page_size,
+        "total": total,
+        "items": dto_items,
+    }
+
+
 class ApartmentCreateRequest(BaseModel):
     title: str = Field(max_length=255)
     description: str = Field(max_length=5000)

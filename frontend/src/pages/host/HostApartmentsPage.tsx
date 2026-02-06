@@ -17,7 +17,7 @@ export default function HostApartmentsPage() {
   const isHost = user?.role === "HOST";
 
   const [items, setItems] = useState<apartmentService.ApartmentDto[]>([]);
-  const [loading, setLoading] = useState(false); // ✅ start false = less flicker
+  const [loading, setLoading] = useState(false); 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function HostApartmentsPage() {
       setError(null);
 
       try {
-        const res = await apartmentService.getApartments({
+        const res = await apartmentService.getMyApartments({
           page_number: 1,
           page_size: 50,
         });
@@ -58,7 +58,7 @@ export default function HostApartmentsPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId]); // ✅ primitive dependency (no object ref flicker)
+  }, [userId]);
 
   const showEmpty = !loading && !error && items.length === 0;
 
