@@ -3,6 +3,7 @@ import AppLayout from "./components/AppLayout";
 import HomePage from "./pages/HomePage";
 import HostApartmentsPage from "./pages/host/HostApartmentsPage";
 import CreateApartmentWizard from "./pages/host/CreateApartmentWizard";
+import ApartmentDetailsPage from "./components/apartments/ApartmentDetailsPage";
 
 function NotFoundPage() {
   return (
@@ -19,6 +20,8 @@ export default function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
+
+          <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
 
           {/* HOST */}
           <Route path="/host/apartments" element={<HostApartmentsPage />} />
