@@ -407,3 +407,37 @@ async def get_rented_days(
         d += timedelta(days=1)
 
     return result
+
+
+from fastapi import Response
+
+
+from fastapi import Response
+from sqlalchemy import delete as sqldelete
+from app.models.apartment_photo import ApartmentPhoto
+
+
+@router.delete("/{apartment_id}", status_code=204)
+async def delete_apartment(
+    apartment_id: int,
+    session: SessionDep,
+    current_user: User = Depends(get_current_user),
+    allowed: bool = Depends(Policy({Role.HOST}).check_access),
+):
+    result = await session.exec(select(Apartment).where(Apartment.id == apartment_id))
+    apartment = result.first()
+
+    if not apartment:
+        raise HTTPException(status_code=404, detail="Apartment not found")
+
+    if apartment.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    await session.exec(
+        sqldelete(ApartmentPhoto).where(ApartmentPhoto.apartment_id == apartment_id)
+    )
+
+    await session.delete(apartment)
+    await session.commit()
+
+    return Response(status_code=204)
