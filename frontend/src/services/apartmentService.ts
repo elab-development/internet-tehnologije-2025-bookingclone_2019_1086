@@ -233,3 +233,44 @@ export async function getApartmentById(id: number) {
     photos,
   } as ApartmentDto;
 }
+
+
+
+export async function getMyApartments(args?: {
+  page_number?: number;
+  page_size?: number;
+  name?: string;
+  city?: string;
+  country?: string;
+}) {
+  const token = getAccessToken();
+  if (!token) throw new Error("Not logged in");
+
+  const query = buildQuery({
+    page_number: args?.page_number ?? 1,
+    page_size: args?.page_size ?? 12,
+    name: args?.name,
+    city: args?.city,
+    country: args?.country,
+  });
+
+  const res = await fetch(`${API_BASE}/apartments/my${query}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Failed to load my apartments (${res.status})`);
+  }
+
+  const json = (await res.json()) as BasePagedResponse<any>;
+
+  return {
+    ...json,
+    items: (json.items ?? []).map(normalizeApartment),
+  } as BasePagedResponse<ApartmentDto>;
+}
