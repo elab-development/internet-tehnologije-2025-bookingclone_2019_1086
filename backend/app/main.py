@@ -6,7 +6,7 @@ from app.seed import seed_database
 from sqlmodel import Session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from contextlib import asynccontextmanager
-
+from app.apartment.apartments_endpoints import router as apartments_router
 from app.auth.auth_endpoints import router as auth_router
 
 
@@ -44,7 +44,7 @@ app.add_middleware(
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
 app.include_router(auth_router)
-
+app.include_router(apartments_router)
 
 @app.get("/health")
 async def health():
