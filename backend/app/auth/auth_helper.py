@@ -2,33 +2,34 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import secrets
+
 import jwt
 from fastapi import HTTPException, Response
 from passlib.context import CryptContext
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.user import User
+from app.env_loader import require_env
 
 
 class AuthHelper:
-    JWT_SECRET = "CHANGE_ME_TO_LONG_RANDOM_SECRET"
-    JWT_ALG = "HS256"
+    JWT_SECRET = require_env("JWT_SECRET")
+    JWT_ALG = require_env("JWT_ALG")
 
-    ACCESS_TTL_MIN = 1000
-    REFRESH_TTL_DAYS = 14
+    ACCESS_TTL_MIN = int(require_env("ACCESS_TTL_MIN"))
+    REFRESH_TTL_DAYS = int(require_env("REFRESH_TTL_DAYS"))
 
-    REFRESH_COOKIE_NAME = "refresh_token"
-    REFRESH_COOKIE_PATH = "/auth/refresh"
+    REFRESH_COOKIE_NAME = require_env("REFRESH_COOKIE_NAME")
+    REFRESH_COOKIE_PATH = require_env("REFRESH_COOKIE_PATH")
 
-    COOKIE_SECURE = False
-    COOKIE_SAMESITE = "lax"
+    COOKIE_SECURE = require_env("COOKIE_SECURE").lower() == "true"
+    COOKIE_SAMESITE = require_env("COOKIE_SAMESITE")
 
-    REFRESH_HASH_PEPPER = "CHANGE_ME_PEPPER"
+    REFRESH_HASH_PEPPER = require_env("REFRESH_HASH_PEPPER")
 
     def __init__(self):
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    # --- helpers ---
     def utcnow(self) -> datetime:
         return datetime.now(timezone.utc)
 
@@ -84,7 +85,8 @@ class AuthHelper:
 
     def clear_refresh_cookie(self, response: Response) -> None:
         response.delete_cookie(
-            key=self.REFRESH_COOKIE_NAME, path=self.REFRESH_COOKIE_PATH
+            key=self.REFRESH_COOKIE_NAME,
+            path=self.REFRESH_COOKIE_PATH,
         )
 
     async def get_user_from_access_token(

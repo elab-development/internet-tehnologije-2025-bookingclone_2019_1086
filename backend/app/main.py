@@ -1,3 +1,9 @@
+# loading .env file
+from app.env_loader import load_env
+
+load_env()
+
+
 from typing import Annotated, List
 from contextlib import asynccontextmanager
 from pathlib import Path
