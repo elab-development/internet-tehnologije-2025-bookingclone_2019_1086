@@ -1,6 +1,6 @@
 ENV=dev
 
-DATABASE_URL=sqlite+aiosqlite:///database.db
+DATABASE_URL=sqlite+aiosqlite:///./database.db
 
 JWT_SECRET=CHANGE_ME_TO_LONG_RANDOM_SECRET_123456789
 JWT_ALG=HS256
