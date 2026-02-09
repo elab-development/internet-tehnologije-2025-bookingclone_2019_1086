@@ -18,10 +18,7 @@ export default function ApartmentList() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
+    async function load( cancelled:boolean) {
       setLoading(true);
       setError(null);
 
@@ -40,7 +37,11 @@ export default function ApartmentList() {
       }
     }
 
-    load();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    load(cancelled);
     return () => {
       cancelled = true;
     };
