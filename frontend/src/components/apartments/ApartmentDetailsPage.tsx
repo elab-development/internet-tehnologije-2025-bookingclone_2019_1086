@@ -47,10 +47,7 @@ export default function ApartmentDetailsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
+ async function load(cancelled:boolean) {
       try {
         setLoading(true);
         setError(null);
@@ -75,7 +72,9 @@ export default function ApartmentDetailsPage() {
       }
     }
 
-    load();
+  useEffect(() => {
+    let cancelled = false;
+    load(cancelled);
     return () => {
       cancelled = true;
     };
