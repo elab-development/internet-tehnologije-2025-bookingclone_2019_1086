@@ -1,20 +1,19 @@
+const navigationItems = [
+  "Stays",
+  "Flights",
+  "Car rental",
+  "Attractions",
+  "Airport taxis",
+];
+
 export default function HeaderNavigation() {
   return (
-    <div
-      style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: "0 24px 16px",
-        display: "flex",
-        gap: 24,
-        fontWeight: 600,
-      }}
-    >
-      <span>Stays</span>
-      <span>Flights</span>
-      <span>Car rental</span>
-      <span>Attractions</span>
-      <span>Airport taxis</span>
-    </div>
+    <nav className="header__navigation" aria-label="Main navigation">
+      {navigationItems.map((item) => (
+        <span key={item} className="header__navigation-item">
+          {item}
+        </span>
+      ))}
+    </nav>
   );
 }
