@@ -36,22 +36,44 @@ export default function LoginForm({ onSuccess }: Props) {
 
       onSuccess();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t("auth.loginFailed");
-
-      setError(message);
+      handleSubmitError(error);
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  function handleSubmitError(error: unknown) {
+    if (error instanceof Error) {
+      setError(error.message);
+      return;
+    }
+
+    setError(t("auth.loginFailed"));
+  }
+
+  function getSubmitButtonText() {
+    if (isSubmitting) {
+      return t("auth.signingIn");
+    }
+
+    return t("auth.signIn");
+  }
+
+  function renderErrorMessage() {
+    if (!error) {
+      return null;
+    }
+
+    return (
+      <div className="auth-form__error">
+        <strong>{t("common.error")}:</strong> {error}
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="auth-form">
-      {error ? (
-        <div className="auth-form__error">
-          <strong>{t("common.error")}:</strong> {error}
-        </div>
-      ) : null}
+      {renderErrorMessage()}
 
       <div className="auth-form__field">
         <label className="auth-form__label">{t("auth.email")}</label>
@@ -88,7 +110,7 @@ export default function LoginForm({ onSuccess }: Props) {
         disabled={isSubmitting}
         className="auth-form__submit-button"
       >
-        {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
+        {getSubmitButtonText()}
       </button>
     </form>
   );

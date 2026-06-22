@@ -33,7 +33,7 @@ export default function RegisterForm({ onSuccess }: Props) {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
-        phone: phone.trim() === "" ? null : phone.trim(),
+        phone: getPhoneValue(),
         role,
       });
 
@@ -46,22 +46,54 @@ export default function RegisterForm({ onSuccess }: Props) {
 
       onSuccess();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t("auth.registrationFailed");
-
-      setError(message);
+      handleSubmitError(error);
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  function getPhoneValue() {
+    const trimmedPhone = phone.trim();
+
+    if (trimmedPhone === "") {
+      return null;
+    }
+
+    return trimmedPhone;
+  }
+
+  function handleSubmitError(error: unknown) {
+    if (error instanceof Error) {
+      setError(error.message);
+      return;
+    }
+
+    setError(t("auth.registrationFailed"));
+  }
+
+  function getSubmitButtonText() {
+    if (isSubmitting) {
+      return t("auth.creatingAccount");
+    }
+
+    return t("auth.registerTitle");
+  }
+
+  function renderErrorMessage() {
+    if (!error) {
+      return null;
+    }
+
+    return (
+      <div className="auth-form__error">
+        <strong>{t("common.error")}:</strong> {error}
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="auth-form">
-      {error ? (
-        <div className="auth-form__error">
-          <strong>{t("common.error")}:</strong> {error}
-        </div>
-      ) : null}
+      {renderErrorMessage()}
 
       <div className="auth-form__field">
         <label className="auth-form__label">{t("auth.name")}</label>
@@ -140,7 +172,7 @@ export default function RegisterForm({ onSuccess }: Props) {
         disabled={isSubmitting}
         className="auth-form__submit-button"
       >
-        {isSubmitting ? t("auth.creatingAccount") : t("auth.registerTitle")}
+        {getSubmitButtonText()}
       </button>
     </form>
   );
