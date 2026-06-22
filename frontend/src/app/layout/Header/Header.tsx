@@ -11,6 +11,7 @@ import AuthModal from "../../../features/auth/components/AuthModal";
 
 import HeaderLogo from "./HeaderLogo";
 import HeaderNavigation from "./HeaderNavigation";
+import HeaderLanguageSwitcher from "./HeaderLanguageSwitcher";
 import GuestActions from "./GuestActions";
 import UserMenu from "./UserMenu";
 import { getMenuByRole } from "./menuRole";
@@ -93,8 +94,10 @@ export default function Header() {
         <div className="header__top">
           <HeaderLogo />
 
+          <HeaderNavigation logged={logged} role={user?.role} />
+
           <div className="header__actions">
-            <span className="header__currency">RSD</span>
+            <HeaderLanguageSwitcher />
 
             {!logged || !user ? (
               <GuestActions
@@ -114,8 +117,6 @@ export default function Header() {
             )}
           </div>
         </div>
-
-        <HeaderNavigation />
       </header>
 
       <AuthModal
