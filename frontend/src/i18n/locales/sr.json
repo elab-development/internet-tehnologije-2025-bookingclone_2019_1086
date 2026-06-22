@@ -16,11 +16,6 @@
     "userManagement": "Upravljanje korisnicima",
     "accountDetails": "Detalji naloga"
   },
-  "auth": {
-    "signIn": "Prijava",
-    "register": "Registracija",
-    "logout": "Odjava"
-  },
   "footer": {
     "description": "Pronađite i rezervišite apartmane lako, uz jednostavno i pouzdano iskustvo rezervacije.",
     "navigation": "Navigacija",
@@ -48,5 +43,37 @@
     "guests": "Gosti",
     "button": "Pronađi smeštaj"
   }
+},
+"auth": {
+  "modalEyebrow": "Pristup nalogu",
+  "loginTitle": "Dobrodošli nazad",
+  "registerTitle": "Kreirajte nalog",
+  "signIn": "Prijava",
+  "register": "Registracija",
+  "logout": "Odjava",
+  "email": "Email",
+  "emailPlaceholder": "you@example.com",
+  "password": "Lozinka",
+  "passwordPlaceholder": "Vaša lozinka",
+  "choosePassword": "Izaberite lozinku",
+  "name": "Ime",
+  "namePlaceholder": "Vaše ime",
+  "phoneOptional": "Telefon (opciono)",
+  "role": "Uloga",
+  "signingIn": "Prijavljivanje...",
+  "creatingAccount": "Kreiranje naloga...",
+  "loginFailed": "Prijava nije uspela",
+  "registrationFailed": "Registracija nije uspela",
+  "noAccount": "Nemate nalog?",
+  "hasAccount": "Već imate nalog?"
+},
+"roles": {
+  "user": "Korisnik",
+  "host": "Domaćin",
+  "admin": "Admin"
+},
+"common": {
+  "close": "Zatvori",
+  "error": "Greška"
 }
 }

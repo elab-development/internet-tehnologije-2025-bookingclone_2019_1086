@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+
+import "./AuthModal.css";
 
 type Mode = "login" | "register";
 
@@ -17,185 +21,131 @@ export default function AuthModal({
   defaultMode = "login",
   onSuccess,
 }: AuthModalProps) {
+  const { t } = useTranslation();
+
   const [mode, setMode] = useState<Mode>(defaultMode);
 
   useEffect(() => {
-    if (open) setMode(defaultMode);
+    if (open) {
+      setMode(defaultMode);
+    }
   }, [open, defaultMode]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
     }
 
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
-  const title = mode === "login" ? "Log in" : "Create account";
+  const title =
+    mode === "login" ? t("auth.loginTitle") : t("auth.registerTitle");
 
-  function onBackdropMouseDown(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
+  function onBackdropMouseDown(event: React.MouseEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  }
+
+  function handleSuccess() {
+    onSuccess();
+    onClose();
   }
 
   return (
-    <div
-      onMouseDown={onBackdropMouseDown}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(16,24,40,0.55)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 18,
-        zIndex: 9999,
-      }}
-    >
+    <div className="auth-modal-backdrop" onMouseDown={onBackdropMouseDown}>
       <div
-        onMouseDown={(e) => e.stopPropagation()}
-        style={{
-          width: 520,
-          maxWidth: "92vw",
-          background: "#fff",
-          borderRadius: 14,
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 18px 40px rgba(16,24,40,0.18)",
-          overflow: "hidden",
-        }}
+        className="auth-modal"
+        onMouseDown={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
       >
-        {/* Header */}
-        <div
-          style={{
-            padding: "14px 16px",
-            borderBottom: "1px solid #eef2f7",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <div style={{ fontWeight: 800, color: "#111827" }}>{title}</div>
+        <div className="auth-modal__header">
+          <div>
+            <p className="auth-modal__eyebrow">{t("auth.modalEyebrow")}</p>
+            <h2 className="auth-modal__title">{title}</h2>
+          </div>
 
           <button
+            type="button"
             onClick={onClose}
-            aria-label="Close"
-            style={{
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 18,
-              lineHeight: 1,
-              padding: 6,
-              borderRadius: 10,
-              color: "#111827",
-            }}
+            aria-label={t("common.close")}
+            className="auth-modal__close-button"
           >
             ✕
           </button>
         </div>
 
-        <div style={{ padding: 16 }}>
-          {/* Tabs */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <div className="auth-modal__body">
+          <div className="auth-modal__tabs">
             <button
               type="button"
               onClick={() => setMode("login")}
-              style={{
-                flex: 1,
-                padding: "10px 12px",
-                borderRadius: 12,
-                border:
-                  mode === "login" ? "1px solid #111827" : "1px solid #e5e7eb",
-                background: mode === "login" ? "#111827" : "#fff",
-                color: mode === "login" ? "#fff" : "#111827",
-                cursor: "pointer",
-                fontWeight: 800,
-              }}
+              className={
+                mode === "login"
+                  ? "auth-modal__tab auth-modal__tab--active"
+                  : "auth-modal__tab"
+              }
             >
-              Login
+              {t("auth.signIn")}
             </button>
 
             <button
               type="button"
               onClick={() => setMode("register")}
-              style={{
-                flex: 1,
-                padding: "10px 12px",
-                borderRadius: 12,
-                border:
-                  mode === "register"
-                    ? "1px solid #111827"
-                    : "1px solid #e5e7eb",
-                background: mode === "register" ? "#111827" : "#fff",
-                color: mode === "register" ? "#fff" : "#111827",
-                cursor: "pointer",
-                fontWeight: 800,
-              }}
+              className={
+                mode === "register"
+                  ? "auth-modal__tab auth-modal__tab--active"
+                  : "auth-modal__tab"
+              }
             >
-              Register
+              {t("auth.register")}
             </button>
           </div>
 
-          {/* Content */}
           {mode === "login" ? (
-            <LoginForm
-              onSuccess={() => {
-                onSuccess();
-                onClose();
-              }}
-            />
+            <LoginForm onSuccess={handleSuccess} />
           ) : (
-            <RegisterForm
-              onSuccess={() => {
-                onSuccess();
-                onClose();
-              }}
-            />
+            <RegisterForm onSuccess={handleSuccess} />
           )}
 
-          {/* Switch hint */}
-          <div style={{ marginTop: 14, fontSize: 14, color: "#475467" }}>
+          <div className="auth-modal__switch">
             {mode === "login" ? (
               <>
-                Don’t have an account?{" "}
+                {t("auth.noAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => setMode("register")}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    padding: 0,
-                    textDecoration: "underline",
-                    fontWeight: 800,
-                    color: "#111827",
-                  }}
+                  className="auth-modal__switch-button"
                 >
-                  Register
+                  {t("auth.register")}
                 </button>
               </>
             ) : (
               <>
-                Already have an account?{" "}
+                {t("auth.hasAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    padding: 0,
-                    textDecoration: "underline",
-                    fontWeight: 800,
-                    color: "#111827",
-                  }}
+                  className="auth-modal__switch-button"
                 >
-                  Login
+                  {t("auth.signIn")}
                 </button>
               </>
             )}

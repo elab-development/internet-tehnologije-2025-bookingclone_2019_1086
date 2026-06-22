@@ -16,11 +16,6 @@
     "userManagement": "User management",
     "accountDetails": "Account details"
   },
-  "auth": {
-    "signIn": "Sign in",
-    "register": "Register",
-    "logout": "Logout"
-  },
   "language": {
     "sr": "Serbian",
     "en": "English"
@@ -48,5 +43,37 @@
     "guests": "Guests",
     "button": "Find a stay"
   }
+},
+"auth": {
+  "modalEyebrow": "Account access",
+  "loginTitle": "Welcome back",
+  "registerTitle": "Create account",
+  "signIn": "Sign in",
+  "register": "Register",
+  "logout": "Logout",
+  "email": "Email",
+  "emailPlaceholder": "you@example.com",
+  "password": "Password",
+  "passwordPlaceholder": "Your password",
+  "choosePassword": "Choose a password",
+  "name": "Name",
+  "namePlaceholder": "Your name",
+  "phoneOptional": "Phone (optional)",
+  "role": "Role",
+  "signingIn": "Signing in...",
+  "creatingAccount": "Creating account...",
+  "loginFailed": "Login failed",
+  "registrationFailed": "Registration failed",
+  "noAccount": "Don’t have an account?",
+  "hasAccount": "Already have an account?"
+},
+"roles": {
+  "user": "User",
+  "host": "Host",
+  "admin": "Admin"
+},
+"common": {
+  "close": "Close",
+  "error": "Error"
 }
 }
