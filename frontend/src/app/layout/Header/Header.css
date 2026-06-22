@@ -1,0 +1,267 @@
+.header {
+  background-color: #003580;
+  color: #ffffff;
+}
+
+.header__top {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header__logo {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header__logo:hover {
+  color: #ffffff;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.header__currency {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.header__guest-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__auth-button {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  color: #003580;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.header__auth-button:hover {
+  background-color: #f3f6fb;
+}
+
+.header__auth-button:active {
+  transform: translateY(1px);
+}
+
+.header__navigation {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  overflow-x: auto;
+  font-weight: 600;
+  scrollbar-width: none;
+}
+
+.header__navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.header__navigation-item {
+  white-space: nowrap;
+}
+
+.header__user-menu {
+  position: relative;
+}
+
+.header__profile-button {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.header__profile-button:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.header__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: 0 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+}
+
+.header__user-role {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header__dropdown-icon {
+  opacity: 0.8;
+}
+
+.header__dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+  width: 240px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background-color: #ffffff;
+  color: #111827;
+  box-shadow: 0 18px 40px rgba(16, 24, 40, 0.18);
+}
+
+.header__dropdown-user {
+  padding: 12px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.header__dropdown-name {
+  font-weight: 800;
+}
+
+.header__dropdown-email {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.header__dropdown-list {
+  padding: 6px;
+}
+
+.header__dropdown-link {
+  display: block;
+  padding: 10px;
+  border-radius: 10px;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.header__dropdown-link:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.header__logout-button {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: transparent;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.header__logout-button:hover {
+  background-color: #fff1f2;
+}
+
+@media (max-width: 768px) {
+  .header__top {
+    padding: 14px 16px;
+  }
+
+  .header__logo {
+    font-size: 21px;
+  }
+
+  .header__actions {
+    gap: 8px;
+  }
+
+  .header__currency {
+    display: none;
+  }
+
+  .header__guest-actions {
+    gap: 8px;
+  }
+
+  .header__auth-button {
+    padding: 7px 10px;
+  }
+
+  .header__navigation {
+    padding: 0 16px 14px;
+    gap: 18px;
+  }
+
+  .header__dropdown {
+    width: 220px;
+  }
+}
+
+@media (max-width: 520px) {
+  .header__top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header__guest-actions {
+    width: 100%;
+  }
+
+  .header__auth-button {
+    flex: 1;
+  }
+
+  .header__user-menu {
+    width: 100%;
+  }
+
+  .header__profile-button {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header__dropdown {
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+}
