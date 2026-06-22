@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "Elab Booking"
+  },
+  "nav": {
+    "home": "Početna",
+    "apartments": "Apartmani",
+    "contact": "Kontakt",
+    "myReservations": "Moje rezervacije",
+    "myApartments": "Moji apartmani",
+    "reservations": "Rezervacije",
+    "payments": "Plaćanja",
+    "adminPanel": "Admin panel",
+    "apartmentManagement": "Upravljanje apartmanima",
+    "tagManagement": "Upravljanje tagovima",
+    "userManagement": "Upravljanje korisnicima",
+    "accountDetails": "Detalji naloga"
+  },
+  "auth": {
+    "signIn": "Prijava",
+    "register": "Registracija",
+    "logout": "Odjava"
+  },
+  "language": {
+    "sr": "Srpski",
+    "en": "Engleski"
+  }
+}

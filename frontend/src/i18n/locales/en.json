@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "Elab Booking"
+  },
+  "nav": {
+    "home": "Home",
+    "apartments": "Apartments",
+    "contact": "Contact",
+    "myReservations": "My reservations",
+    "myApartments": "My apartments",
+    "reservations": "Reservations",
+    "payments": "Payments",
+    "adminPanel": "Admin panel",
+    "apartmentManagement": "Apartment management",
+    "tagManagement": "Tag management",
+    "userManagement": "User management",
+    "accountDetails": "Account details"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "language": {
+    "sr": "Serbian",
+    "en": "English"
+  }
+}

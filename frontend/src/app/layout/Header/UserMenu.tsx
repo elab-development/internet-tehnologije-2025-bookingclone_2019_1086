@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import type { MenuItem } from "./menuRole";
 
@@ -29,6 +30,8 @@ export default function UserMenu({
   onClose,
   onLogout,
 }: Props) {
+  const { t } = useTranslation();
+
   const avatarLetter = user.name?.[0]?.toUpperCase() ?? "U";
 
   return (
@@ -62,7 +65,7 @@ export default function UserMenu({
                 onClick={onClose}
                 className="header__dropdown-link"
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
 
@@ -71,7 +74,7 @@ export default function UserMenu({
               onClick={onLogout}
               className="header__logout-button"
             >
-              Logout
+              {t("auth.logout")}
             </button>
           </div>
         </div>
