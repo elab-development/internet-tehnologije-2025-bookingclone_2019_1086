@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 
 export default function HeaderLogo() {
-  const { t } = useTranslation();
-
   return (
-    <Link to="/" className="header__logo">
-      {t("app.name")}
+    <Link to="/" className="header__logo" aria-label="M2 Living home">
+      <img
+        src="/logo/m2living.png"
+        alt="M2 Living"
+        className="header__logo-image"
+      />
     </Link>
   );
 }
