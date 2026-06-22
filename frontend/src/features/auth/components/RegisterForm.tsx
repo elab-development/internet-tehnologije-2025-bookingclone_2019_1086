@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import * as authService from "../services/authService";
 import { setAccessToken, setAuthUser } from "../storage/authStorage";
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export default function RegisterForm({ onSuccess }: Props) {
+  const { t } = useTranslation();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,13 +22,14 @@ export default function RegisterForm({ onSuccess }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const res = await authService.register({
+      const response = await authService.register({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
@@ -33,211 +37,111 @@ export default function RegisterForm({ onSuccess }: Props) {
         role,
       });
 
-      if (res?.access_token) {
-        setAccessToken(res.access_token);
+      if (response?.access_token) {
+        setAccessToken(response.access_token);
       }
 
       const user = await authService.me();
       setAuthUser(user);
 
       onSuccess();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Registration failed";
-      setError(msg);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : t("auth.registrationFailed");
+
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div>
+    <form onSubmit={onSubmit} className="auth-form">
       {error ? (
-        <div
-          style={{
-            background: "#fff1f2",
-            color: "#991b1b",
-            border: "1px solid #fecdd3",
-            borderRadius: 12,
-            padding: "12px 14px",
-            marginBottom: 14,
-            fontSize: 14,
-          }}
-        >
-          <strong>Error:</strong> {error}
+        <div className="auth-form__error">
+          <strong>{t("common.error")}:</strong> {error}
         </div>
       ) : null}
 
-      <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 14 }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#667085",
-            }}
-          >
-            Name
-          </label>
-          <input
-            name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="Your name"
-            autoComplete="name"
-            style={{
-              width: "100%",
-              padding: "12px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              outline: "none",
-              fontSize: 14,
-            }}
-          />
-        </div>
+      <div className="auth-form__field">
+        <label className="auth-form__label">{t("auth.name")}</label>
 
-        <div style={{ marginBottom: 14 }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#667085",
-            }}
-          >
-            Email
-          </label>
-          <input
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="you@example.com"
-            autoComplete="email"
-            style={{
-              width: "100%",
-              padding: "12px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              outline: "none",
-              fontSize: 14,
-            }}
-          />
-        </div>
+        <input
+          name="name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          required
+          placeholder={t("auth.namePlaceholder")}
+          autoComplete="name"
+          className="auth-form__input"
+        />
+      </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#667085",
-            }}
-          >
-            Phone (optional)
-          </label>
-          <input
-            name="phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+381..."
-            autoComplete="tel"
-            style={{
-              width: "100%",
-              padding: "12px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              outline: "none",
-              fontSize: 14,
-            }}
-          />
-        </div>
+      <div className="auth-form__field">
+        <label className="auth-form__label">{t("auth.email")}</label>
 
-        <div style={{ marginBottom: 14 }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#667085",
-            }}
-          >
-            Password
-          </label>
-          <input
-            name="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Choose a password"
-            autoComplete="new-password"
-            style={{
-              width: "100%",
-              padding: "12px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              outline: "none",
-              fontSize: 14,
-            }}
-          />
-        </div>
+        <input
+          name="email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+          placeholder={t("auth.emailPlaceholder")}
+          autoComplete="email"
+          className="auth-form__input"
+        />
+      </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#667085",
-            }}
-          >
-            Role
-          </label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as Role)}
-            style={{
-              width: "100%",
-              padding: "12px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              outline: "none",
-              fontSize: 14,
-              background: "#fff",
-            }}
-          >
-            <option value="USER">USER</option>
-            <option value="HOST">HOST</option>
-            <option value="ADMIN">ADMIN</option>
-          </select>
-        </div>
+      <div className="auth-form__field">
+        <label className="auth-form__label">{t("auth.phoneOptional")}</label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: 12,
-            border: "1px solid transparent",
-            background: "#2563eb",
-            color: "#fff",
-            fontWeight: 700,
-            cursor: isSubmitting ? "not-allowed" : "pointer",
-          }}
+        <input
+          name="phone"
+          type="tel"
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder="+381..."
+          autoComplete="tel"
+          className="auth-form__input"
+        />
+      </div>
+
+      <div className="auth-form__field">
+        <label className="auth-form__label">{t("auth.password")}</label>
+
+        <input
+          name="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          required
+          placeholder={t("auth.choosePassword")}
+          autoComplete="new-password"
+          className="auth-form__input"
+        />
+      </div>
+
+      <div className="auth-form__field">
+        <label className="auth-form__label">{t("auth.role")}</label>
+
+        <select
+          value={role}
+          onChange={(event) => setRole(event.target.value as Role)}
+          className="auth-form__input auth-form__select"
         >
-          {isSubmitting ? "Creating account..." : "Create account"}
-        </button>
-      </form>
-    </div>
+          <option value="USER">{t("roles.user")}</option>
+          <option value="HOST">{t("roles.host")}</option>
+          <option value="ADMIN">{t("roles.admin")}</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="auth-form__submit-button"
+      >
+        {isSubmitting ? t("auth.creatingAccount") : t("auth.registerTitle")}
+      </button>
+    </form>
   );
 }
