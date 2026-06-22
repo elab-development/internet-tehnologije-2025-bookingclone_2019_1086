@@ -3,15 +3,18 @@ import { useTranslation } from "react-i18next";
 
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import AuthModalHeader from "./AuthModalHeader";
+import AuthTabs from "./AuthTabs";
+import AuthSwitchHint from "./AuthSwitchHint";
 
 import "./AuthModal.css";
 
-type Mode = "login" | "register";
+export type AuthMode = "login" | "register";
 
 type AuthModalProps = {
   open: boolean;
   onClose: () => void;
-  defaultMode?: Mode;
+  defaultMode?: AuthMode;
   onSuccess: () => void;
 };
 
@@ -23,7 +26,7 @@ export default function AuthModal({
 }: AuthModalProps) {
   const { t } = useTranslation();
 
-  const [mode, setMode] = useState<Mode>(defaultMode);
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
 
   useEffect(() => {
     if (open) {
@@ -53,8 +56,13 @@ export default function AuthModal({
     return null;
   }
 
-  const title =
-    mode === "login" ? t("auth.loginTitle") : t("auth.registerTitle");
+  function getTitle() {
+    if (mode === "login") {
+      return t("auth.loginTitle");
+    }
+
+    return t("auth.registerTitle");
+  }
 
   function onBackdropMouseDown(event: React.MouseEvent<HTMLDivElement>) {
     if (event.target === event.currentTarget) {
@@ -67,6 +75,16 @@ export default function AuthModal({
     onClose();
   }
 
+  function renderForm() {
+    if (mode === "login") {
+      return <LoginForm onSuccess={handleSuccess} />;
+    }
+
+    return <RegisterForm onSuccess={handleSuccess} />;
+  }
+
+  const title = getTitle();
+
   return (
     <div className="auth-modal-backdrop" onMouseDown={onBackdropMouseDown}>
       <div
@@ -76,80 +94,14 @@ export default function AuthModal({
         aria-modal="true"
         aria-label={title}
       >
-        <div className="auth-modal__header">
-          <div>
-            <p className="auth-modal__eyebrow">{t("auth.modalEyebrow")}</p>
-            <h2 className="auth-modal__title">{title}</h2>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t("common.close")}
-            className="auth-modal__close-button"
-          >
-            ✕
-          </button>
-        </div>
+        <AuthModalHeader title={title} onClose={onClose} />
 
         <div className="auth-modal__body">
-          <div className="auth-modal__tabs">
-            <button
-              type="button"
-              onClick={() => setMode("login")}
-              className={
-                mode === "login"
-                  ? "auth-modal__tab auth-modal__tab--active"
-                  : "auth-modal__tab"
-              }
-            >
-              {t("auth.signIn")}
-            </button>
+          <AuthTabs mode={mode} onModeChange={setMode} />
 
-            <button
-              type="button"
-              onClick={() => setMode("register")}
-              className={
-                mode === "register"
-                  ? "auth-modal__tab auth-modal__tab--active"
-                  : "auth-modal__tab"
-              }
-            >
-              {t("auth.register")}
-            </button>
-          </div>
+          {renderForm()}
 
-          {mode === "login" ? (
-            <LoginForm onSuccess={handleSuccess} />
-          ) : (
-            <RegisterForm onSuccess={handleSuccess} />
-          )}
-
-          <div className="auth-modal__switch">
-            {mode === "login" ? (
-              <>
-                {t("auth.noAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => setMode("register")}
-                  className="auth-modal__switch-button"
-                >
-                  {t("auth.register")}
-                </button>
-              </>
-            ) : (
-              <>
-                {t("auth.hasAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => setMode("login")}
-                  className="auth-modal__switch-button"
-                >
-                  {t("auth.signIn")}
-                </button>
-              </>
-            )}
-          </div>
+          <AuthSwitchHint mode={mode} onModeChange={setMode} />
         </div>
       </div>
     </div>
