@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import * as authService from "../services/authService";
-import { getAuthUser, isLoggedIn, logoutLocal } from "../auth/authStorage";
-import AuthModal from "./auth/AuthModal"; 
 
+import * as authService from "../../../features/auth/services/authService";
+import {
+  getAuthUser,
+  isLoggedIn,
+  logoutLocal,
+} from "../../../features/auth/storage/authStorage";
+import AuthModal from "../../../features/auth/components/AuthModal";
 type MenuItem = {
   label: string;
   to: string;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import ApartmentCard from "../../components/apartments/ApartmentCard";
-import * as apartmentService from "../../services/apartmentService";
+
+import ApartmentCard from "./ApartmentCard";
+import * as apartmentService from "../services/apartmentService";
 
 function pickMainPhotoUrl(photos: apartmentService.ApartmentPhotoDto[]) {
   const main = photos.find((p) => p.is_main);

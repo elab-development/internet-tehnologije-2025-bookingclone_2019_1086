@@ -1,11 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import * as apartmentService from "../../services/apartmentService";
 
-/** Step components */
-import StepApartmentDetails, { ApartmentDetailsState } from "./steps/StepApartmentDetails";
-import StepApartmentTags, { TagDto } from "./steps/StepApartmentTags";
-import StepApartmentPhotos from "./steps/StepApartmentPhotos";
+import * as apartmentService from "../../../apartments/services/apartmentService";
+
+import StepApartmentDetails, {
+  ApartmentDetailsState,
+} from "../steps/StepApartmentDetails";
+
+import StepApartmentTags, {
+  TagDto,
+} from "../steps/StepApartmentTags";
+
+import StepApartmentPhotos from "../steps/StepApartmentPhotos";
 
 type StepKey = "details" | "tags" | "photos";
 

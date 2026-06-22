@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppLayout from "./components/AppLayout";
-import HomePage from "./pages/HomePage";
-import HostApartmentsPage from "./pages/host/HostApartmentsPage";
-import CreateApartmentWizard from "./pages/host/CreateApartmentWizard";
-import ApartmentDetailsPage from "./components/apartments/ApartmentDetailsPage";
+import AppLayout from "./layout/AppLayout/AppLayout";
+import HomePage from "../pages/HomePage";
+import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
+import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
+import CreateApartmentWizard from "../features/host/apartments/pages/CreateApartmentWizard";
 
 function NotFoundPage() {
   return (

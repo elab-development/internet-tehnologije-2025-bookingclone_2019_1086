@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAuthUser } from "../../auth/authStorage";
-import ApartmentCard from "../../components/apartments/ApartmentCard";
-import * as apartmentService from "../../services/apartmentService";
+
+import { getAuthUser } from "../../../auth/storage/authStorage";
+import ApartmentCard from "../../../apartments/components/ApartmentCard";
+import * as apartmentService from "../../../apartments/services/apartmentService";
 
 function pickMainPhotoUrl(photos: apartmentService.ApartmentPhotoDto[]) {
   const main = photos.find((p) => p.is_main);

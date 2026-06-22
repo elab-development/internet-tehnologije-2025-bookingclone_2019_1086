@@ -1,5 +1,4 @@
-import { getAccessToken } from "../auth/authStorage";
-
+import { getAccessToken } from "../../auth/storage/authStorage";
 /* ============================
    TYPES
    ============================ */
