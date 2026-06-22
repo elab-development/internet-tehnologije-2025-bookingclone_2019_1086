@@ -1,0 +1,228 @@
+.home-page {
+  min-height: 100%;
+  background-color: #f5f7fb;
+}
+
+/* HERO */
+
+.home-hero {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 34%),
+    linear-gradient(135deg, #003580 0%, #0057b8 100%);
+  color: #ffffff;
+}
+
+.home-hero__content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+}
+
+.home-hero__text {
+  max-width: 760px;
+}
+
+.home-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.home-hero__title {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(34px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1.2px;
+}
+
+.home-hero__description {
+  max-width: 650px;
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* SEARCH */
+
+.home-search {
+  margin-top: 34px;
+  padding: 10px;
+  border-radius: 22px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 0.7fr auto;
+  gap: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.22);
+}
+
+.home-search__field {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background-color: #f9fafb;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.home-search__field:focus-within {
+  border-color: rgba(0, 53, 128, 0.45);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 53, 128, 0.1);
+}
+
+.home-search__field--small {
+  max-width: 140px;
+}
+
+.home-search__label {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.home-search__input {
+  width: 100%;
+  border: none;
+  outline: none;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  background-color: transparent;
+}
+
+.home-search__input::placeholder {
+  color: #9ca3af;
+}
+
+.home-search__button {
+  border: none;
+  border-radius: 16px;
+  padding: 0 24px;
+  background-color: #003580;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-search__button:hover {
+  background-color: #002b66;
+  box-shadow: 0 12px 24px rgba(0, 53, 128, 0.25);
+}
+
+.home-search__button:active {
+  transform: translateY(1px);
+}
+
+/* APARTMENTS SECTION */
+
+.home-apartments {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 42px 24px 64px;
+}
+
+.home-apartments__header {
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.home-apartments__title {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+}
+
+.home-apartments__description {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .home-hero__content {
+    padding: 46px 16px 54px;
+  }
+
+  .home-search {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-search__field--small {
+    max-width: none;
+  }
+
+  .home-search__button {
+    min-height: 54px;
+  }
+
+  .home-apartments {
+    padding: 36px 16px 56px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 560px) {
+  .home-hero__content {
+    padding: 38px 16px 44px;
+  }
+
+  .home-hero__eyebrow {
+    font-size: 12px;
+  }
+
+  .home-hero__title {
+    letter-spacing: -0.7px;
+  }
+
+  .home-hero__description {
+    font-size: 16px;
+  }
+
+  .home-search {
+    grid-template-columns: 1fr;
+    border-radius: 18px;
+    padding: 8px;
+  }
+
+  .home-search__button {
+    min-height: 52px;
+    width: 100%;
+  }
+
+  .home-apartments__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-apartments__title {
+    font-size: 24px;
+  }
+}

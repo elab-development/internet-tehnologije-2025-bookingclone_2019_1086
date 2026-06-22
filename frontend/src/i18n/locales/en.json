@@ -24,5 +24,29 @@
   "language": {
     "sr": "Serbian",
     "en": "English"
+  },
+  "footer": {
+  "description": "Find and book apartments easily, with a simple and reliable reservation experience.",
+  "navigation": "Navigation",
+  "support": "Support",
+  "help": "Help",
+  "terms": "Terms of use",
+  "privacy": "Privacy policy",
+  "rights": "All rights reserved."
+},
+"home": {
+  "eyebrow": "Stays made simple",
+  "title": "Apartments for holidays, work trips, and short stays",
+  "description": "Find an apartment that fits your travel plans, number of guests, and preferred way to stay.",
+  "apartmentsTitle": "Recommended apartments",
+  "apartmentsDescription": "Explore selected stays with a good balance of location, comfort, and price.",
+  "search": {
+    "location": "Destination",
+    "locationPlaceholder": "Enter a city or area",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "guests": "Guests",
+    "button": "Find a stay"
   }
+}
 }

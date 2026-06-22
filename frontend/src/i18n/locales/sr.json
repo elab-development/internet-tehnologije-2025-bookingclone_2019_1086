@@ -21,8 +21,32 @@
     "register": "Registracija",
     "logout": "Odjava"
   },
+  "footer": {
+    "description": "Pronađite i rezervišite apartmane lako, uz jednostavno i pouzdano iskustvo rezervacije.",
+    "navigation": "Navigacija",
+    "support": "Podrška",
+    "help": "Pomoć",
+    "terms": "Uslovi korišćenja",
+    "privacy": "Politika privatnosti",
+    "rights": "Sva prava zadržana."
+  },
   "language": {
     "sr": "Srpski",
     "en": "Engleski"
+  },
+  "home": {
+  "eyebrow": "Smeštaj po vašoj meri",
+  "title": "Apartmani za odmor, posao i kraći boravak",
+  "description": "Pronađite apartman koji odgovara vašem planu puta, broju gostiju i stilu boravka.",
+  "apartmentsTitle": "Preporučeni apartmani",
+  "apartmentsDescription": "Izdvojili smo smeštaje koji nude dobar odnos lokacije, komfora i cene.",
+  "search": {
+    "location": "Destinacija",
+    "locationPlaceholder": "Unesite grad ili mesto",
+    "checkIn": "Dolazak",
+    "checkOut": "Odlazak",
+    "guests": "Gosti",
+    "button": "Pronađi smeštaj"
   }
+}
 }
