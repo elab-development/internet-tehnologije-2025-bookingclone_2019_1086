@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import * as apartmentService from "../../services/apartmentService";
+import * as apartmentService from "../services/apartmentService";
 
 function pickMainPhoto(photos: apartmentService.ApartmentPhotoDto[]) {
   const main = photos.find((p) => p.is_main);

@@ -1,5 +1,6 @@
 import React from "react";
-import ApartmentList from "../components/apartments/ApartmentList";
+
+import ApartmentList from "../features/apartments/components/ApartmentList";
 
 export default function HomePage() {
   return (

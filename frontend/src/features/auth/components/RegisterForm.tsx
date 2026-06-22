@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import * as authService from "../../services/authService";
-import { setAccessToken, setAuthUser } from "../../auth/authStorage";
+
+import * as authService from "../services/authService";
+import { setAccessToken, setAuthUser } from "../storage/authStorage";
 
 type Role = "USER" | "HOST" | "ADMIN";
 

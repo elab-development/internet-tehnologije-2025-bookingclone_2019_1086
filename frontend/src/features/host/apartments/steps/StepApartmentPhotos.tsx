@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import * as apartmentService from "../../../services/apartmentService";
-
+import * as apartmentService from "../../../apartments/services/apartmentService";
 type PendingItem = {
   id: string;
   file: File;
