@@ -3,79 +3,99 @@ import { useParams } from "react-router-dom";
 
 import {
   type ApartmentDto,
+  type ApartmentPhotoDto,
+  type ApartmentTagDto,
   getApartmentById,
   getMainPhotoUrl,
 } from "../services/apartmentService";
 
-function buildMapSrc(args: {
-  lat?: string | null;
-  lon?: string | null;
-  address?: string;
-  city?: string;
-  country?: string;
-}) {
-  const { lat, lon, address, city, country } = args;
+import ApartmentDetailsGallery from "./details/ApartmentDetailsGallery";
+import ApartmentDetailsBookingCard from "./details/ApartmentDetailsBookingCard";
+import ApartmentDetailsInfo from "./details/ApartmentDetailsInfo";
+import ApartmentDetailsMap from "./details/ApartmentDetailsMap";
 
-  if (lat && lon) {
-    const latitude = Number(lat);
-    const longitude = Number(lon);
+import "./ApartmentDetailsPage.css";
 
-    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-      const delta = 0.01;
-      const left = longitude - delta;
-      const right = longitude + delta;
-      const top = latitude + delta;
-      const bottom = latitude - delta;
+export type ApartmentDetailsDto = ApartmentDto & {
+  tags?: ApartmentTagDto[];
+};
 
-      return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${latitude}%2C${longitude}`;
-    }
+const FALLBACK_PHOTO: ApartmentPhotoDto = {
+  id: 0,
+  image_url: "https://picsum.photos/1200/800",
+  is_main: true,
+};
+
+function getApartmentPhotos(apartment: ApartmentDetailsDto) {
+  if (apartment.photos.length > 0) {
+    return apartment.photos;
   }
 
-  const queryValue = [address, city, country].filter(Boolean).join(", ");
-  const query = encodeURIComponent(queryValue || "Belgrade");
+  return [FALLBACK_PHOTO];
+}
 
-  return `https://www.openstreetmap.org/export/embed.html?search=${query}`;
+function getLocationText(apartment: ApartmentDetailsDto) {
+  const parts = [apartment.city, apartment.country].filter(Boolean);
+
+  if (parts.length > 0) {
+    return parts.join(", ");
+  }
+
+  return "Location not available";
+}
+
+function getTags(apartment: ApartmentDetailsDto) {
+  if (Array.isArray(apartment.tags)) {
+    return apartment.tags;
+  }
+
+  return [];
 }
 
 export default function ApartmentDetailsPage() {
   const params = useParams();
   const apartmentId = Number(params.id);
 
-  const [item, setItem] = useState<ApartmentDto | null>(null);
+  const [apartment, setApartment] = useState<ApartmentDetailsDto | null>(null);
   const [activePhotoUrl, setActivePhotoUrl] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadApartment() {
-      setLoading(true);
-      setError(null);
+      setIsLoading(true);
+      setError("");
 
       try {
         if (!Number.isFinite(apartmentId)) {
           throw new Error("Invalid apartment id.");
         }
 
-        const apartment = await getApartmentById(apartmentId);
+        const response = await getApartmentById(apartmentId);
+        const details = response as ApartmentDetailsDto;
 
         if (cancelled) {
           return;
         }
 
-        setItem(apartment);
-        setActivePhotoUrl(getMainPhotoUrl(apartment));
-      } catch (error) {
-        if (!cancelled) {
-          const message =
-            error instanceof Error ? error.message : "Failed to load apartment";
-
-          setError(message);
+        setApartment(details);
+        setActivePhotoUrl(getMainPhotoUrl(details));
+      } catch (loadError) {
+        if (cancelled) {
+          return;
         }
+
+        if (loadError instanceof Error) {
+          setError(loadError.message);
+          return;
+        }
+
+        setError("Failed to load apartment.");
       } finally {
         if (!cancelled) {
-          setLoading(false);
+          setIsLoading(false);
         }
       }
     }
@@ -87,162 +107,106 @@ export default function ApartmentDetailsPage() {
     };
   }, [apartmentId]);
 
-  const mapSrc = useMemo(() => {
-    if (!item) {
-      return "";
+  const photos = useMemo(() => {
+    if (!apartment) {
+      return [FALLBACK_PHOTO];
     }
 
-    return buildMapSrc({
-      lat: item.latitude,
-      lon: item.longitude,
-      address: item.address,
-      city: item.city,
-      country: item.country,
-    });
-  }, [item]);
+    return getApartmentPhotos(apartment);
+  }, [apartment]);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="container my-4">
-        <div className="text-muted">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error || !item) {
-    return (
-      <div className="container my-4">
-        <div className="alert alert-danger" role="alert">
-          {error ?? "Not found"}
+      <main className="apartment-details-page">
+        <div className="apartment-details-page__container">
+          <div className="apartment-details-state">Loading apartment...</div>
         </div>
-      </div>
+      </main>
     );
   }
 
-  const location = [item.city, item.country].filter(Boolean).join(", ");
-  const photos =
-    item.photos.length > 0
-      ? item.photos
-      : [{ id: 0, image_url: getMainPhotoUrl(item), is_main: true }];
+  if (error) {
+    return (
+      <main className="apartment-details-page">
+        <div className="apartment-details-page__container">
+          <div className="apartment-details-state apartment-details-state--error">
+            {error}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!apartment) {
+    return (
+      <main className="apartment-details-page">
+        <div className="apartment-details-page__container">
+          <div className="apartment-details-state apartment-details-state--error">
+            Apartment not found.
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="container my-4" style={{ maxWidth: 1100 }}>
-      <div className="d-flex flex-wrap align-items-start gap-3 mb-3">
-        <div className="flex-grow-1">
-          <h2 className="fw-bold mb-1">{item.title}</h2>
+    <main className="apartment-details-page">
+      <div className="apartment-details-page__container">
+        <header className="apartment-details-header">
+          <div className="apartment-details-header__content">
+            <p className="apartment-details-header__eyebrow">
+              {getLocationText(apartment)}
+            </p>
 
-          <div className="text-muted">
-            {location} · {item.address}
+            <h1 className="apartment-details-header__title">
+              {apartment.title}
+            </h1>
+
+            <p className="apartment-details-header__address">
+              {apartment.address}
+            </p>
           </div>
-        </div>
+        </header>
 
-        <div className="text-end">
-          <div className="fw-semibold">Price / night</div>
-          <div className="fs-4 fw-bold">{item.price_per_night} €</div>
-          <div className="text-muted small">Max guests: {item.max_guests}</div>
-        </div>
-      </div>
+        <ApartmentDetailsGallery
+          title={apartment.title}
+          photos={photos}
+          activePhotoUrl={activePhotoUrl}
+          onPhotoSelect={setActivePhotoUrl}
+        />
 
-      <div className="card border-0 shadow-sm rounded-4 mb-4">
-        <div className="card-body p-3">
-          <div className="row g-3">
-            <div className="col-12 col-lg-8">
-              <img
-                src={activePhotoUrl}
-                alt={item.title}
-                className="w-100 rounded-4"
-                style={{ height: 420, objectFit: "cover" }}
-              />
-            </div>
-
-            <div className="col-12 col-lg-4">
-              <div className="row g-2">
-                {photos.slice(0, 6).map((photo) => (
-                  <div key={photo.id} className="col-4 col-lg-6">
-                    <button
-                      type="button"
-                      className="btn p-0 w-100"
-                      onClick={() => setActivePhotoUrl(photo.image_url)}
-                      style={{ border: "none" }}
-                    >
-                      <img
-                        src={photo.image_url}
-                        alt={`${item.title} thumbnail`}
-                        className="w-100 rounded-3"
-                        style={{ height: 90, objectFit: "cover" }}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-muted small mt-2">
-                Click a thumbnail to view.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="row g-4">
-        <div className="col-12 col-lg-7">
-          <div className="card border-0 shadow-sm rounded-4 mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-2">Description</h5>
-
-              <p className="text-muted mb-0" style={{ whiteSpace: "pre-wrap" }}>
-                {item.description}
-              </p>
-            </div>
+        <section className="apartment-details-summary">
+          <div className="apartment-details-summary__item">
+            <strong>{apartment.max_guests}</strong>
+            <span>Guests</span>
           </div>
 
-          <div className="card border-0 shadow-sm rounded-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">Facilities</h5>
-
-              {item.tags && item.tags.length > 0 ? (
-                <div className="d-flex flex-wrap gap-2">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag.id ?? tag.name}
-                      className="badge text-bg-light border rounded-pill px-3 py-2"
-                    >
-                      {tag.name ?? String(tag)}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-muted">No tags/facilities.</div>
-              )}
-            </div>
+          <div className="apartment-details-summary__item">
+            <strong>{apartment.reviews_count}</strong>
+            <span>Reviews</span>
           </div>
-        </div>
 
-        <div className="col-12 col-lg-5">
-          <div className="card border-0 shadow-sm rounded-4">
-            <div className="card-body p-3">
-              <h5 className="fw-bold px-2 pt-2 mb-2">Location</h5>
-
-              <div className="rounded-4 overflow-hidden">
-                <iframe
-                  title="map"
-                  src={mapSrc}
-                  width="100%"
-                  height="360"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                />
-              </div>
-
-              <div className="text-muted small px-2 pt-2">
-                {item.latitude && item.longitude
-                  ? `Coordinates: ${item.latitude}, ${item.longitude}`
-                  : "Using address search because coordinates are not provided."}
-              </div>
-            </div>
+          <div className="apartment-details-summary__item">
+            <strong>{apartment.status}</strong>
+            <span>Status</span>
           </div>
+        </section>
+
+        <div className="apartment-details-layout">
+          <div className="apartment-details-layout__main">
+            <ApartmentDetailsInfo
+              description={apartment.description}
+              tags={getTags(apartment)}
+            />
+
+            <ApartmentDetailsMap apartment={apartment} />
+          </div>
+
+          <aside className="apartment-details-layout__sidebar">
+            <ApartmentDetailsBookingCard apartment={apartment} />
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
