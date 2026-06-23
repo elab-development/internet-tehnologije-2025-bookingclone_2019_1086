@@ -21,68 +21,117 @@
     "en": "English"
   },
   "footer": {
-  "description": "Find and book apartments easily, with a simple and reliable reservation experience.",
-  "navigation": "Navigation",
-  "support": "Support",
-  "help": "Help",
-  "terms": "Terms of use",
-  "privacy": "Privacy policy",
-  "rights": "All rights reserved."
-},
-"home": {
-  "eyebrow": "Stays made simple",
-  "title": "Apartments for holidays, work trips, and short stays",
-  "description": "Find an apartment that fits your travel plans, number of guests, and preferred way to stay.",
-  "apartmentsTitle": "Recommended apartments",
-  "apartmentsDescription": "Explore selected stays with a good balance of location, comfort, and price.",
-  "search": {
-    "location": "Destination",
-    "locationPlaceholder": "Enter a city or area",
-    "checkIn": "Check-in",
-    "checkOut": "Check-out",
-    "guests": "Guests",
-    "button": "Find a stay"
+    "description": "Find and book apartments easily, with a simple and reliable reservation experience.",
+    "navigation": "Navigation",
+    "support": "Support",
+    "help": "Help",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "rights": "All rights reserved."
+  },
+  "home": {
+    "eyebrow": "Stays made simple",
+    "title": "Apartments for holidays, work trips, and short stays",
+    "description": "Find an apartment that fits your travel plans, number of guests, and preferred way to stay.",
+    "apartmentsTitle": "Recommended apartments",
+    "apartmentsDescription": "Explore selected stays with a good balance of location, comfort, and price.",
+    "search": {
+      "location": "Destination",
+      "locationPlaceholder": "Enter a city or area",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "guests": "Guests",
+      "button": "Find a stay"
+    }
+  },
+  "auth": {
+    "modalEyebrow": "Account access",
+    "loginTitle": "Welcome back",
+    "registerTitle": "Create account",
+    "signIn": "Sign in",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "choosePassword": "Choose a password",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "phoneOptional": "Phone (optional)",
+    "role": "Role",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "loginFailed": "Login failed",
+    "registrationFailed": "Registration failed",
+    "noAccount": "Don’t have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "roles": {
+    "user": "User",
+    "host": "Host",
+    "admin": "Admin"
+  },
+  "common": {
+    "close": "Close",
+    "error": "Error"
+  },
+  "apartments": {
+    "addToWishlist": "Add to wishlist",
+    "exceptional": "Exceptional",
+    "perNight": "per night",
+    "night": "night",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "showImage": "Show image",
+    "details": {
+      "loading": "Loading apartment...",
+      "notFound": "Apartment not found.",
+      "locationNotAvailable": "Location not available",
+      "errors": {
+        "invalidId": "Invalid apartment ID.",
+        "loadFailed": "Failed to load apartment."
+      },
+      "summary": {
+        "guests": "Guests",
+        "reviews": "Reviews",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "gallery": {
+        "ariaLabel": "Apartment photos",
+        "photoAlt": "{{title}} photo {{number}}"
+      },
+      "booking": {
+        "pricePerNight": "Price per night",
+        "maxGuests": "Up to {{count}} guests",
+        "checkIn": "Check-in",
+        "checkOut": "Check-out",
+        "guests": "Number of guests",
+        "datePlaceholder": "dd.mm.yyyy",
+        "selectDates": "Select dates to see total price.",
+        "nightSingular": "night",
+        "nightPlural": "nights",
+        "total": "Total",
+        "reserve": "Reserve",
+        "note": "You will not be charged yet."
+      },
+      "info": {
+        "description": "Description",
+        "facilities": "Facilities",
+        "facility": "Facility",
+        "noFacilities": "No facilities added."
+      },
+      "map": {
+        "title": "Location",
+        "iframeTitle": "Apartment location",
+        "coordinates": "Coordinates: {{latitude}}, {{longitude}}",
+        "addressSearch": "Using address search because coordinates are not provided."
+      }
+    }
   }
-},
-"auth": {
-  "modalEyebrow": "Account access",
-  "loginTitle": "Welcome back",
-  "registerTitle": "Create account",
-  "signIn": "Sign in",
-  "register": "Register",
-  "logout": "Logout",
-  "email": "Email",
-  "emailPlaceholder": "you@example.com",
-  "password": "Password",
-  "passwordPlaceholder": "Your password",
-  "choosePassword": "Choose a password",
-  "name": "Name",
-  "namePlaceholder": "Your name",
-  "phoneOptional": "Phone (optional)",
-  "role": "Role",
-  "signingIn": "Signing in...",
-  "creatingAccount": "Creating account...",
-  "loginFailed": "Login failed",
-  "registrationFailed": "Registration failed",
-  "noAccount": "Don’t have an account?",
-  "hasAccount": "Already have an account?"
-},
-"roles": {
-  "user": "User",
-  "host": "Host",
-  "admin": "Admin"
-},
-"common": {
-  "close": "Close",
-  "error": "Error"
-},
-"apartments": {
-  "addToWishlist": "Add to wishlist",
-  "exceptional": "Exceptional",
-  "perNight": "per night",
-  "night": "night",
-  "previousImage": "Previous image",
-  "nextImage": "Next image",
-  "showImage": "Show image"
-}
 }

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
 
 type Props = {
@@ -29,31 +31,36 @@ function buildMapSrc(apartment: ApartmentDetailsDto) {
   return `https://www.openstreetmap.org/export/embed.html?search=${query}`;
 }
 
-function getMapText(apartment: ApartmentDetailsDto) {
-  if (apartment.latitude && apartment.longitude) {
-    return `Coordinates: ${apartment.latitude}, ${apartment.longitude}`;
+export default function ApartmentDetailsMap({ apartment }: Props) {
+  const { t } = useTranslation();
+
+  function getMapText() {
+    if (apartment.latitude && apartment.longitude) {
+      return t("apartments.details.map.coordinates", {
+        latitude: apartment.latitude,
+        longitude: apartment.longitude,
+      });
+    }
+
+    return t("apartments.details.map.addressSearch");
   }
 
-  return "Using address search because coordinates are not provided.";
-}
-
-export default function ApartmentDetailsMap({ apartment }: Props) {
   return (
     <section className="apartment-details-section apartment-details-section--map">
-      <h2 className="apartment-details-section__title">Location</h2>
+      <h2 className="apartment-details-section__title">
+        {t("apartments.details.map.title")}
+      </h2>
 
       <div className="apartment-map">
         <iframe
-          title="Apartment location"
+          title={t("apartments.details.map.iframeTitle")}
           src={buildMapSrc(apartment)}
           className="apartment-map__frame"
           loading="lazy"
         />
       </div>
 
-      <p className="apartment-map__text">
-        {getMapText(apartment)}
-      </p>
+      <p className="apartment-map__text">{getMapText()}</p>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import ReactDatePicker from "react-datepicker";
 
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
@@ -41,6 +42,8 @@ function calculateNights(checkInDate: Date | null, checkOutDate: Date | null) {
 }
 
 export default function ApartmentDetailsBookingCard({ apartment }: Props) {
+  const { t } = useTranslation();
+
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState("1");
@@ -48,6 +51,14 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const price = Number(apartment.price_per_night);
   const nights = calculateNights(checkInDate, checkOutDate);
   const total = price * nights;
+
+  function getNightsLabel() {
+    if (nights === 1) {
+      return t("apartments.details.booking.nightSingular");
+    }
+
+    return t("apartments.details.booking.nightPlural");
+  }
 
   function handleCheckInChange(date: Date | null) {
     setCheckInDate(date);
@@ -89,7 +100,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
     if (nights === 0) {
       return (
         <div className="details-booking__summary-muted">
-          Select dates to see total price.
+          {t("apartments.details.booking.selectDates")}
         </div>
       );
     }
@@ -98,13 +109,15 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
       <div className="details-booking__summary">
         <div className="details-booking__summary-row">
           <span>
-            {formatPrice(apartment.price_per_night)} x {nights} nights
+            {formatPrice(apartment.price_per_night)} x {nights}{" "}
+            {getNightsLabel()}
           </span>
+
           <strong>€{total.toFixed(0)}</strong>
         </div>
 
         <div className="details-booking__summary-row details-booking__summary-row--total">
-          <span>Total</span>
+          <span>{t("apartments.details.booking.total")}</span>
           <strong>€{total.toFixed(0)}</strong>
         </div>
       </div>
@@ -115,20 +128,27 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
     <form className="details-booking" onSubmit={handleSubmit}>
       <div className="details-booking__header">
         <div>
-          <p className="details-booking__label">Price per night</p>
+          <p className="details-booking__label">
+            {t("apartments.details.booking.pricePerNight")}
+          </p>
+
           <h2 className="details-booking__price">
             {formatPrice(apartment.price_per_night)}
           </h2>
         </div>
 
         <span className="details-booking__badge">
-          Up to {apartment.max_guests} guests
+          {t("apartments.details.booking.maxGuests", {
+            count: apartment.max_guests,
+          })}
         </span>
       </div>
 
       <div className="details-booking__grid">
         <div className="details-booking__field">
-          <label className="details-booking__field-label">Check in</label>
+          <label className="details-booking__field-label">
+            {t("apartments.details.booking.checkIn")}
+          </label>
 
           <DatePicker
             selected={checkInDate}
@@ -138,7 +158,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
             endDate={checkOutDate}
             minDate={new Date()}
             dateFormat="dd.MM.yyyy"
-            placeholderText="dd.mm.yyyy"
+            placeholderText={t("apartments.details.booking.datePlaceholder")}
             className="details-booking__input"
             calendarClassName="home-calendar"
             popperClassName="home-calendar-popper"
@@ -146,7 +166,9 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
         </div>
 
         <div className="details-booking__field">
-          <label className="details-booking__field-label">Check out</label>
+          <label className="details-booking__field-label">
+            {t("apartments.details.booking.checkOut")}
+          </label>
 
           <DatePicker
             selected={checkOutDate}
@@ -154,9 +176,9 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
             selectsEnd
             startDate={checkInDate}
             endDate={checkOutDate}
-            minDate={checkInDate || new Date()}
+            minDate={checkInDate ?? new Date()}
             dateFormat="dd.MM.yyyy"
-            placeholderText="dd.mm.yyyy"
+            placeholderText={t("apartments.details.booking.datePlaceholder")}
             className="details-booking__input"
             calendarClassName="home-calendar"
             popperClassName="home-calendar-popper"
@@ -164,7 +186,9 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
         </div>
 
         <div className="details-booking__field details-booking__field--full">
-          <label className="details-booking__field-label">Guests</label>
+          <label className="details-booking__field-label">
+            {t("apartments.details.booking.guests")}
+          </label>
 
           <input
             type="number"
@@ -181,11 +205,11 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
       {renderPriceSummary()}
 
       <button type="submit" className="details-booking__button">
-        Reserve
+        {t("apartments.details.booking.reserve")}
       </button>
 
       <p className="details-booking__note">
-        You will not be charged yet.
+        {t("apartments.details.booking.note")}
       </p>
     </form>
   );

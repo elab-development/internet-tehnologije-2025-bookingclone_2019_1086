@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { ApartmentPhotoDto } from "../../services/apartmentService";
 
 type Props = {
@@ -6,10 +8,6 @@ type Props = {
   activePhotoUrl: string;
   onPhotoSelect: (url: string) => void;
 };
-
-function getPhotoAlt(title: string, index: number) {
-  return `${title} photo ${index + 1}`;
-}
 
 function getThumbnailClassName(photoUrl: string, activePhotoUrl: string) {
   const classes = ["apartment-gallery__thumbnail"];
@@ -35,6 +33,15 @@ export default function ApartmentDetailsGallery({
   activePhotoUrl,
   onPhotoSelect,
 }: Props) {
+  const { t } = useTranslation();
+
+  function getPhotoAlt(index: number) {
+    return t("apartments.details.gallery.photoAlt", {
+      title,
+      number: index + 1,
+    });
+  }
+
   return (
     <section className="apartment-gallery">
       <div className="apartment-gallery__main">
@@ -45,7 +52,10 @@ export default function ApartmentDetailsGallery({
         />
       </div>
 
-      <div className="apartment-gallery__scroller" aria-label="Apartment photos">
+      <div
+        className="apartment-gallery__scroller"
+        aria-label={t("apartments.details.gallery.ariaLabel")}
+      >
         {photos.map((photo, index) => (
           <button
             key={photo.id}
@@ -55,7 +65,7 @@ export default function ApartmentDetailsGallery({
           >
             <img
               src={photo.image_url}
-              alt={getPhotoAlt(title, index)}
+              alt={getPhotoAlt(index)}
               className="apartment-gallery__thumbnail-image"
             />
           </button>
