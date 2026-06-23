@@ -435,24 +435,176 @@
 
 /* MAP */
 
-.apartment-map {
+.apartment-details-section--map {
+  padding: 0;
   overflow: hidden;
-  border-radius: 22px;
+}
+
+.apartment-map-header {
+  padding: 24px 26px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.apartment-map-header__title {
+  margin-bottom: 8px;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.apartment-map-header__address {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.apartment-map-header__link {
+  min-height: 42px;
+  padding: 0 15px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #003580;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 12px 24px rgba(0, 53, 128, 0.22);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.apartment-map-header__link:hover {
+  background-color: #002b66;
+  color: #ffffff;
+  box-shadow: 0 16px 30px rgba(0, 53, 128, 0.28);
+}
+
+.apartment-map-header__link:active {
+  transform: translateY(1px);
+}
+
+.apartment-map {
+  position: relative;
+  overflow: hidden;
+  height: 430px;
   background-color: #e5e7eb;
 }
 
-.apartment-map__frame {
-  display: block;
+.apartment-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 401;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.apartment-map--leaflet {
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.apartment-map__leaflet {
   width: 100%;
-  height: 360px;
-  border: 0;
+  height: 100%;
+  font-family: inherit;
+}
+
+.apartment-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apartment-map-marker__dot {
+  width: 22px;
+  height: 22px;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  display: block;
+  background-color: #003580;
+  box-shadow: 0 10px 22px rgba(0, 53, 128, 0.35);
+}
+
+.apartment-map .leaflet-control-zoom {
+  overflow: hidden;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
+.apartment-map .leaflet-control-zoom a {
+  width: 38px;
+  height: 38px;
+  border: none;
+  color: #111827;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 38px;
+}
+
+.apartment-map .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+}
+
+.apartment-map .leaflet-popup-content {
+  margin: 14px 16px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.apartment-map .leaflet-popup-content strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.apartment-map .leaflet-control-attribution {
+  border-radius: 999px 0 0 0;
+  padding: 3px 8px;
+  background-color: rgba(255, 255, 255, 0.82);
+  color: #64748b;
+  font-size: 10px;
+}
+
+.apartment-map-footer {
+  padding: 16px 26px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.apartment-map-footer__pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: rgba(0, 53, 128, 0.1);
+  color: #003580;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .apartment-map__text {
-  margin: 12px 0 0;
+  margin: 0;
   color: #64748b;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 750;
+  line-height: 1.5;
 }
 
 /* TABLET */
@@ -545,5 +697,28 @@
 
   .details-booking__field--full {
     grid-column: auto;
+  }
+
+  .apartment-map-header {
+    padding: 20px 20px 14px;
+    flex-direction: column;
+  }
+
+  .apartment-map-header__link {
+    width: 100%;
+  }
+
+  .apartment-map {
+    height: 340px;
+  }
+
+  .apartment-map-footer {
+    padding: 14px 20px 20px;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .apartment-map .leaflet-control-attribution {
+    font-size: 9px;
   }
 }
