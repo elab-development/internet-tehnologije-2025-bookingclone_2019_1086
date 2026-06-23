@@ -1,73 +1,58 @@
 import { useEffect, useState } from "react";
 
 import ApartmentCard from "./ApartmentCard";
+import {
+  type ApartmentDto,
+  type ApartmentSearchParams,
+  getApartments,
+  getMainPhotoUrl,
+} from "../services/apartmentService";
 
 import "./ApartmentList.css";
 
-const API_BASE_URL = "http://localhost:8000";
-
-type ApartmentPhoto = {
-  id: number;
-  image_url: string;
-  is_main: boolean;
+type Props = {
+  searchParams?: ApartmentSearchParams;
 };
 
-type Apartment = {
-  id: number;
-  user_id: number;
-  title: string;
-  description: string;
-  address: string;
-  city: string;
-  country: string;
-  price_per_night: string;
-  max_guests: number;
-  status: string;
-  latitude: string | null;
-  longitude: string | null;
-  rating_average: string | number | null;
-  reviews_count: number;
-  photos: ApartmentPhoto[];
-};
-
-type ApartmentsResponse = {
-  page_number: number;
-  page_size: number;
-  total: number;
-  items: Apartment[];
-};
-
-export default function ApartmentList() {
-  const [apartments, setApartments] = useState<Apartment[]>([]);
+export default function ApartmentList({ searchParams }: Props) {
+  const [apartments, setApartments] = useState<ApartmentDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadApartments();
-  }, []);
+    let cancelled = false;
 
-  async function loadApartments() {
-    setIsLoading(true);
-    setError(null);
+    async function loadApartments() {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/apartments?page_number=1&page_size=12`
-      );
+      try {
+        const response = await getApartments({
+          page_number: 1,
+          page_size: 12,
+          ...searchParams,
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to load apartments");
+        if (!cancelled) {
+          setApartments(response.items);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          handleLoadError(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
-
-      const data: ApartmentsResponse = await response.json();
-
-      setApartments(data.items);
-    } catch (error) {
-      handleLoadError(error);
-    } finally {
-      setIsLoading(false);
     }
-  }
+
+    loadApartments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);
 
   function handleLoadError(error: unknown) {
     if (error instanceof Error) {
@@ -76,42 +61,6 @@ export default function ApartmentList() {
     }
 
     setError("Failed to load apartments");
-  }
-
-  function buildImageUrl(imageUrl: string) {
-    if (imageUrl.startsWith("http")) {
-      return imageUrl;
-    }
-
-    if (imageUrl.startsWith("/")) {
-      return encodeURI(`${API_BASE_URL}${imageUrl}`);
-    }
-
-    return encodeURI(`${API_BASE_URL}/${imageUrl}`);
-  }
-
-  function getApartmentMainPhoto(apartment: Apartment) {
-    if (!apartment.photos || apartment.photos.length === 0) {
-      return null;
-    }
-
-    const mainPhoto = apartment.photos.find((photo) => photo.is_main);
-
-    if (mainPhoto) {
-      return mainPhoto;
-    }
-
-    return apartment.photos[0];
-  }
-
-  function getApartmentMainImage(apartment: Apartment) {
-    const photo = getApartmentMainPhoto(apartment);
-
-    if (!photo) {
-      return "/images/apartment-placeholder.jpg";
-    }
-
-    return buildImageUrl(photo.image_url);
   }
 
   function renderLoading() {
@@ -131,15 +80,7 @@ export default function ApartmentList() {
   }
 
   function renderEmptyState() {
-    if (isLoading) {
-      return null;
-    }
-
-    if (error) {
-      return null;
-    }
-
-    if (apartments.length > 0) {
+    if (isLoading || error || apartments.length > 0) {
       return null;
     }
 
@@ -147,11 +88,7 @@ export default function ApartmentList() {
   }
 
   function renderApartments() {
-    if (isLoading) {
-      return null;
-    }
-
-    if (error) {
+    if (isLoading || error) {
       return null;
     }
 
@@ -164,7 +101,7 @@ export default function ApartmentList() {
             name={apartment.title}
             country={apartment.country}
             city={apartment.city}
-            imageUrl={getApartmentMainImage(apartment)}
+            imageUrl={getMainPhotoUrl(apartment)}
             pricePerNight={apartment.price_per_night}
           />
         ))}
