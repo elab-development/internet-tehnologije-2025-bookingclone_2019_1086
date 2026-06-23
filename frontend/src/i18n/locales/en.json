@@ -75,5 +75,14 @@
 "common": {
   "close": "Close",
   "error": "Error"
+},
+"apartments": {
+  "addToWishlist": "Add to wishlist",
+  "exceptional": "Exceptional",
+  "perNight": "per night",
+  "night": "night",
+  "previousImage": "Previous image",
+  "nextImage": "Next image",
+  "showImage": "Show image"
 }
 }

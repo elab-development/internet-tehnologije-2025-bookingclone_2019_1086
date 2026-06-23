@@ -1,5 +1,7 @@
-import React from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
+
+import "./ApartmentCard.css";
 
 type Props = {
   id: number;
@@ -7,57 +9,78 @@ type Props = {
   country: string;
   city: string;
   imageUrl: string;
+  pricePerNight?: string | number;
 };
 
-export default function ApartmentCard({ id, name, country, city, imageUrl }: Props) {
+export default function ApartmentCard({
+  id,
+  name,
+  country,
+  city,
+  imageUrl,
+  pricePerNight = 0,
+}: Props) {
   const navigate = useNavigate();
 
   function openDetails() {
     navigate(`/apartments/${id}`);
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter") {
+      openDetails();
+    }
+  }
+
+  function handleFavoriteClick(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+
+    // TODO: wishlist later
+  }
+
+  function getFormattedPrice() {
+    const price = Number(pricePerNight);
+
+    if (Number.isNaN(price)) {
+      return "€0";
+    }
+
+    return `€${price.toFixed(0)}`;
+  }
+
   return (
     <div
-      className="card h-100 shadow-sm border-0 rounded-4"
+      className="apartment-card"
       role="button"
       tabIndex={0}
       onClick={openDetails}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") openDetails();
-      }}
-      style={{ cursor: "pointer" }}
+      onKeyDown={handleKeyDown}
     >
-      <div className="position-relative">
-        <img
-          src={imageUrl}
-          className="card-img-top rounded-top-4"
-          alt={name}
-          style={{ height: 200, objectFit: "cover" }}
-        />
+      <div className="apartment-card__image-wrapper">
+        <img src={imageUrl} className="apartment-card__image" alt={name} />
 
-        {/* IMPORTANT: prevent clicking heart from opening details */}
         <button
-          className="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm"
-          style={{ width: 36, height: 36 }}
+          className="apartment-card__favorite-button"
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            // TODO: wishlist later
-          }}
+          onClick={handleFavoriteClick}
+          aria-label="Add to wishlist"
         >
           ❤
         </button>
       </div>
 
-      <div className="card-body d-flex flex-column">
-        <h5 className="card-title fw-bold mb-1">{name}</h5>
-        <p className="text-muted mb-2">
-          {country}, {city}
+      <div className="apartment-card__body">
+        <h5 className="apartment-card__title">{name}</h5>
+
+        <p className="apartment-card__location">
+          {city}, {country}
         </p>
 
-        <div className="mt-auto d-flex align-items-center gap-2">
-          <span className="badge bg-primary rounded-2 px-2 py-1">10</span>
-          <span className="fw-semibold">Exceptional</span>
+        <p className="apartment-card__price">{getFormattedPrice()} / night</p>
+
+        <div className="apartment-card__rating">
+          <span className="apartment-card__rating-score">10</span>
+          <span className="apartment-card__rating-text">Exceptional</span>
         </div>
       </div>
     </div>
