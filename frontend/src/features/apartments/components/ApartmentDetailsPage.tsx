@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import {
@@ -34,16 +35,6 @@ function getApartmentPhotos(apartment: ApartmentDetailsDto) {
   return [FALLBACK_PHOTO];
 }
 
-function getLocationText(apartment: ApartmentDetailsDto) {
-  const parts = [apartment.city, apartment.country].filter(Boolean);
-
-  if (parts.length > 0) {
-    return parts.join(", ");
-  }
-
-  return "Location not available";
-}
-
 function getTags(apartment: ApartmentDetailsDto) {
   if (Array.isArray(apartment.tags)) {
     return apartment.tags;
@@ -53,6 +44,7 @@ function getTags(apartment: ApartmentDetailsDto) {
 }
 
 export default function ApartmentDetailsPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const apartmentId = Number(params.id);
 
@@ -70,7 +62,7 @@ export default function ApartmentDetailsPage() {
 
       try {
         if (!Number.isFinite(apartmentId)) {
-          throw new Error("Invalid apartment id.");
+          throw new Error(t("apartments.details.errors.invalidId"));
         }
 
         const response = await getApartmentById(apartmentId);
@@ -92,7 +84,7 @@ export default function ApartmentDetailsPage() {
           return;
         }
 
-        setError("Failed to load apartment.");
+        setError(t("apartments.details.errors.loadFailed"));
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -105,7 +97,7 @@ export default function ApartmentDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [apartmentId]);
+  }, [apartmentId, t]);
 
   const photos = useMemo(() => {
     if (!apartment) {
@@ -115,11 +107,45 @@ export default function ApartmentDetailsPage() {
     return getApartmentPhotos(apartment);
   }, [apartment]);
 
+  function getLocationText() {
+    if (!apartment) {
+      return t("apartments.details.locationNotAvailable");
+    }
+
+    const parts = [apartment.city, apartment.country].filter(Boolean);
+
+    if (parts.length > 0) {
+      return parts.join(", ");
+    }
+
+    return t("apartments.details.locationNotAvailable");
+  }
+
+  function getStatusLabel(status: string) {
+    const normalizedStatus = status.toLowerCase();
+
+    if (normalizedStatus === "active") {
+      return t("apartments.details.status.active");
+    }
+
+    if (normalizedStatus === "inactive") {
+      return t("apartments.details.status.inactive");
+    }
+
+    if (normalizedStatus === "pending") {
+      return t("apartments.details.status.pending");
+    }
+
+    return status;
+  }
+
   if (isLoading) {
     return (
       <main className="apartment-details-page">
         <div className="apartment-details-page__container">
-          <div className="apartment-details-state">Loading apartment...</div>
+          <div className="apartment-details-state">
+            {t("apartments.details.loading")}
+          </div>
         </div>
       </main>
     );
@@ -142,7 +168,7 @@ export default function ApartmentDetailsPage() {
       <main className="apartment-details-page">
         <div className="apartment-details-page__container">
           <div className="apartment-details-state apartment-details-state--error">
-            Apartment not found.
+            {t("apartments.details.notFound")}
           </div>
         </div>
       </main>
@@ -155,7 +181,7 @@ export default function ApartmentDetailsPage() {
         <header className="apartment-details-header">
           <div className="apartment-details-header__content">
             <p className="apartment-details-header__eyebrow">
-              {getLocationText(apartment)}
+              {getLocationText()}
             </p>
 
             <h1 className="apartment-details-header__title">
@@ -178,17 +204,17 @@ export default function ApartmentDetailsPage() {
         <section className="apartment-details-summary">
           <div className="apartment-details-summary__item">
             <strong>{apartment.max_guests}</strong>
-            <span>Guests</span>
+            <span>{t("apartments.details.summary.guests")}</span>
           </div>
 
           <div className="apartment-details-summary__item">
             <strong>{apartment.reviews_count}</strong>
-            <span>Reviews</span>
+            <span>{t("apartments.details.summary.reviews")}</span>
           </div>
 
           <div className="apartment-details-summary__item">
-            <strong>{apartment.status}</strong>
-            <span>Status</span>
+            <strong>{getStatusLabel(apartment.status)}</strong>
+            <span>{t("apartments.details.summary.status")}</span>
           </div>
         </section>
 
