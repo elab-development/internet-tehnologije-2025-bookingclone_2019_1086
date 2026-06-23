@@ -10,7 +10,9 @@ import {
   getMainPhotoUrl,
 } from "../services/apartmentService";
 
+import ApartmentDetailsHeader from "./details/ApartmentDetailsHeader";
 import ApartmentDetailsGallery from "./details/ApartmentDetailsGallery";
+import ApartmentDetailsSummary from "./details/ApartmentDetailsSummary";
 import ApartmentDetailsBookingCard from "./details/ApartmentDetailsBookingCard";
 import ApartmentDetailsInfo from "./details/ApartmentDetailsInfo";
 import ApartmentDetailsMap from "./details/ApartmentDetailsMap";
@@ -107,38 +109,6 @@ export default function ApartmentDetailsPage() {
     return getApartmentPhotos(apartment);
   }, [apartment]);
 
-  function getLocationText() {
-    if (!apartment) {
-      return t("apartments.details.locationNotAvailable");
-    }
-
-    const parts = [apartment.city, apartment.country].filter(Boolean);
-
-    if (parts.length > 0) {
-      return parts.join(", ");
-    }
-
-    return t("apartments.details.locationNotAvailable");
-  }
-
-  function getStatusLabel(status: string) {
-    const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus === "active") {
-      return t("apartments.details.status.active");
-    }
-
-    if (normalizedStatus === "inactive") {
-      return t("apartments.details.status.inactive");
-    }
-
-    if (normalizedStatus === "pending") {
-      return t("apartments.details.status.pending");
-    }
-
-    return status;
-  }
-
   if (isLoading) {
     return (
       <main className="apartment-details-page">
@@ -178,21 +148,7 @@ export default function ApartmentDetailsPage() {
   return (
     <main className="apartment-details-page">
       <div className="apartment-details-page__container">
-        <header className="apartment-details-header">
-          <div className="apartment-details-header__content">
-            <p className="apartment-details-header__eyebrow">
-              {getLocationText()}
-            </p>
-
-            <h1 className="apartment-details-header__title">
-              {apartment.title}
-            </h1>
-
-            <p className="apartment-details-header__address">
-              {apartment.address}
-            </p>
-          </div>
-        </header>
+        <ApartmentDetailsHeader apartment={apartment} />
 
         <ApartmentDetailsGallery
           title={apartment.title}
@@ -201,22 +157,7 @@ export default function ApartmentDetailsPage() {
           onPhotoSelect={setActivePhotoUrl}
         />
 
-        <section className="apartment-details-summary">
-          <div className="apartment-details-summary__item">
-            <strong>{apartment.max_guests}</strong>
-            <span>{t("apartments.details.summary.guests")}</span>
-          </div>
-
-          <div className="apartment-details-summary__item">
-            <strong>{apartment.reviews_count}</strong>
-            <span>{t("apartments.details.summary.reviews")}</span>
-          </div>
-
-          <div className="apartment-details-summary__item">
-            <strong>{getStatusLabel(apartment.status)}</strong>
-            <span>{t("apartments.details.summary.status")}</span>
-          </div>
-        </section>
+        <ApartmentDetailsSummary apartment={apartment} />
 
         <div className="apartment-details-layout">
           <div className="apartment-details-layout__main">
