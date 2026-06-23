@@ -1,0 +1,141 @@
+.apartment-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background-color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.apartment-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 53, 128, 0.22);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+}
+
+.apartment-card:focus-visible {
+  outline: none;
+  border-color: rgba(0, 53, 128, 0.55);
+  box-shadow: 0 0 0 4px rgba(0, 53, 128, 0.12);
+}
+
+.apartment-card__image-wrapper {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background-color: #eef2f7;
+}
+
+.apartment-card__image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.apartment-card:hover .apartment-card__image {
+  transform: scale(1.04);
+}
+
+.apartment-card__favorite-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.94);
+  color: #ef4444;
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  transition: transform 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.apartment-card__favorite-button:hover {
+  transform: scale(1.06);
+  background-color: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
+}
+
+.apartment-card__favorite-button:active {
+  transform: scale(0.98);
+}
+
+.apartment-card__body {
+  min-height: 150px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.apartment-card__title {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.apartment-card__location {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.apartment-card__price {
+  margin: 10px 0 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.apartment-card__rating {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.apartment-card__rating-score {
+  min-width: 34px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background-color: #003580;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.apartment-card__rating-text {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .apartment-card__image-wrapper {
+    height: 190px;
+  }
+
+  .apartment-card__body {
+    min-height: 140px;
+    padding: 14px;
+  }
+
+  .apartment-card__title {
+    font-size: 17px;
+  }
+}

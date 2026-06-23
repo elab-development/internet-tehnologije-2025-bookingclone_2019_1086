@@ -75,5 +75,14 @@
 "common": {
   "close": "Zatvori",
   "error": "Greška"
+},
+"apartments": {
+  "addToWishlist": "Dodaj u omiljene",
+  "exceptional": "Izuzetno",
+  "perNight": "po noći",
+  "night": "noć",
+  "previousImage": "Prethodna slika",
+  "nextImage": "Sledeća slika",
+  "showImage": "Prikaži sliku"
 }
 }
