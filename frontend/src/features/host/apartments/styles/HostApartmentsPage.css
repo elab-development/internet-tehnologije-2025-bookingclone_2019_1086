@@ -1,0 +1,95 @@
+.host-apartments-page {
+  width: 100%;
+}
+
+.host-apartments-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.host-apartments-page__title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.host-apartments-page__subtitle {
+  color: #6c757d;
+}
+
+.host-apartments-page__grid {
+  margin-top: 4px;
+}
+
+.host-apartments-page__card-wrapper {
+  position: relative;
+}
+
+.host-apartments-page__actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.host-apartments-page__icon-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.host-apartments-page__empty-card {
+  border: 0;
+  border-radius: 16px;
+}
+
+.host-apartments-page__empty-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.host-apartments-page__empty-text {
+  color: #6c757d;
+  margin-bottom: 16px;
+}
+
+.host-apartments-page__modal-backdrop {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.host-apartments-page__modal-content {
+  border-radius: 16px;
+}
+
+.host-apartments-page__delete-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.host-apartments-page__delete-text {
+  color: #6c757d;
+}
+
+.host-apartments-page__delete-name {
+  font-weight: 600;
+}
+
+@media (max-width: 576px) {
+  .host-apartments-page__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .host-apartments-page__header .btn {
+    width: 100%;
+  }
+}
