@@ -6,42 +6,37 @@ type Props = {
   apartment: ApartmentDetailsDto;
 };
 
+function getLocationParts(apartment: ApartmentDetailsDto) {
+  return [apartment.address, apartment.city, apartment.country].filter(Boolean);
+}
+
 export default function ApartmentDetailsSummary({ apartment }: Props) {
   const { t } = useTranslation();
 
-  function getStatusLabel(status: string) {
-    const normalizedStatus = status.toLowerCase();
+  function getLocationText() {
+    const parts = getLocationParts(apartment);
 
-    if (normalizedStatus === "active") {
-      return t("apartments.details.status.active");
+    if (parts.length > 0) {
+      return parts.join(", ");
     }
 
-    if (normalizedStatus === "inactive") {
-      return t("apartments.details.status.inactive");
-    }
-
-    if (normalizedStatus === "pending") {
-      return t("apartments.details.status.pending");
-    }
-
-    return status;
+    return t("apartments.details.locationNotAvailable");
   }
 
   return (
     <section className="apartment-details-summary">
-      <div className="apartment-details-summary__item">
-        <strong>{apartment.max_guests}</strong>
-        <span>{t("apartments.details.summary.guests")}</span>
-      </div>
+      <p className="apartment-details-summary__location">
+        {getLocationText()}
+      </p>
 
-      <div className="apartment-details-summary__item">
-        <strong>{apartment.reviews_count}</strong>
-        <span>{t("apartments.details.summary.reviews")}</span>
-      </div>
+      <div className="apartment-details-summary__badges">
+        <span className="apartment-details-summary__badge">
+          {apartment.max_guests} {t("apartments.details.summary.guests")}
+        </span>
 
-      <div className="apartment-details-summary__item">
-        <strong>{getStatusLabel(apartment.status)}</strong>
-        <span>{t("apartments.details.summary.status")}</span>
+        <span className="apartment-details-summary__badge">
+          {apartment.reviews_count} {t("apartments.details.summary.reviews")}
+        </span>
       </div>
     </section>
   );

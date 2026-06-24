@@ -29,6 +29,44 @@ export default function ApartmentDetailsPage() {
     error,
   } = useApartmentDetails(apartmentId);
 
+  function handleShowPhotosClick() {
+    const galleryScroller = document.querySelector<HTMLElement>(
+      ".apartment-gallery__scroller"
+    );
+
+    if (!galleryScroller) {
+      return;
+    }
+
+    galleryScroller.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }
+
+  async function handleShareClick() {
+    const shareUrl = window.location.href;
+
+    if (!apartment) {
+      return;
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: apartment.title,
+          url: shareUrl,
+        });
+
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      return;
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="apartment-details-page">
@@ -68,7 +106,11 @@ export default function ApartmentDetailsPage() {
   return (
     <main className="apartment-details-page">
       <div className="apartment-details-page__container">
-        <ApartmentDetailsHeader apartment={apartment} />
+        <ApartmentDetailsHeader
+          apartment={apartment}
+          onShowPhotosClick={handleShowPhotosClick}
+          onShareClick={handleShareClick}
+        />
 
         <ApartmentDetailsGallery
           title={apartment.title}
@@ -85,14 +127,14 @@ export default function ApartmentDetailsPage() {
               description={apartment.description}
               tags={getApartmentTags(apartment)}
             />
-
-            <ApartmentDetailsMap apartment={apartment} />
           </div>
 
           <aside className="apartment-details-layout__sidebar">
             <ApartmentDetailsBookingCard apartment={apartment} />
           </aside>
         </div>
+
+        <ApartmentDetailsMap apartment={apartment} />
       </div>
     </main>
   );

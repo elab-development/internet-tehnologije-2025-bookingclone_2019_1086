@@ -30,9 +30,9 @@ const DEFAULT_MAP_POSITION: MapPosition = {
 const apartmentMarkerIcon = L.divIcon({
   className: "apartment-map-marker",
   html: '<span class="apartment-map-marker__dot"></span>',
-  iconSize: [34, 34],
-  iconAnchor: [17, 17],
-  popupAnchor: [0, -18],
+  iconSize: [50, 50],
+  iconAnchor: [25, 25],
+  popupAnchor: [0, -20],
 });
 
 function getValidCoordinate(value: string | null) {
@@ -78,7 +78,7 @@ function buildAddressText(apartment: ApartmentDetailsDto) {
 
 function buildOpenMapUrl(apartment: ApartmentDetailsDto, position: MapPosition) {
   if (position.hasExactCoordinates) {
-    return `https://www.openstreetmap.org/?mlat=${position.latitude}&mlon=${position.longitude}#map=17/${position.latitude}/${position.longitude}`;
+    return `https://www.openstreetmap.org/?mlat=${position.latitude}&mlon=${position.longitude}#map=15/${position.latitude}/${position.longitude}`;
   }
 
   const query = encodeURIComponent(buildAddressText(apartment));
@@ -95,7 +95,11 @@ export default function ApartmentDetailsMap({ apartment }: Props) {
     return [position.latitude, position.longitude];
   }, [position]);
 
-  const zoom = position.hasExactCoordinates ? 17 : 14;
+  let zoom = 12;
+
+  if (position.hasExactCoordinates) {
+    zoom = 15;
+  }
 
   function getMapDescription() {
     if (position.hasExactCoordinates) {

@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-
 import type { ApartmentPhotoDto } from "../../services/apartmentService";
 
 type Props = {
@@ -27,6 +26,24 @@ function getActiveImageUrl(activePhotoUrl: string, photos: ApartmentPhotoDto[]) 
   return photos[0].image_url;
 }
 
+function getPreviewPhotos(photos: ApartmentPhotoDto[], activePhotoUrl: string) {
+  const previewPhotos: ApartmentPhotoDto[] = [];
+
+  photos.forEach((photo) => {
+    if (previewPhotos.length >= 4) {
+      return;
+    }
+
+    if (photo.image_url === activePhotoUrl) {
+      return;
+    }
+
+    previewPhotos.push(photo);
+  });
+
+  return previewPhotos;
+}
+
 export default function ApartmentDetailsGallery({
   title,
   photos,
@@ -34,6 +51,9 @@ export default function ApartmentDetailsGallery({
   onPhotoSelect,
 }: Props) {
   const { t } = useTranslation();
+
+  const activeImageUrl = getActiveImageUrl(activePhotoUrl, photos);
+  const previewPhotos = getPreviewPhotos(photos, activeImageUrl);
 
   function getPhotoAlt(index: number) {
     return t("apartments.details.gallery.photoAlt", {
@@ -44,12 +64,35 @@ export default function ApartmentDetailsGallery({
 
   return (
     <section className="apartment-gallery">
-      <div className="apartment-gallery__main">
-        <img
-          src={getActiveImageUrl(activePhotoUrl, photos)}
-          alt={title}
-          className="apartment-gallery__main-image"
-        />
+      <div className="apartment-gallery__grid">
+        <button
+          type="button"
+          className="apartment-gallery__main"
+          onClick={() => onPhotoSelect(activeImageUrl)}
+        >
+          <img
+            src={activeImageUrl}
+            alt={title}
+            className="apartment-gallery__image"
+          />
+        </button>
+
+        <div className="apartment-gallery__preview">
+          {previewPhotos.map((photo, index) => (
+            <button
+              key={photo.id}
+              type="button"
+              className="apartment-gallery__preview-item"
+              onClick={() => onPhotoSelect(photo.image_url)}
+            >
+              <img
+                src={photo.image_url}
+                alt={getPhotoAlt(index)}
+                className="apartment-gallery__image"
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       <div
@@ -60,7 +103,7 @@ export default function ApartmentDetailsGallery({
           <button
             key={photo.id}
             type="button"
-            className={getThumbnailClassName(photo.image_url, activePhotoUrl)}
+            className={getThumbnailClassName(photo.image_url, activeImageUrl)}
             onClick={() => onPhotoSelect(photo.image_url)}
           >
             <img
