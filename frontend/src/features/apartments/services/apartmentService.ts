@@ -1,4 +1,5 @@
-import { getAccessToken } from "../../auth/storage/authStorage";
+import { apiRequest } from "../../../shared/api/apiClient";
+import { API_BASE } from "../../../shared/config/api";
 
 /* ============================
    TYPES
@@ -61,10 +62,8 @@ export type ApartmentCreateRequest = {
 };
 
 /* ============================
-   CONFIG
+   CONSTANTS
    ============================ */
-
-export const API_BASE = "http://localhost:8000";
 
 const APARTMENT_PLACEHOLDER_IMAGE = "https://picsum.photos/600/400";
 
@@ -124,24 +123,6 @@ function buildQuery(params: Record<string, string | number | undefined | null>) 
   const queryString = searchParams.toString();
 
   return queryString ? `?${queryString}` : "";
-}
-
-async function readErrorResponse(response: Response, fallbackMessage: string) {
-  const text = await response.text();
-
-  return text || `${fallbackMessage} (${response.status})`;
-}
-
-function getAuthHeaders() {
-  const token = getAccessToken();
-
-  if (!token) {
-    throw new Error("Not logged in");
-  }
-
-  return {
-    Authorization: `Bearer ${token}`,
-  };
 }
 
 /* ============================
@@ -220,20 +201,12 @@ export async function getApartments(args?: ApartmentSearchParams) {
     country: args?.country,
   });
 
-  const response = await fetch(`${API_BASE}/apartments${query}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to load apartments")
-    );
-  }
-
-  const json = (await response.json()) as BasePagedResponse<unknown>;
+  const json = await apiRequest<BasePagedResponse<unknown>>(
+    `/apartments${query}`,
+    {
+      method: "GET",
+    }
+  );
 
   return {
     ...json,
@@ -242,20 +215,9 @@ export async function getApartments(args?: ApartmentSearchParams) {
 }
 
 export async function getApartmentById(id: number) {
-  const response = await fetch(`${API_BASE}/apartments/${id}`, {
+  const json = await apiRequest<unknown>(`/apartments/${id}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
   });
-
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to load apartment")
-    );
-  }
-
-  const json = await response.json();
 
   return normalizeApartment(json);
 }
@@ -273,21 +235,13 @@ export async function getMyApartments(args?: ApartmentSearchParams) {
     country: args?.country,
   });
 
-  const response = await fetch(`${API_BASE}/apartments/my${query}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to load my apartments")
-    );
-  }
-
-  const json = (await response.json()) as BasePagedResponse<unknown>;
+  const json = await apiRequest<BasePagedResponse<unknown>>(
+    `/apartments/my${query}`,
+    {
+      method: "GET",
+      auth: true,
+    }
+  );
 
   return {
     ...json,
@@ -296,22 +250,13 @@ export async function getMyApartments(args?: ApartmentSearchParams) {
 }
 
 export async function createApartment(body: ApartmentCreateRequest) {
-  const response = await fetch(`${API_BASE}/apartments`, {
+  const json = await apiRequest<unknown>("/apartments", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
+    auth: true,
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to create apartment")
-    );
-  }
-
-  return normalizeApartment(await response.json());
+  return normalizeApartment(json);
 }
 
 export async function uploadApartmentPhotos(apartmentId: number, photos: File[]) {
@@ -321,36 +266,21 @@ export async function uploadApartmentPhotos(apartmentId: number, photos: File[])
     formData.append("photos", photo);
   });
 
-  const response = await fetch(`${API_BASE}/apartments/${apartmentId}/photos`, {
-    method: "POST",
-    headers: {
-      ...getAuthHeaders(),
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to upload photos")
-    );
-  }
-
-  const created = (await response.json()) as unknown[];
+  const created = await apiRequest<unknown[]>(
+    `/apartments/${apartmentId}/photos`,
+    {
+      method: "POST",
+      auth: true,
+      body: formData,
+    }
+  );
 
   return created.map(normalizePhoto);
 }
 
 export async function deleteApartment(apartmentId: number) {
-  const response = await fetch(`${API_BASE}/apartments/${apartmentId}`, {
+  await apiRequest<void>(`/apartments/${apartmentId}`, {
     method: "DELETE",
-    headers: {
-      ...getAuthHeaders(),
-    },
+    auth: true,
   });
-
-  if (!response.ok) {
-    throw new Error(
-      await readErrorResponse(response, "Failed to delete apartment")
-    );
-  }
 }

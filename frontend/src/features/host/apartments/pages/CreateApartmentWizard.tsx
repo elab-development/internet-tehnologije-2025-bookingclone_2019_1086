@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import * as apartmentService from "../../../apartments/services/apartmentService";
+import { getTags, type TagDto } from "../../../tags/services/tagService";
 
 import StepApartmentDetails, {
   ApartmentDetailsState,
 } from "../steps/StepApartmentDetails";
 
-import StepApartmentTags, {
-  TagDto,
-} from "../steps/StepApartmentTags";
+import StepApartmentTags from "../steps/StepApartmentTags";
 
 import StepApartmentPhotos from "../steps/StepApartmentPhotos";
 
@@ -29,7 +28,6 @@ export default function CreateApartmentWizard() {
 
   const [stepIndex, setStepIndex] = useState<number>(0);
 
-  // Step 1 state
   const [details, setDetails] = useState<ApartmentDetailsState>({
     title: "",
     description: "",
@@ -40,21 +38,22 @@ export default function CreateApartmentWizard() {
     max_guests: "",
   });
 
-  // Step 2 state
   const [availableTags, setAvailableTags] = useState<TagDto[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
-  // Created apartment id (after step 2 success)
-  const [createdApartmentId, setCreatedApartmentId] = useState<number | null>(null);
+  const [createdApartmentId, setCreatedApartmentId] = useState<number | null>(
+    null
+  );
 
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<boolean>(false);
 
   const current = steps[stepIndex]?.key;
 
-  // Load tags when we enter step 2
   useEffect(() => {
-    if (current !== "tags") return;
+    if (current !== "tags") {
+      return;
+    }
 
     let cancelled = false;
 
@@ -63,30 +62,27 @@ export default function CreateApartmentWizard() {
         setError(null);
         setBusy(true);
 
-        // ✅ Replace this with your real tags service if you already have it.
-        // For now, you can hardcode tags or fetch from an endpoint.
-        // Example assumes GET /tags exists:
-        const res = await fetch("http://localhost:8000/tags", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const tags = await getTags();
 
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(txt || `Failed to load tags (${res.status})`);
+        if (!cancelled) {
+          setAvailableTags(tags);
         }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to load tags";
 
-        const tags = (await res.json()) as TagDto[];
-        if (!cancelled) setAvailableTags(tags);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Failed to load tags";
-        if (!cancelled) setError(msg);
+        if (!cancelled) {
+          setError(message);
+        }
       } finally {
-        if (!cancelled) setBusy(false);
+        if (!cancelled) {
+          setBusy(false);
+        }
       }
     }
 
     loadTags();
+
     return () => {
       cancelled = true;
     };
@@ -94,34 +90,37 @@ export default function CreateApartmentWizard() {
 
   function goPrev() {
     setError(null);
-    setStepIndex((i) => Math.max(0, i - 1));
+    setStepIndex((currentIndex) => Math.max(0, currentIndex - 1));
   }
 
   function goToStep(key: StepKey) {
-    // allow jumping only to completed/allowed steps
-    // - photos only allowed after create (createdApartmentId exists)
-    if (key === "photos" && !createdApartmentId) return;
+    if (key === "photos" && !createdApartmentId) {
+      return;
+    }
+
     setError(null);
-    setStepIndex(steps.findIndex((s) => s.key === key));
+    setStepIndex(steps.findIndex((step) => step.key === key));
   }
 
-  function validateDetails(d: ApartmentDetailsState) {
-    const title = d.title.trim();
-    const description = d.description.trim();
-    const address = d.address.trim();
-    const city = d.city.trim();
-    const country = d.country.trim();
+  function validateDetails(value: ApartmentDetailsState) {
+    const title = value.title.trim();
+    const description = value.description.trim();
+    const address = value.address.trim();
+    const city = value.city.trim();
+    const country = value.country.trim();
 
     if (!title || !description || !address || !city || !country) {
       throw new Error("All fields are required.");
     }
 
-    const price = Number(d.price_per_night);
+    const price = Number(value.price_per_night);
+
     if (!Number.isFinite(price) || price <= 0) {
       throw new Error("Price per night must be a positive number.");
     }
 
-    const guests = Number(d.max_guests);
+    const guests = Number(value.max_guests);
+
     if (!Number.isFinite(guests) || guests < 1) {
       throw new Error("Max guests must be at least 1.");
     }
@@ -132,9 +131,11 @@ export default function CreateApartmentWizard() {
       setError(null);
       validateDetails(details);
       setStepIndex(1);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Validation failed";
-      setError(msg);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Validation failed";
+
+      setError(message);
     }
   }
 
@@ -158,17 +159,19 @@ export default function CreateApartmentWizard() {
 
       const created = await apartmentService.createApartment(payload);
 
-      // You said your backend returns json; we assume it includes id.
       const id = Number(created?.id);
+
       if (!Number.isFinite(id)) {
         throw new Error("Apartment created but no id returned from API.");
       }
 
       setCreatedApartmentId(id);
       setStepIndex(2);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to create apartment";
-      setError(msg);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create apartment";
+
+      setError(message);
     } finally {
       setBusy(false);
     }
@@ -182,43 +185,53 @@ export default function CreateApartmentWizard() {
     <div className="container my-4" style={{ maxWidth: 950 }}>
       <div className="mb-3">
         <h2 className="fw-bold mb-1">Create apartment</h2>
-        <div className="text-muted">Complete all steps to publish your listing</div>
+
+        <div className="text-muted">
+          Complete all steps to publish your listing
+        </div>
       </div>
 
-      {/* Stepper header */}
       <div className="card border-0 shadow-sm rounded-4 mb-3">
         <div className="card-body p-3">
           <div className="d-flex flex-wrap gap-2 align-items-center">
-            {steps.map((s, idx) => {
-              const isActive = idx === stepIndex;
+            {steps.map((step, index) => {
+              const isActive = index === stepIndex;
+
               const isDone =
-                (s.key === "details" && stepIndex > 0) ||
-                (s.key === "tags" && createdApartmentId !== null) ||
-                (s.key === "photos" && createdApartmentId !== null && stepIndex > 2);
+                (step.key === "details" && stepIndex > 0) ||
+                (step.key === "tags" && createdApartmentId !== null);
 
               const canClick =
-                s.key === "details" ||
-                s.key === "tags" ||
-                (s.key === "photos" && createdApartmentId !== null);
+                step.key === "details" ||
+                step.key === "tags" ||
+                (step.key === "photos" && createdApartmentId !== null);
 
               return (
                 <button
-                  key={s.key}
+                  key={step.key}
                   type="button"
                   className={
                     "btn btn-sm rounded-pill " +
-                    (isActive ? "btn-primary" : isDone ? "btn-outline-success" : "btn-outline-secondary")
+                    (isActive
+                      ? "btn-primary"
+                      : isDone
+                      ? "btn-outline-success"
+                      : "btn-outline-secondary")
                   }
-                  onClick={() => (canClick ? goToStep(s.key) : null)}
+                  onClick={() => goToStep(step.key)}
                   disabled={!canClick}
                 >
-                  {idx + 1}. {s.label}
+                  {index + 1}. {step.label}
                 </button>
               );
             })}
+
             <div className="ms-auto text-muted small">
               {createdApartmentId ? (
-                <>Apartment ID: <span className="fw-semibold">{createdApartmentId}</span></>
+                <>
+                  Apartment ID:{" "}
+                  <span className="fw-semibold">{createdApartmentId}</span>
+                </>
               ) : (
                 <>Not created yet</>
               )}
@@ -233,7 +246,6 @@ export default function CreateApartmentWizard() {
         </div>
       ) : null}
 
-      {/* Content */}
       {current === "details" ? (
         <StepApartmentDetails
           value={details}

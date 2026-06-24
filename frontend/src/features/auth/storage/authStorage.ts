@@ -1,8 +1,7 @@
+import type { AuthUser } from "../types/authTypes";
+
 const ACCESS_TOKEN_KEY = "access_token";
 const AUTH_USER_KEY = "auth_user";
-
-export type Role = "USER" | "HOST" | "ADMIN";
-export type AuthUser = { id: number; email: string; name: string; role: Role };
 
 export function setAccessToken(token: string) {
   localStorage.setItem(ACCESS_TOKEN_KEY, token);
@@ -26,10 +25,15 @@ export function setAuthUser(user: AuthUser) {
 
 export function getAuthUser(): AuthUser | null {
   const raw = localStorage.getItem(AUTH_USER_KEY);
-  if (!raw) return null;
+
+  if (!raw) {
+    return null;
+  }
+
   try {
     return JSON.parse(raw) as AuthUser;
   } catch {
+    clearAuthUser();
     return null;
   }
 }
