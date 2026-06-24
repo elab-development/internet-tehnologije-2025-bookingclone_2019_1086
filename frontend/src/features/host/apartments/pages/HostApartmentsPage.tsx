@@ -1,188 +1,107 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { getAuthUser } from "../../../auth/storage/authStorage";
 import ApartmentCard from "../../../apartments/components/ApartmentCard";
-import {
-  type ApartmentDto,
-  deleteApartment,
-  getMainPhotoUrl,
-  getMyApartments,
-} from "../../../apartments/services/apartmentService";
+import { getMainPhotoUrl } from "../../../apartments/services/apartmentService";
+import { useHostApartments } from "../hooks/useHostApartments";
+
+import "../styles/HostApartmentsPage.css";
 
 export default function HostApartmentsPage() {
-  const user = getAuthUser();
-  const userId = user?.id ?? null;
-  const isHost = user?.role === "HOST";
+  const {
+    items,
+    loading,
+    error,
+    message,
+    isHost,
+    hasItems,
+    showEmpty,
+    deleteBusy,
+    deleteModal,
+    isDeleteModalOpen,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
+  } = useHostApartments();
 
-  const [items, setItems] = useState<ApartmentDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [deleteTitle, setDeleteTitle] = useState("");
-  const [deleteBusy, setDeleteBusy] = useState(false);
-
-  const [message, setMessage] = useState<{
-    type: "success" | "danger";
-    text: string;
-  } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMyApartments() {
-      if (!userId) {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await getMyApartments({
-          page_number: 1,
-          page_size: 50,
-        });
-
-        const myApartments = response.items.filter(
-          (apartment) => apartment.user_id === userId
-        );
-
-        if (!cancelled) {
-          setItems(myApartments);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "Failed to load apartments";
-
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+  function getMessageClassName() {
+    if (!message) {
+      return "alert";
     }
 
-    loadMyApartments();
+    if (message.type === "success") {
+      return "alert alert-success";
+    }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
-
-  function openDeleteModal(apartment: ApartmentDto) {
-    setDeleteId(apartment.id);
-    setDeleteTitle(apartment.title);
+    return "alert alert-danger";
   }
 
-  function closeDeleteModal() {
+  function getDeleteButtonText() {
     if (deleteBusy) {
-      return;
+      return "Deleting...";
     }
 
-    setDeleteId(null);
-    setDeleteTitle("");
+    return "Delete";
   }
-
-  async function confirmDelete() {
-    if (!deleteId) {
-      return;
-    }
-
-    setDeleteBusy(true);
-    setMessage(null);
-
-    try {
-      await deleteApartment(deleteId);
-
-      setItems((currentItems) =>
-        currentItems.filter((apartment) => apartment.id !== deleteId)
-      );
-
-      setMessage({
-        type: "success",
-        text: "Apartment deleted successfully.",
-      });
-
-      setDeleteId(null);
-      setDeleteTitle("");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete apartment";
-
-      setMessage({
-        type: "danger",
-        text: message,
-      });
-    } finally {
-      setDeleteBusy(false);
-    }
-  }
-
-  const showEmpty = !loading && !error && items.length === 0;
 
   return (
-    <div className="container my-4">
-      <div className="d-flex align-items-center justify-content-between mb-3">
+    <div className="container my-4 host-apartments-page">
+      <div className="host-apartments-page__header">
         <div>
-          <h2 className="fw-bold mb-1">My apartments</h2>
-          <div className="text-muted">Manage your listings</div>
+          <h2 className="host-apartments-page__title">My apartments</h2>
+          <div className="host-apartments-page__subtitle">
+            Manage your listings
+          </div>
         </div>
 
-        {isHost ? (
+        {isHost && (
           <Link to="/host/apartments/create" className="btn btn-primary">
             + Add apartment
           </Link>
-        ) : null}
+        )}
       </div>
 
-      {message ? (
-        <div className={`alert alert-${message.type}`} role="alert">
+      {message && (
+        <div className={getMessageClassName()} role="alert">
           {message.text}
         </div>
-      ) : null}
+      )}
 
-      {loading ? <div>Loading...</div> : null}
+      {loading && <div>Loading...</div>}
 
-      {error ? (
+      {error && (
         <div className="alert alert-danger" role="alert">
           {error}
         </div>
-      ) : null}
+      )}
 
-      {showEmpty ? (
-        <div className="card border-0 shadow-sm rounded-4">
+      {showEmpty && (
+        <div className="card shadow-sm host-apartments-page__empty-card">
           <div className="card-body p-4">
-            <div className="fw-bold mb-1">No apartments yet</div>
+            <div className="host-apartments-page__empty-title">
+              No apartments yet
+            </div>
 
-            <div className="text-muted mb-3">
+            <div className="host-apartments-page__empty-text">
               Create your first apartment listing.
             </div>
 
-            {isHost ? (
+            {isHost && (
               <Link to="/host/apartments/create" className="btn btn-primary">
                 Create apartment
               </Link>
-            ) : null}
+            )}
           </div>
         </div>
-      ) : null}
+      )}
 
-      {!loading && !error && items.length > 0 ? (
-        <div className="row g-4">
+      {hasItems && !loading && !error && (
+        <div className="row g-4 host-apartments-page__grid">
           {items.map((apartment) => (
             <div
               key={apartment.id}
               className="col-12 col-sm-6 col-md-4 col-lg-3"
             >
-              <div className="position-relative">
+              <div className="host-apartments-page__card-wrapper">
                 <ApartmentCard
                   id={apartment.id}
                   name={apartment.title}
@@ -192,41 +111,36 @@ export default function HostApartmentsPage() {
                   pricePerNight={apartment.price_per_night}
                 />
 
-                {isHost ? (
-                  <div
-                    className="position-absolute top-0 end-0 p-2 d-flex gap-2"
-                    style={{ zIndex: 10 }}
-                  >
+                {isHost && (
+                  <div className="host-apartments-page__actions">
                     <button
                       type="button"
-                      className="btn btn-light border rounded-circle p-2 shadow-sm"
+                      className="btn btn-light border shadow-sm host-apartments-page__icon-button"
                       title="Delete"
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-
                         openDeleteModal(apartment);
                       }}
                     >
                       🗑️
                     </button>
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           ))}
         </div>
-      ) : null}
+      )}
 
-      {deleteId !== null ? (
+      {isDeleteModalOpen && (
         <div
-          className="modal d-block"
+          className="modal host-apartments-page__modal-backdrop"
           tabIndex={-1}
           role="dialog"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-dialog-centered" role="document">
-            <div className="modal-content rounded-4">
+            <div className="modal-content host-apartments-page__modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Delete apartment</h5>
 
@@ -239,12 +153,16 @@ export default function HostApartmentsPage() {
               </div>
 
               <div className="modal-body">
-                <div className="fw-bold mb-1">Are you sure?</div>
+                <div className="host-apartments-page__delete-title">
+                  Are you sure?
+                </div>
 
-                <div className="text-muted">
+                <div className="host-apartments-page__delete-text">
                   This will permanently delete{" "}
-                  <span className="fw-semibold">{deleteTitle}</span> and its
-                  photos.
+                  <span className="host-apartments-page__delete-name">
+                    {deleteModal.apartmentTitle}
+                  </span>{" "}
+                  and its photos.
                 </div>
               </div>
 
@@ -264,13 +182,13 @@ export default function HostApartmentsPage() {
                   onClick={confirmDelete}
                   disabled={deleteBusy}
                 >
-                  {deleteBusy ? "Deleting..." : "Delete"}
+                  {getDeleteButtonText()}
                 </button>
               </div>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
