@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import AppLayout from "./layout/AppLayout/AppLayout";
+import ProtectedRoute from "./routes/ProtectedRoute";
+
 import HomePage from "../pages/HomePage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
@@ -23,11 +26,24 @@ export default function App() {
 
           <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
 
-          {/* HOST */}
-          <Route path="/host/apartments" element={<HostApartmentsPage />} />
-          <Route path="/host/apartments/create" element={<CreateApartmentWizard />} />
+          <Route
+            path="/host/apartments"
+            element={
+              <ProtectedRoute allowedRoles={["HOST"]}>
+                <HostApartmentsPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Fallback */}
+          <Route
+            path="/host/apartments/create"
+            element={
+              <ProtectedRoute allowedRoles={["HOST"]}>
+                <CreateApartmentWizard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

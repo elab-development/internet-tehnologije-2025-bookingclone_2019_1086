@@ -1,10 +1,6 @@
 import React from "react";
 
-export type TagDto = {
-  id: number;
-  name: string;
-  // svg?: string; // if you later return svg
-};
+import type { TagDto } from "../../../tags/services/tagService";
 
 export default function StepApartmentTags(props: {
   availableTags: TagDto[];
@@ -12,7 +8,7 @@ export default function StepApartmentTags(props: {
   onChangeSelectedTagIds: (ids: number[]) => void;
   busy: boolean;
   onPrev: () => void;
-  onCreate: () => void; // calls POST /apartments with tag_ids included
+  onCreate: () => void;
   onCancel: () => void;
 }) {
   const {
@@ -30,6 +26,7 @@ export default function StepApartmentTags(props: {
       onChangeSelectedTagIds(selectedTagIds.filter((x) => x !== id));
       return;
     }
+
     onChangeSelectedTagIds([...selectedTagIds, id]);
   }
 
@@ -37,28 +34,30 @@ export default function StepApartmentTags(props: {
     <div className="card border-0 shadow-sm rounded-4">
       <div className="card-body p-4">
         <h5 className="fw-bold mb-1">Step 2: Tags</h5>
+
         <div className="text-muted mb-3">
-          Select tags, then we will create the apartment (POST /apartments)
+          Select tags, then we will create the apartment.
         </div>
 
         {availableTags.length === 0 ? (
-          <div className="text-muted">No tags loaded (or you don’t have GET /tags yet).</div>
+          <div className="text-muted">No tags loaded.</div>
         ) : (
           <div className="row g-2">
-            {availableTags.map((t) => {
-              const checked = selectedTagIds.includes(t.id);
+            {availableTags.map((tag) => {
+              const checked = selectedTagIds.includes(tag.id);
+
               return (
-                <div key={t.id} className="col-12 col-md-6 col-lg-4">
+                <div key={tag.id} className="col-12 col-md-6 col-lg-4">
                   <button
                     type="button"
                     className={
                       "btn w-100 text-start rounded-3 " +
                       (checked ? "btn-success" : "btn-outline-secondary")
                     }
-                    onClick={() => toggleTag(t.id)}
+                    onClick={() => toggleTag(tag.id)}
                     disabled={busy}
                   >
-                    {t.name}
+                    {tag.name}
                   </button>
                 </div>
               );

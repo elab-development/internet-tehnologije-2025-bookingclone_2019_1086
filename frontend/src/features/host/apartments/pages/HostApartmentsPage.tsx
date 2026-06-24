@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { getAuthUser } from "../../../auth/storage/authStorage";
 import ApartmentCard from "../../../apartments/components/ApartmentCard";
@@ -11,8 +11,6 @@ import {
 } from "../../../apartments/services/apartmentService";
 
 export default function HostApartmentsPage() {
-  const navigate = useNavigate();
-
   const user = getAuthUser();
   const userId = user?.id ?? null;
   const isHost = user?.role === "HOST";
@@ -199,20 +197,6 @@ export default function HostApartmentsPage() {
                     className="position-absolute top-0 end-0 p-2 d-flex gap-2"
                     style={{ zIndex: 10 }}
                   >
-                    <button
-                      type="button"
-                      className="btn btn-light border rounded-circle p-2 shadow-sm"
-                      title="Edit"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-
-                        navigate(`/host/apartments/${apartment.id}/edit`);
-                      }}
-                    >
-                      ✏️
-                    </button>
-
                     <button
                       type="button"
                       className="btn btn-light border rounded-circle p-2 shadow-sm"

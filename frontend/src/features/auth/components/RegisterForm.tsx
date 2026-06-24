@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import * as authService from "../services/authService";
 import { setAccessToken, setAuthUser } from "../storage/authStorage";
 
-type Role = "USER" | "HOST" | "ADMIN";
-
+import type { Role } from "../types/authTypes";
 type Props = {
   onSuccess: () => void;
 };
