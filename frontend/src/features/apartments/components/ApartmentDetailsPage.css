@@ -1,96 +1,142 @@
 .apartment-details-page {
   min-height: 100%;
-  background-color: #f5f7fb;
+  background-color: #ffffff;
 }
 
 .apartment-details-page__container {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 34px 24px 64px;
+  padding: 24px 24px 56px;
 }
 
 /* STATE */
 
 .apartment-details-state {
-  padding: 22px;
-  border-radius: 18px;
+  padding: 18px 20px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
   background-color: #ffffff;
-  color: #64748b;
+  color: #595959;
   font-size: 15px;
-  font-weight: 700;
-  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  font-weight: 600;
 }
 
 .apartment-details-state--error {
-  color: #991b1b;
-  background-color: #fef2f2;
+  border-color: #d4111e;
+  color: #a30000;
+  background-color: #fff5f5;
 }
 
 /* HEADER */
 
 .apartment-details-header {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
 }
 
-.apartment-details-header__content {
+.apartment-details-header__main {
   min-width: 0;
-}
-
-.apartment-details-header__eyebrow {
-  margin: 0 0 8px;
-  color: #003580;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
 }
 
 .apartment-details-header__title {
   margin: 0;
-  color: #111827;
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 950;
-  line-height: 1.08;
-  letter-spacing: -0.9px;
+  color: #1a1a1a;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
 }
 
-.apartment-details-header__address {
-  margin: 10px 0 0;
-  color: #64748b;
-  font-size: 15px;
-  font-weight: 600;
+.apartment-details-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.apartment-details-header__button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.apartment-details-header__button:hover {
+  background-color: #f7f7f7;
 }
 
 /* GALLERY */
 
 .apartment-gallery {
-  padding: 12px;
-  border-radius: 30px;
-  background-color: #ffffff;
-  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
+  margin-bottom: 14px;
+}
+
+.apartment-gallery__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+  gap: 8px;
+  width: 100%;
+  height: 392px;
 }
 
 .apartment-gallery__main {
   overflow: hidden;
   width: 100%;
-  height: 520px;
-  border-radius: 24px;
-  background-color: #e5e7eb;
+  height: 392px;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  display: block;
+  background-color: #eeeeee;
+  cursor: pointer;
 }
 
-.apartment-gallery__main-image {
+.apartment-gallery__preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  height: 392px;
+}
+
+.apartment-gallery__preview-item {
+  overflow: hidden;
+  width: 100%;
+  height: 192px;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  display: block;
+  background-color: #eeeeee;
+  cursor: pointer;
+}
+
+.apartment-gallery__image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.18s ease;
+}
+
+.apartment-gallery__main:hover .apartment-gallery__image,
+.apartment-gallery__preview-item:hover .apartment-gallery__image {
+  transform: scale(1.02);
 }
 
 .apartment-gallery__scroller {
-  margin-top: 12px;
+  margin-top: 8px;
   padding-bottom: 4px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x proximity;
@@ -99,29 +145,26 @@
 
 .apartment-gallery__thumbnail {
   overflow: hidden;
-  flex: 0 0 150px;
-  height: 105px;
-  border: 3px solid transparent;
-  border-radius: 18px;
+  flex: 0 0 92px;
+  width: 92px;
+  height: 62px;
+  border: 2px solid transparent;
+  border-radius: 6px;
   padding: 0;
-  background-color: #e5e7eb;
+  background-color: #eeeeee;
   cursor: pointer;
+  opacity: 0.72;
   scroll-snap-align: start;
-  opacity: 0.78;
-  transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease,
-    box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
 
 .apartment-gallery__thumbnail:hover {
   opacity: 1;
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
 }
 
 .apartment-gallery__thumbnail--active {
-  border-color: #003580;
+  border-color: #1a1a1a;
   opacity: 1;
-  box-shadow: 0 12px 24px rgba(0, 53, 128, 0.18);
 }
 
 .apartment-gallery__thumbnail-image {
@@ -134,44 +177,44 @@
 /* SUMMARY */
 
 .apartment-details-summary {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 22px;
 }
 
-.apartment-details-summary__item {
-  padding: 16px 18px;
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
+.apartment-details-summary__location {
+  margin: 0 0 10px;
+  color: #595959;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.apartment-details-summary__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apartment-details-summary__badge {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
   background-color: #ffffff;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
-}
-
-.apartment-details-summary__item strong {
-  display: block;
-  color: #111827;
-  font-size: 19px;
-  font-weight: 950;
-  text-transform: capitalize;
-}
-
-.apartment-details-summary__item span {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
+  color: #1a1a1a;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 /* LAYOUT */
 
 .apartment-details-layout {
-  margin-top: 28px;
+  margin-top: 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 410px;
+  grid-template-columns: minmax(0, 1fr) 390px;
   align-items: start;
-  gap: 28px;
+  gap: 32px;
 }
 
 .apartment-details-layout__main {
@@ -180,149 +223,136 @@
 
 .apartment-details-layout__sidebar {
   position: sticky;
-  top: 24px;
+  top: 20px;
+  align-self: start;
+  z-index: 5;
 }
 
 /* SECTIONS */
 
 .apartment-details-section {
-  margin-bottom: 22px;
-  padding: 26px;
-  border-radius: 26px;
-  background-color: #ffffff;
-  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  margin-bottom: 0;
+  padding: 24px 0;
+  border-top: 1px solid #d9d9d9;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .apartment-details-section__title {
-  margin: 0 0 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #111827;
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: -0.3px;
+  margin: 0 0 14px;
+  color: #1a1a1a;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
 }
 
 .apartment-details-section__text {
   margin: 0;
-  color: #475569;
+  max-width: 680px;
+  color: #333333;
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.7;
   white-space: pre-wrap;
 }
 
 .apartment-details-section__empty {
   margin: 0;
-  color: #64748b;
+  color: #595959;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 500;
 }
 
 /* AMENITIES */
 
 .apartment-amenities {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 18px;
+  max-width: 720px;
 }
 
 .apartment-amenities__item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #334155;
-  font-size: 15px;
-  font-weight: 750;
+  gap: 8px;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .apartment-amenities__icon {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 53, 128, 0.1);
-  color: #003580;
-  font-size: 13px;
-  font-weight: 950;
+  flex-shrink: 0;
+  background-color: #f5f5f5;
+  color: #595959;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 /* BOOKING CARD */
 
 .details-booking {
-  position: relative;
-  overflow: hidden;
-  padding: 24px;
-  border: 2px solid rgba(0, 53, 128, 0.14);
-  border-radius: 30px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 28px 70px rgba(0, 53, 128, 0.2);
-}
-
-.details-booking::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 7px;
-  background-color: #003580;
+  padding: 22px;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(26, 26, 26, 0.11);
 }
 
 .details-booking__header {
-  margin-bottom: 22px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  margin-bottom: 18px;
+  display: block;
 }
 
 .details-booking__label {
   margin: 0 0 4px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.35px;
+  color: #595959;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .details-booking__price {
   margin: 0;
-  color: #003580;
-  font-size: 34px;
-  font-weight: 950;
-  letter-spacing: -0.7px;
+  color: #1a1a1a;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
 }
 
 .details-booking__badge {
+  margin-top: 8px;
+  display: inline-flex;
   border-radius: 999px;
-  padding: 9px 12px;
-  background-color: rgba(0, 53, 128, 0.1);
-  color: #003580;
+  padding: 5px 9px;
+  background-color: #f5f5f5;
+  color: #1a1a1a;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .details-booking__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 }
 
 .details-booking__field {
   min-width: 0;
-  padding: 14px 15px;
-  border: 1px solid #dbe3ef;
-  border-radius: 18px;
+  padding: 10px 11px;
+  border: 1px solid #b3b3b3;
+  border-radius: 6px;
   background-color: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease,
-    background-color 0.2s ease;
 }
 
 .details-booking__field:focus-within {
-  border-color: rgba(0, 53, 128, 0.55);
-  background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(0, 53, 128, 0.1);
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 1px #1a1a1a;
 }
 
 .details-booking__field--full {
@@ -331,24 +361,25 @@
 
 .details-booking__field-label {
   display: block;
-  margin-bottom: 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 850;
+  margin-bottom: 5px;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .details-booking__input {
   width: 100%;
   border: none;
   outline: none;
-  color: #111827;
-  font-size: 15px;
-  font-weight: 800;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
   background-color: transparent;
 }
 
 .details-booking__input::placeholder {
-  color: #9ca3af;
+  color: #717171;
 }
 
 .details-booking__field .react-datepicker-wrapper {
@@ -360,22 +391,20 @@
 }
 
 .details-booking__summary {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px solid #dbe3ef;
-  border-radius: 20px;
-  background-color: #ffffff;
+  margin-top: 16px;
+  padding: 16px 0 0;
+  border-top: 1px solid #d9d9d9;
+  background-color: transparent;
 }
 
 .details-booking__summary-muted {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px dashed rgba(0, 53, 128, 0.28);
-  border-radius: 20px;
-  background-color: rgba(0, 53, 128, 0.04);
-  color: #475569;
-  font-size: 14px;
-  font-weight: 800;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f7f7f7;
+  color: #595959;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .details-booking__summary-row {
@@ -383,9 +412,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #475569;
+  color: #333333;
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 500;
 }
 
 .details-booking__summary-row + .details-booking__summary-row {
@@ -393,32 +422,28 @@
 }
 
 .details-booking__summary-row--total {
-  padding-top: 10px;
-  border-top: 1px solid #e5e7eb;
-  color: #111827;
-  font-size: 17px;
-  font-weight: 950;
+  padding-top: 12px;
+  border-top: 1px solid #d9d9d9;
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .details-booking__button {
   width: 100%;
-  min-height: 58px;
-  margin-top: 18px;
+  min-height: 48px;
+  margin-top: 16px;
   border: none;
-  border-radius: 18px;
-  background-color: #003580;
+  border-radius: 6px;
+  background-color: #006ce4;
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 950;
+  font-size: 15px;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 16px 30px rgba(0, 53, 128, 0.3);
-  transition: background-color 0.2s ease, transform 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
 .details-booking__button:hover {
-  background-color: #002b66;
-  box-shadow: 0 20px 36px rgba(0, 53, 128, 0.36);
+  background-color: #0057b8;
 }
 
 .details-booking__button:active {
@@ -426,22 +451,23 @@
 }
 
 .details-booking__note {
-  margin: 13px 0 0;
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 750;
+  margin: 12px 0 0;
+  color: #717171;
+  font-size: 12px;
+  font-weight: 500;
   text-align: center;
 }
 
 /* MAP */
 
 .apartment-details-section--map {
-  padding: 0;
-  overflow: hidden;
+  margin-top: 24px;
+  padding-bottom: 0;
+  overflow: visible;
 }
 
 .apartment-map-header {
-  padding: 24px 26px 18px;
+  margin-bottom: 14px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -449,66 +475,44 @@
 }
 
 .apartment-map-header__title {
-  margin-bottom: 8px;
-  padding-bottom: 0;
-  border-bottom: none;
+  margin-bottom: 4px;
 }
 
 .apartment-map-header__address {
   margin: 0;
-  color: #64748b;
+  color: #595959;
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 500;
   line-height: 1.5;
 }
 
 .apartment-map-header__link {
-  min-height: 42px;
-  padding: 0 15px;
-  border-radius: 999px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #1a1a1a;
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #003580;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #1a1a1a;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   text-decoration: none;
   white-space: nowrap;
-  box-shadow: 0 12px 24px rgba(0, 53, 128, 0.22);
-  transition: background-color 0.2s ease, box-shadow 0.2s ease,
-    transform 0.2s ease;
 }
 
 .apartment-map-header__link:hover {
-  background-color: #002b66;
-  color: #ffffff;
-  box-shadow: 0 16px 30px rgba(0, 53, 128, 0.28);
-}
-
-.apartment-map-header__link:active {
-  transform: translateY(1px);
+  background-color: #f7f7f7;
 }
 
 .apartment-map {
   position: relative;
   overflow: hidden;
-  height: 430px;
-  background-color: #e5e7eb;
-}
-
-.apartment-map::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 401;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
-}
-
-.apartment-map--leaflet {
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  height: 360px;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  background-color: #eeeeee;
 }
 
 .apartment-map__leaflet {
@@ -524,86 +528,81 @@
 }
 
 .apartment-map-marker__dot {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border: 4px solid #ffffff;
   border-radius: 999px;
   display: block;
-  background-color: #003580;
-  box-shadow: 0 10px 22px rgba(0, 53, 128, 0.35);
+  background-color: #ef4444;
+  box-shadow: 0 0 0 16px rgba(239, 68, 68, 0.28);
 }
 
 .apartment-map .leaflet-control-zoom {
   overflow: hidden;
   border: none;
-  border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(26, 26, 26, 0.14);
 }
 
 .apartment-map .leaflet-control-zoom a {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border: none;
-  color: #111827;
-  font-size: 19px;
-  font-weight: 900;
-  line-height: 38px;
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 34px;
 }
 
 .apartment-map .leaflet-popup-content-wrapper {
-  border-radius: 16px;
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+  border-radius: 8px;
 }
 
 .apartment-map .leaflet-popup-content {
-  margin: 14px 16px;
-  color: #334155;
+  margin: 12px 14px;
+  color: #333333;
   font-size: 13px;
   line-height: 1.45;
 }
 
 .apartment-map .leaflet-popup-content strong {
-  color: #111827;
+  color: #1a1a1a;
   font-size: 14px;
 }
 
 .apartment-map .leaflet-control-attribution {
-  border-radius: 999px 0 0 0;
-  padding: 3px 8px;
-  background-color: rgba(255, 255, 255, 0.82);
-  color: #64748b;
+  padding: 3px 7px;
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #595959;
   font-size: 10px;
 }
 
 .apartment-map-footer {
-  padding: 16px 26px 22px;
+  padding: 10px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background-color: #ffffff;
+  gap: 8px;
+  background-color: transparent;
   text-align: center;
 }
 
 .apartment-map-footer__pin {
-  width: 24px;
-  height: 24px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  background-color: rgba(0, 53, 128, 0.1);
-  color: #003580;
-  font-size: 13px;
-  line-height: 1;
+  background-color: #ef4444;
+  color: transparent;
+  font-size: 0;
 }
 
 .apartment-map__text {
   margin: 0;
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 750;
+  color: #595959;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -611,20 +610,42 @@
 
 @media (max-width: 980px) {
   .apartment-details-page__container {
-    padding: 26px 16px 56px;
+    padding: 20px 16px 48px;
+  }
+
+  .apartment-details-header {
+    flex-direction: column;
+  }
+
+  .apartment-details-header__actions {
+    width: 100%;
+  }
+
+  .apartment-details-header__button {
+    flex: 1;
+  }
+
+  .apartment-gallery__grid {
+    grid-template-columns: 1fr;
+    height: auto;
   }
 
   .apartment-gallery__main {
-    height: 430px;
+    height: 340px;
   }
 
-  .apartment-gallery__thumbnail {
-    flex-basis: 135px;
-    height: 96px;
+  .apartment-gallery__preview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    height: 120px;
+  }
+
+  .apartment-gallery__preview-item {
+    height: 120px;
   }
 
   .apartment-details-layout {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .apartment-details-layout__sidebar {
@@ -641,41 +662,48 @@
 
 @media (max-width: 640px) {
   .apartment-details-page__container {
-    padding: 22px 14px 48px;
+    padding: 16px 12px 42px;
   }
 
   .apartment-details-header__title {
-    font-size: 30px;
+    font-size: 24px;
   }
 
-  .apartment-gallery {
-    padding: 8px;
-    border-radius: 24px;
+  .apartment-details-header__actions {
+    gap: 6px;
+  }
+
+  .apartment-details-header__button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 13px;
   }
 
   .apartment-gallery__main {
-    height: 310px;
-    border-radius: 18px;
+    height: 250px;
   }
 
-  .apartment-gallery__scroller {
-    gap: 9px;
+  .apartment-gallery__preview {
+    display: none;
   }
 
   .apartment-gallery__thumbnail {
-    flex-basis: 108px;
-    height: 78px;
-    border-width: 2px;
-    border-radius: 14px;
+    flex-basis: 86px;
+    width: 86px;
+    height: 58px;
   }
 
-  .apartment-details-summary {
-    grid-template-columns: 1fr;
+  .apartment-details-summary__badge {
+    min-height: 26px;
+    font-size: 12px;
   }
 
   .apartment-details-section {
-    padding: 20px;
-    border-radius: 22px;
+    padding: 20px 0;
+  }
+
+  .apartment-details-section__title {
+    font-size: 20px;
   }
 
   .apartment-amenities {
@@ -683,12 +711,7 @@
   }
 
   .details-booking {
-    padding: 20px;
-    border-radius: 24px;
-  }
-
-  .details-booking__header {
-    flex-direction: column;
+    padding: 18px;
   }
 
   .details-booking__grid {
@@ -700,7 +723,6 @@
   }
 
   .apartment-map-header {
-    padding: 20px 20px 14px;
     flex-direction: column;
   }
 
@@ -709,11 +731,10 @@
   }
 
   .apartment-map {
-    height: 340px;
+    height: 300px;
   }
 
   .apartment-map-footer {
-    padding: 14px 20px 20px;
     justify-content: flex-start;
     text-align: left;
   }
