@@ -58,15 +58,6 @@ export default function ApartmentCard({
     >
       <div className="apartment-card__image-wrapper">
         <img src={imageUrl} className="apartment-card__image" alt={name} />
-
-        <button
-          className="apartment-card__favorite-button"
-          type="button"
-          onClick={handleFavoriteClick}
-          aria-label="Add to wishlist"
-        >
-          ❤
-        </button>
       </div>
 
       <div className="apartment-card__body">
