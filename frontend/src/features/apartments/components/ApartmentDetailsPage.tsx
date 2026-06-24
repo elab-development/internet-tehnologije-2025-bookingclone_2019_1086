@@ -1,14 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import {
-  type ApartmentDto,
-  type ApartmentPhotoDto,
-  type ApartmentTagDto,
-  getApartmentById,
-  getMainPhotoUrl,
-} from "../services/apartmentService";
+import { useApartmentDetails } from "../hooks/useApartmentDetails";
+import { getApartmentTags } from "../types/apartmentDetailsTypes";
 
 import ApartmentDetailsHeader from "./details/ApartmentDetailsHeader";
 import ApartmentDetailsGallery from "./details/ApartmentDetailsGallery";
@@ -19,95 +13,21 @@ import ApartmentDetailsMap from "./details/ApartmentDetailsMap";
 
 import "./ApartmentDetailsPage.css";
 
-export type ApartmentDetailsDto = ApartmentDto & {
-  tags?: ApartmentTagDto[];
-};
-
-const FALLBACK_PHOTO: ApartmentPhotoDto = {
-  id: 0,
-  image_url: "https://picsum.photos/1200/800",
-  is_main: true,
-};
-
-function getApartmentPhotos(apartment: ApartmentDetailsDto) {
-  if (apartment.photos.length > 0) {
-    return apartment.photos;
-  }
-
-  return [FALLBACK_PHOTO];
-}
-
-function getTags(apartment: ApartmentDetailsDto) {
-  if (Array.isArray(apartment.tags)) {
-    return apartment.tags;
-  }
-
-  return [];
-}
+export type { ApartmentDetailsDto } from "../types/apartmentDetailsTypes";
 
 export default function ApartmentDetailsPage() {
   const { t } = useTranslation();
   const params = useParams();
   const apartmentId = Number(params.id);
 
-  const [apartment, setApartment] = useState<ApartmentDetailsDto | null>(null);
-  const [activePhotoUrl, setActivePhotoUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadApartment() {
-      setIsLoading(true);
-      setError("");
-
-      try {
-        if (!Number.isFinite(apartmentId)) {
-          throw new Error(t("apartments.details.errors.invalidId"));
-        }
-
-        const response = await getApartmentById(apartmentId);
-        const details = response as ApartmentDetailsDto;
-
-        if (cancelled) {
-          return;
-        }
-
-        setApartment(details);
-        setActivePhotoUrl(getMainPhotoUrl(details));
-      } catch (loadError) {
-        if (cancelled) {
-          return;
-        }
-
-        if (loadError instanceof Error) {
-          setError(loadError.message);
-          return;
-        }
-
-        setError(t("apartments.details.errors.loadFailed"));
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadApartment();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [apartmentId, t]);
-
-  const photos = useMemo(() => {
-    if (!apartment) {
-      return [FALLBACK_PHOTO];
-    }
-
-    return getApartmentPhotos(apartment);
-  }, [apartment]);
+  const {
+    apartment,
+    photos,
+    activePhotoUrl,
+    setActivePhotoUrl,
+    isLoading,
+    error,
+  } = useApartmentDetails(apartmentId);
 
   if (isLoading) {
     return (
@@ -163,7 +83,7 @@ export default function ApartmentDetailsPage() {
           <div className="apartment-details-layout__main">
             <ApartmentDetailsInfo
               description={apartment.description}
-              tags={getTags(apartment)}
+              tags={getApartmentTags(apartment)}
             />
 
             <ApartmentDetailsMap apartment={apartment} />
