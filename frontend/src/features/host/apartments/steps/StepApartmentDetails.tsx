@@ -1,4 +1,8 @@
-import React from "react";
+import WizardStepActions from "./components/WizardStepActions";
+import WizardStepShell from "./components/WizardStepShell";
+import WizardTextField from "./components/WizardTextField";
+
+import "../styles/ApartmentWizardSteps.css";
 
 export type ApartmentDetailsState = {
   title: string;
@@ -10,137 +14,127 @@ export type ApartmentDetailsState = {
   max_guests: string;
 };
 
-export default function StepApartmentDetails(props: {
+type StepApartmentDetailsProps = {
   value: ApartmentDetailsState;
-  onChange: (next: ApartmentDetailsState) => void;
+  onChange: (value: ApartmentDetailsState) => void;
   busy: boolean;
   onNext: () => void;
   onCancel: () => void;
-}) {
-  const { value, onChange, busy, onNext, onCancel } = props;
+};
 
-  function onFieldChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) {
+export default function StepApartmentDetails({
+  value,
+  onChange,
+  busy,
+  onNext,
+  onCancel,
+}: StepApartmentDetailsProps) {
+  function handleFieldChange(name: string, nextValue: string) {
     onChange({
       ...value,
-      [e.target.name]: e.target.value,
+      [name]: nextValue,
     });
   }
 
   return (
-    <div className="card border-0 shadow-sm rounded-4">
-      <div className="card-body p-4">
-        <h5 className="fw-bold mb-1">Step 1: Apartment details</h5>
-        <div className="text-muted mb-3">Fill in basic information</div>
-
-        <div className="row g-3">
-          <div className="col-12">
-            <label className="form-label fw-semibold">Title *</label>
-            <input
-              name="title"
-              value={value.title}
-              onChange={onFieldChange}
-              className="form-control"
-              placeholder="e.g. Cozy apartment in city center"
-              required
-            />
-          </div>
-
-          <div className="col-12">
-            <label className="form-label fw-semibold">Description *</label>
-            <textarea
-              name="description"
-              value={value.description}
-              onChange={onFieldChange}
-              className="form-control"
-              rows={5}
-              placeholder="Describe your apartment..."
-              required
-            />
-          </div>
-
-          <div className="col-12">
-            <label className="form-label fw-semibold">Address *</label>
-            <input
-              name="address"
-              value={value.address}
-              onChange={onFieldChange}
-              className="form-control"
-              placeholder="Street and number"
-              required
-            />
-          </div>
-
-          <div className="col-md-6 col-12">
-            <label className="form-label fw-semibold">City *</label>
-            <input
-              name="city"
-              value={value.city}
-              onChange={onFieldChange}
-              className="form-control"
-              required
-            />
-          </div>
-
-          <div className="col-md-6 col-12">
-            <label className="form-label fw-semibold">Country *</label>
-            <input
-              name="country"
-              value={value.country}
-              onChange={onFieldChange}
-              className="form-control"
-              required
-            />
-          </div>
-
-          <div className="col-md-6 col-12">
-            <label className="form-label fw-semibold">Price per night *</label>
-            <input
-              name="price_per_night"
-              value={value.price_per_night}
-              onChange={onFieldChange}
-              className="form-control"
-              placeholder="e.g. 50"
-              inputMode="decimal"
-              required
-            />
-          </div>
-
-          <div className="col-md-6 col-12">
-            <label className="form-label fw-semibold">Max guests *</label>
-            <input
-              name="max_guests"
-              value={value.max_guests}
-              onChange={onFieldChange}
-              className="form-control"
-              placeholder="e.g. 4"
-              inputMode="numeric"
-              required
-            />
-          </div>
+    <WizardStepShell
+      title="Step 1: Apartment details"
+      subtitle="Enter the main information about your apartment."
+    >
+      <div className="apartment-wizard-step__form-grid apartment-wizard-step__form-grid--two-columns">
+        <div className="apartment-wizard-step__field--full">
+          <WizardTextField
+            label="Title"
+            name="title"
+            value={value.title}
+            placeholder="Modern apartment in city center"
+            disabled={busy}
+            onChange={handleFieldChange}
+          />
         </div>
 
-        <div className="d-flex gap-2 mt-4">
-          <button
-            type="button"
-            className="btn btn-primary px-4"
-            onClick={onNext}
+        <div className="apartment-wizard-step__field--full">
+          <WizardTextField
+            label="Description"
+            name="description"
+            value={value.description}
+            rows={4}
+            multiline
+            placeholder="Describe the apartment, location, amenities..."
             disabled={busy}
-          >
-            Next
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            onClick={onCancel}
-            disabled={busy}
-          >
-            Cancel
-          </button>
+            onChange={handleFieldChange}
+          />
         </div>
+
+        <WizardTextField
+          label="Address"
+          name="address"
+          value={value.address}
+          placeholder="Street and number"
+          disabled={busy}
+          onChange={handleFieldChange}
+        />
+
+        <WizardTextField
+          label="City"
+          name="city"
+          value={value.city}
+          placeholder="Belgrade"
+          disabled={busy}
+          onChange={handleFieldChange}
+        />
+
+        <WizardTextField
+          label="Country"
+          name="country"
+          value={value.country}
+          placeholder="Serbia"
+          disabled={busy}
+          onChange={handleFieldChange}
+        />
+
+        <WizardTextField
+          label="Price per night"
+          name="price_per_night"
+          value={value.price_per_night}
+          type="number"
+          min="1"
+          placeholder="50"
+          disabled={busy}
+          onChange={handleFieldChange}
+        />
+
+        <WizardTextField
+          label="Max guests"
+          name="max_guests"
+          value={value.max_guests}
+          type="number"
+          min="1"
+          placeholder="2"
+          disabled={busy}
+          onChange={handleFieldChange}
+        />
       </div>
-    </div>
+
+      <WizardStepActions>
+        <button
+          type="button"
+          className="btn btn-primary px-4"
+          onClick={onNext}
+          disabled={busy}
+        >
+          Next
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline-secondary apartment-wizard-step__actions-spacer"
+          onClick={onCancel}
+          disabled={busy}
+        >
+          Cancel
+        </button>
+      </WizardStepActions>
+    </WizardStepShell>
   );
 }
