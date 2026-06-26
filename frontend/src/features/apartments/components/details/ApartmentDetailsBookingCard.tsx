@@ -1,12 +1,15 @@
 import { useState } from "react";
+import type { ComponentType, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import ReactDatePicker from "react-datepicker";
 
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
 
+import { useDateRange } from "../../../../shared/hooks/useDateRange";
+
 import "react-datepicker/dist/react-datepicker.css";
 
-const DatePicker = ReactDatePicker as unknown as React.FC<any>;
+const DatePicker = ReactDatePicker as unknown as ComponentType<any>;
 
 type Props = {
   apartment: ApartmentDetailsDto;
@@ -44,9 +47,16 @@ function calculateNights(checkInDate: Date | null, checkOutDate: Date | null) {
 export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const { t } = useTranslation();
 
-  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
-  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState("1");
+
+  const {
+    checkInDate,
+    checkOutDate,
+    handleCheckInChange,
+    handleCheckOutChange,
+    getCheckInMinDate,
+    getCheckOutMinDate,
+  } = useDateRange();
 
   const price = Number(apartment.price_per_night);
   const nights = calculateNights(checkInDate, checkOutDate);
@@ -60,32 +70,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
     return t("apartments.details.booking.nightPlural");
   }
 
-  function handleCheckInChange(date: Date | null) {
-    setCheckInDate(date);
-
-    if (!date) {
-      return;
-    }
-
-    if (checkOutDate && date >= checkOutDate) {
-      setCheckOutDate(null);
-    }
-  }
-
-  function handleCheckOutChange(date: Date | null) {
-    if (!date) {
-      setCheckOutDate(null);
-      return;
-    }
-
-    if (checkInDate && date <= checkInDate) {
-      return;
-    }
-
-    setCheckOutDate(date);
-  }
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     console.log({
@@ -156,7 +141,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
             selectsStart
             startDate={checkInDate}
             endDate={checkOutDate}
-            minDate={new Date()}
+            minDate={getCheckInMinDate()}
             dateFormat="dd.MM.yyyy"
             placeholderText={t("apartments.details.booking.datePlaceholder")}
             className="details-booking__input"
@@ -176,7 +161,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
             selectsEnd
             startDate={checkInDate}
             endDate={checkOutDate}
-            minDate={checkInDate ?? new Date()}
+            minDate={getCheckOutMinDate()}
             dateFormat="dd.MM.yyyy"
             placeholderText={t("apartments.details.booking.datePlaceholder")}
             className="details-booking__input"

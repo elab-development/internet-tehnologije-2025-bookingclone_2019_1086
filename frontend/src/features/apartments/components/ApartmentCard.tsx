@@ -1,6 +1,8 @@
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { formatApartmentPrice } from "../services/apartmentService";
+
 import "./ApartmentCard.css";
 
 type Props = {
@@ -38,16 +40,6 @@ export default function ApartmentCard({
     // TODO: wishlist later
   }
 
-  function getFormattedPrice() {
-    const price = Number(pricePerNight);
-
-    if (Number.isNaN(price)) {
-      return "€0";
-    }
-
-    return `€${price.toFixed(0)}`;
-  }
-
   return (
     <div
       className="apartment-card"
@@ -67,7 +59,9 @@ export default function ApartmentCard({
           {city}, {country}
         </p>
 
-        <p className="apartment-card__price">{getFormattedPrice()} / night</p>
+        <p className="apartment-card__price">
+          {formatApartmentPrice(pricePerNight)} / night
+        </p>
 
         <div className="apartment-card__rating">
           <span className="apartment-card__rating-score">10</span>
