@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 type PhotoUploadToolbarProps = {
   busy: boolean;
@@ -13,6 +14,8 @@ export default function PhotoUploadToolbar({
   onFilesChange,
   onClear,
 }: PhotoUploadToolbarProps) {
+  const { t } = useTranslation();
+
   function handleFilesChange(event: ChangeEvent<HTMLInputElement>) {
     onFilesChange(event.target.files);
     event.target.value = "";
@@ -39,6 +42,7 @@ export default function PhotoUploadToolbar({
         multiple
         onChange={handleFilesChange}
         disabled={busy}
+        aria-label={t("createApartment.photos.fileInputAriaLabel")}
       />
 
       <button
@@ -47,7 +51,7 @@ export default function PhotoUploadToolbar({
         onClick={onClear}
         disabled={isClearDisabled()}
       >
-        Clear
+        {t("createApartment.actions.clear")}
       </button>
     </div>
   );

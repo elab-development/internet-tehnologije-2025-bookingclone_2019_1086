@@ -133,5 +133,78 @@
         "addressSearch": "Mapa koristi pretragu po adresi jer koordinate nisu unete."
       }
     }
+  },
+  "createApartment": {
+    "title": "Kreiranje apartmana",
+    "subtitle": "Popunite sve korake da biste objavili smeštaj",
+    "steps": {
+      "details": "Detalji apartmana",
+      "tags": "Tagovi",
+      "photos": "Slike"
+    },
+    "stepper": {
+      "apartmentId": "ID apartmana:",
+      "notCreatedYet": "Još uvek nije kreiran"
+    },
+    "actions": {
+      "next": "Dalje",
+      "back": "Nazad",
+      "cancel": "Otkaži",
+      "clear": "Obriši",
+      "remove": "Ukloni",
+      "finish": "Završi",
+      "uploading": "Otpremanje...",
+      "creating": "Kreiranje...",
+      "createApartment": "Kreiraj apartman"
+    },
+    "details": {
+      "title": "Korak 1: Detalji apartmana",
+      "subtitle": "Unesite osnovne informacije o apartmanu.",
+      "fields": {
+        "title": "Naziv",
+        "description": "Opis",
+        "address": "Adresa",
+        "city": "Grad",
+        "country": "Država",
+        "pricePerNight": "Cena po noćenju",
+        "maxGuests": "Maksimalan broj gostiju"
+      },
+      "placeholders": {
+        "title": "Moderan apartman u centru grada",
+        "description": "Opišite apartman, lokaciju, sadržaje...",
+        "address": "Ulica i broj",
+        "city": "Beograd",
+        "country": "Srbija",
+        "pricePerNight": "50",
+        "maxGuests": "2"
+      }
+    },
+    "tags": {
+      "title": "Korak 2: Tagovi",
+      "subtitle": "Izaberite tagove, zatim ćemo kreirati apartman.",
+      "empty": "Nema učitanih tagova."
+    },
+    "photos": {
+      "title": "Korak 3: Slike",
+      "subtitle": "Dodajte slike lokalno, zatim kliknite Završi da ih otpremite.",
+      "fileInputAriaLabel": "Slike apartmana",
+      "empty": "Još uvek nije izabrana nijedna slika.",
+      "selectedTitle": "Izabrane slike koje još nisu otpremljene",
+      "uploadedTitle": "Otpremljene slike",
+      "uploadedCount": "Otpremljeno slika: {{count}}.",
+      "staged": "spremno",
+      "addAtLeastOne": "Dodajte bar jednu sliku",
+      "uploadNote": "Završavanje otprema sve slike u jednom zahtevu:"
+    },
+    "errors": {
+      "requiredFields": "Sva polja su obavezna.",
+      "invalidPrice": "Cena po noćenju mora biti pozitivan broj.",
+      "invalidGuests": "Maksimalan broj gostiju mora biti najmanje 1.",
+      "validationFailed": "Validacija nije uspela",
+      "loadTagsFailed": "Učitavanje tagova nije uspelo",
+      "createFailed": "Kreiranje apartmana nije uspelo",
+      "missingApartmentId": "Apartman je kreiran, ali API nije vratio ID.",
+      "uploadPhotosFailed": "Otpremanje slika nije uspelo"
+    }
   }
 }

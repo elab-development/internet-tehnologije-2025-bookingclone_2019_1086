@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import WizardStepActions from "./components/WizardStepActions";
 import WizardStepShell from "./components/WizardStepShell";
 import WizardTextField from "./components/WizardTextField";
@@ -29,6 +31,8 @@ export default function StepApartmentDetails({
   onNext,
   onCancel,
 }: StepApartmentDetailsProps) {
+  const { t } = useTranslation();
+
   function handleFieldChange(name: string, nextValue: string) {
     onChange({
       ...value,
@@ -38,16 +42,16 @@ export default function StepApartmentDetails({
 
   return (
     <WizardStepShell
-      title="Step 1: Apartment details"
-      subtitle="Enter the main information about your apartment."
+      title={t("createApartment.details.title")}
+      subtitle={t("createApartment.details.subtitle")}
     >
       <div className="apartment-wizard-step__form-grid apartment-wizard-step__form-grid--two-columns">
         <div className="apartment-wizard-step__field--full">
           <WizardTextField
-            label="Title"
+            label={t("createApartment.details.fields.title")}
             name="title"
             value={value.title}
-            placeholder="Modern apartment in city center"
+            placeholder={t("createApartment.details.placeholders.title")}
             disabled={busy}
             onChange={handleFieldChange}
           />
@@ -55,62 +59,62 @@ export default function StepApartmentDetails({
 
         <div className="apartment-wizard-step__field--full">
           <WizardTextField
-            label="Description"
+            label={t("createApartment.details.fields.description")}
             name="description"
             value={value.description}
             rows={4}
             multiline
-            placeholder="Describe the apartment, location, amenities..."
+            placeholder={t("createApartment.details.placeholders.description")}
             disabled={busy}
             onChange={handleFieldChange}
           />
         </div>
 
         <WizardTextField
-          label="Address"
+          label={t("createApartment.details.fields.address")}
           name="address"
           value={value.address}
-          placeholder="Street and number"
+          placeholder={t("createApartment.details.placeholders.address")}
           disabled={busy}
           onChange={handleFieldChange}
         />
 
         <WizardTextField
-          label="City"
+          label={t("createApartment.details.fields.city")}
           name="city"
           value={value.city}
-          placeholder="Belgrade"
+          placeholder={t("createApartment.details.placeholders.city")}
           disabled={busy}
           onChange={handleFieldChange}
         />
 
         <WizardTextField
-          label="Country"
+          label={t("createApartment.details.fields.country")}
           name="country"
           value={value.country}
-          placeholder="Serbia"
+          placeholder={t("createApartment.details.placeholders.country")}
           disabled={busy}
           onChange={handleFieldChange}
         />
 
         <WizardTextField
-          label="Price per night"
+          label={t("createApartment.details.fields.pricePerNight")}
           name="price_per_night"
           value={value.price_per_night}
           type="number"
           min="1"
-          placeholder="50"
+          placeholder={t("createApartment.details.placeholders.pricePerNight")}
           disabled={busy}
           onChange={handleFieldChange}
         />
 
         <WizardTextField
-          label="Max guests"
+          label={t("createApartment.details.fields.maxGuests")}
           name="max_guests"
           value={value.max_guests}
           type="number"
           min="1"
-          placeholder="2"
+          placeholder={t("createApartment.details.placeholders.maxGuests")}
           disabled={busy}
           onChange={handleFieldChange}
         />
@@ -123,7 +127,7 @@ export default function StepApartmentDetails({
           onClick={onNext}
           disabled={busy}
         >
-          Next
+          {t("createApartment.actions.next")}
         </button>
 
         <button
@@ -132,7 +136,7 @@ export default function StepApartmentDetails({
           onClick={onCancel}
           disabled={busy}
         >
-          Cancel
+          {t("createApartment.actions.cancel")}
         </button>
       </WizardStepActions>
     </WizardStepShell>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { TagDto } from "../../../tags/services/tagService";
 import WizardStepActions from "./components/WizardStepActions";
 import WizardStepShell from "./components/WizardStepShell";
@@ -23,6 +25,8 @@ export default function StepApartmentTags({
   onCreate,
   onCancel,
 }: StepApartmentTagsProps) {
+  const { t } = useTranslation();
+
   function toggleTag(id: number) {
     if (selectedTagIds.includes(id)) {
       const nextSelectedTagIds = selectedTagIds.filter((selectedId) => {
@@ -52,10 +56,10 @@ export default function StepApartmentTags({
 
   function getCreateButtonText() {
     if (busy) {
-      return "Creating...";
+      return t("createApartment.actions.creating");
     }
 
-    return "Create apartment";
+    return t("createApartment.actions.createApartment");
   }
 
   function renderEmptyTagsMessage() {
@@ -65,7 +69,7 @@ export default function StepApartmentTags({
 
     return (
       <div className="apartment-wizard-step__empty-text">
-        No tags loaded.
+        {t("createApartment.tags.empty")}
       </div>
     );
   }
@@ -96,8 +100,8 @@ export default function StepApartmentTags({
 
   return (
     <WizardStepShell
-      title="Step 2: Tags"
-      subtitle="Select tags, then we will create the apartment."
+      title={t("createApartment.tags.title")}
+      subtitle={t("createApartment.tags.subtitle")}
     >
       {renderEmptyTagsMessage()}
       {renderTagsGrid()}
@@ -109,7 +113,7 @@ export default function StepApartmentTags({
           onClick={onPrev}
           disabled={busy}
         >
-          Back
+          {t("createApartment.actions.back")}
         </button>
 
         <button
@@ -127,7 +131,7 @@ export default function StepApartmentTags({
           onClick={onCancel}
           disabled={busy}
         >
-          Cancel
+          {t("createApartment.actions.cancel")}
         </button>
       </WizardStepActions>
     </WizardStepShell>

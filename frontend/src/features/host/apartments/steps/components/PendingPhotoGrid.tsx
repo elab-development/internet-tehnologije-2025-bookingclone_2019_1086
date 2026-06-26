@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { PendingPhoto } from "../../hooks/usePendingPhotos";
 import { formatFileSize } from "../../hooks/usePendingPhotos";
 
@@ -12,6 +14,8 @@ export default function PendingPhotoGrid({
   busy,
   onRemove,
 }: PendingPhotoGridProps) {
+  const { t } = useTranslation();
+
   function renderEmptyState() {
     if (photos.length > 0) {
       return null;
@@ -19,7 +23,7 @@ export default function PendingPhotoGrid({
 
     return (
       <div className="apartment-wizard-step__empty-text apartment-wizard-step__photos-empty">
-        No photos selected yet.
+        {t("createApartment.photos.empty")}
       </div>
     );
   }
@@ -49,10 +53,12 @@ export default function PendingPhotoGrid({
               onClick={() => onRemove(photo.id)}
               disabled={busy}
             >
-              Remove
+              {t("createApartment.actions.remove")}
             </button>
 
-            <div className="apartment-wizard-step__photo-status">staged</div>
+            <div className="apartment-wizard-step__photo-status">
+              {t("createApartment.photos.staged")}
+            </div>
           </div>
         </div>
       </div>
@@ -67,7 +73,7 @@ export default function PendingPhotoGrid({
     return (
       <div className="apartment-wizard-step__pending-section">
         <div className="apartment-wizard-step__selected-title">
-          Selected photos (not uploaded yet)
+          {t("createApartment.photos.selectedTitle")}
         </div>
 
         <div className="apartment-wizard-step__pending-grid">

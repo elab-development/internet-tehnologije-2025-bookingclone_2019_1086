@@ -133,5 +133,78 @@
         "addressSearch": "Using address search because coordinates are not provided."
       }
     }
+  },
+  "createApartment": {
+    "title": "Create apartment",
+    "subtitle": "Complete all steps to publish your listing",
+    "steps": {
+      "details": "Apartment details",
+      "tags": "Tags",
+      "photos": "Photos"
+    },
+    "stepper": {
+      "apartmentId": "Apartment ID:",
+      "notCreatedYet": "Not created yet"
+    },
+    "actions": {
+      "next": "Next",
+      "back": "Back",
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "remove": "Remove",
+      "finish": "Finish",
+      "uploading": "Uploading...",
+      "creating": "Creating...",
+      "createApartment": "Create apartment"
+    },
+    "details": {
+      "title": "Step 1: Apartment details",
+      "subtitle": "Enter the main information about your apartment.",
+      "fields": {
+        "title": "Title",
+        "description": "Description",
+        "address": "Address",
+        "city": "City",
+        "country": "Country",
+        "pricePerNight": "Price per night",
+        "maxGuests": "Max guests"
+      },
+      "placeholders": {
+        "title": "Modern apartment in city center",
+        "description": "Describe the apartment, location, amenities...",
+        "address": "Street and number",
+        "city": "Belgrade",
+        "country": "Serbia",
+        "pricePerNight": "50",
+        "maxGuests": "2"
+      }
+    },
+    "tags": {
+      "title": "Step 2: Tags",
+      "subtitle": "Select tags, then we will create the apartment.",
+      "empty": "No tags loaded."
+    },
+    "photos": {
+      "title": "Step 3: Photos",
+      "subtitle": "Add photos locally, then click Finish to upload them.",
+      "fileInputAriaLabel": "Apartment photos",
+      "empty": "No photos selected yet.",
+      "selectedTitle": "Selected photos (not uploaded yet)",
+      "uploadedTitle": "Uploaded photos",
+      "uploadedCount": "Uploaded {{count}} photo(s).",
+      "staged": "staged",
+      "addAtLeastOne": "Add at least one photo first",
+      "uploadNote": "Finish uploads everything in one request:"
+    },
+    "errors": {
+      "requiredFields": "All fields are required.",
+      "invalidPrice": "Price per night must be a positive number.",
+      "invalidGuests": "Max guests must be at least 1.",
+      "validationFailed": "Validation failed",
+      "loadTagsFailed": "Failed to load tags",
+      "createFailed": "Failed to create apartment",
+      "missingApartmentId": "Apartment created but no id returned from API.",
+      "uploadPhotosFailed": "Failed to upload photos"
+    }
   }
 }
