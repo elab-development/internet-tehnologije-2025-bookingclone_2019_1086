@@ -1,8 +1,10 @@
-import React from "react";
-
 import type { TagDto } from "../../../tags/services/tagService";
+import WizardStepActions from "./components/WizardStepActions";
+import WizardStepShell from "./components/WizardStepShell";
 
-export default function StepApartmentTags(props: {
+import "../styles/ApartmentWizardSteps.css";
+
+type StepApartmentTagsProps = {
   availableTags: TagDto[];
   selectedTagIds: number[];
   onChangeSelectedTagIds: (ids: number[]) => void;
@@ -10,90 +12,124 @@ export default function StepApartmentTags(props: {
   onPrev: () => void;
   onCreate: () => void;
   onCancel: () => void;
-}) {
-  const {
-    availableTags,
-    selectedTagIds,
-    onChangeSelectedTagIds,
-    busy,
-    onPrev,
-    onCreate,
-    onCancel,
-  } = props;
+};
 
+export default function StepApartmentTags({
+  availableTags,
+  selectedTagIds,
+  onChangeSelectedTagIds,
+  busy,
+  onPrev,
+  onCreate,
+  onCancel,
+}: StepApartmentTagsProps) {
   function toggleTag(id: number) {
     if (selectedTagIds.includes(id)) {
-      onChangeSelectedTagIds(selectedTagIds.filter((x) => x !== id));
+      const nextSelectedTagIds = selectedTagIds.filter((selectedId) => {
+        return selectedId !== id;
+      });
+
+      onChangeSelectedTagIds(nextSelectedTagIds);
       return;
     }
 
     onChangeSelectedTagIds([...selectedTagIds, id]);
   }
 
-  return (
-    <div className="card border-0 shadow-sm rounded-4">
-      <div className="card-body p-4">
-        <h5 className="fw-bold mb-1">Step 2: Tags</h5>
+  function isTagSelected(id: number) {
+    return selectedTagIds.includes(id);
+  }
 
-        <div className="text-muted mb-3">
-          Select tags, then we will create the apartment.
-        </div>
+  function getTagButtonClass(id: number) {
+    const baseClass = "btn w-100 apartment-wizard-step__tag-button";
 
-        {availableTags.length === 0 ? (
-          <div className="text-muted">No tags loaded.</div>
-        ) : (
-          <div className="row g-2">
-            {availableTags.map((tag) => {
-              const checked = selectedTagIds.includes(tag.id);
+    if (isTagSelected(id)) {
+      return `${baseClass} btn-success`;
+    }
 
-              return (
-                <div key={tag.id} className="col-12 col-md-6 col-lg-4">
-                  <button
-                    type="button"
-                    className={
-                      "btn w-100 text-start rounded-3 " +
-                      (checked ? "btn-success" : "btn-outline-secondary")
-                    }
-                    onClick={() => toggleTag(tag.id)}
-                    disabled={busy}
-                  >
-                    {tag.name}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+    return `${baseClass} btn-outline-secondary`;
+  }
 
-        <div className="d-flex gap-2 mt-4">
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            onClick={onPrev}
-            disabled={busy}
-          >
-            Back
-          </button>
+  function getCreateButtonText() {
+    if (busy) {
+      return "Creating...";
+    }
 
-          <button
-            type="button"
-            className="btn btn-primary px-4"
-            onClick={onCreate}
-            disabled={busy}
-          >
-            {busy ? "Creating..." : "Create apartment"}
-          </button>
+    return "Create apartment";
+  }
 
-          <button
-            type="button"
-            className="btn btn-outline-secondary ms-auto"
-            onClick={onCancel}
-            disabled={busy}
-          >
-            Cancel
-          </button>
-        </div>
+  function renderEmptyTagsMessage() {
+    if (availableTags.length > 0) {
+      return null;
+    }
+
+    return (
+      <div className="apartment-wizard-step__empty-text">
+        No tags loaded.
       </div>
-    </div>
+    );
+  }
+
+  function renderTagsGrid() {
+    if (availableTags.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="apartment-wizard-step__tags-grid">
+        {availableTags.map((tag) => {
+          return (
+            <button
+              key={tag.id}
+              type="button"
+              className={getTagButtonClass(tag.id)}
+              onClick={() => toggleTag(tag.id)}
+              disabled={busy}
+            >
+              {tag.name}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <WizardStepShell
+      title="Step 2: Tags"
+      subtitle="Select tags, then we will create the apartment."
+    >
+      {renderEmptyTagsMessage()}
+      {renderTagsGrid()}
+
+      <WizardStepActions>
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={onPrev}
+          disabled={busy}
+        >
+          Back
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-primary px-4"
+          onClick={onCreate}
+          disabled={busy}
+        >
+          {getCreateButtonText()}
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline-secondary apartment-wizard-step__actions-spacer"
+          onClick={onCancel}
+          disabled={busy}
+        >
+          Cancel
+        </button>
+      </WizardStepActions>
+    </WizardStepShell>
   );
 }
