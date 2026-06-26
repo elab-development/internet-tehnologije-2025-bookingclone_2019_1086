@@ -1,71 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import * as apartmentService from "../../../apartments/services/apartmentService";
 import { getTags, type TagDto } from "../../../tags/services/tagService";
 import type { ApartmentDetailsState } from "../steps/StepApartmentDetails";
 
-export type CreateApartmentStepKey = "details" | "tags" | "photos";
+import {
+  CREATE_APARTMENT_STEPS,
+  type CreateApartmentStep,
+  type CreateApartmentStepKey,
+} from "../constants/createApartmentSteps";
 
-export type CreateApartmentStep = {
-  key: CreateApartmentStepKey;
-  label: string;
-};
+import {
+  createInitialDetailsState,
+  getErrorMessage,
+  validateApartmentDetails,
+} from "../utils/apartmentDetailsValidation";
 
-function createInitialDetailsState(): ApartmentDetailsState {
-  return {
-    title: "",
-    description: "",
-    address: "",
-    city: "",
-    country: "",
-    price_per_night: "",
-    max_guests: "",
-  };
-}
-
-function validateDetails(value: ApartmentDetailsState) {
-  const title = value.title.trim();
-  const description = value.description.trim();
-  const address = value.address.trim();
-  const city = value.city.trim();
-  const country = value.country.trim();
-
-  if (!title || !description || !address || !city || !country) {
-    throw new Error("All fields are required.");
-  }
-
-  const price = Number(value.price_per_night);
-
-  if (!Number.isFinite(price) || price <= 0) {
-    throw new Error("Price per night must be a positive number.");
-  }
-
-  const guests = Number(value.max_guests);
-
-  if (!Number.isFinite(guests) || guests < 1) {
-    throw new Error("Max guests must be at least 1.");
-  }
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return fallback;
-}
+import { createApartmentPayload } from "../utils/createApartmentPayload";
 
 export function useCreateApartmentWizard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  const steps: CreateApartmentStep[] = useMemo(() => {
-    return [
-      { key: "details", label: "Apartment details" },
-      { key: "tags", label: "Tags" },
-      { key: "photos", label: "Photos" },
-    ];
-  }, []);
+  const steps = CREATE_APARTMENT_STEPS;
 
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [details, setDetails] = useState<ApartmentDetailsState>(
@@ -84,6 +43,14 @@ export function useCreateApartmentWizard() {
   const currentStep = steps[stepIndex];
   const currentStepKey = currentStep.key;
   const hasCreatedApartment = createdApartmentId !== null;
+
+  function getValidationMessages() {
+    return {
+      requiredFields: t("createApartment.errors.requiredFields"),
+      invalidPrice: t("createApartment.errors.invalidPrice"),
+      invalidGuests: t("createApartment.errors.invalidGuests"),
+    };
+  }
 
   useEffect(() => {
     if (currentStepKey !== "tags") {
@@ -109,7 +76,9 @@ export function useCreateApartmentWizard() {
           return;
         }
 
-        setError(getErrorMessage(loadError, "Failed to load tags"));
+        setError(
+          getErrorMessage(loadError, t("createApartment.errors.loadTagsFailed"))
+        );
       } finally {
         if (!cancelled) {
           setBusy(false);
@@ -122,7 +91,7 @@ export function useCreateApartmentWizard() {
     return () => {
       cancelled = true;
     };
-  }, [currentStepKey]);
+  }, [currentStepKey, t]);
 
   function goPrev() {
     setError(null);
@@ -207,10 +176,12 @@ export function useCreateApartmentWizard() {
   function handleNextFromDetails() {
     try {
       setError(null);
-      validateDetails(details);
+      validateApartmentDetails(details, getValidationMessages());
       setStepIndex(1);
     } catch (validationError) {
-      setError(getErrorMessage(validationError, "Validation failed"));
+      setError(
+        getErrorMessage(validationError, t("createApartment.errors.validationFailed"))
+      );
     }
   }
 
@@ -219,30 +190,22 @@ export function useCreateApartmentWizard() {
       setError(null);
       setBusy(true);
 
-      validateDetails(details);
+      validateApartmentDetails(details, getValidationMessages());
 
-      const payload: apartmentService.ApartmentCreateRequest = {
-        title: details.title.trim(),
-        description: details.description.trim(),
-        address: details.address.trim(),
-        city: details.city.trim(),
-        country: details.country.trim(),
-        price_per_night: Number(details.price_per_night),
-        max_guests: Number(details.max_guests),
-        tag_ids: selectedTagIds,
-      };
-
+      const payload = createApartmentPayload(details, selectedTagIds);
       const created = await apartmentService.createApartment(payload);
       const id = Number(created.id);
 
       if (!Number.isFinite(id) || id <= 0) {
-        throw new Error("Apartment created but no id returned from API.");
+        throw new Error(t("createApartment.errors.missingApartmentId"));
       }
 
       setCreatedApartmentId(id);
       setStepIndex(2);
     } catch (createError) {
-      setError(getErrorMessage(createError, "Failed to create apartment"));
+      setError(
+        getErrorMessage(createError, t("createApartment.errors.createFailed"))
+      );
     } finally {
       setBusy(false);
     }

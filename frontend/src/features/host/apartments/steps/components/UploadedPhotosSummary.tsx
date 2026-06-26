@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { ApartmentPhotoDto } from "../../../../apartments/services/apartmentService";
 
 type UploadedPhotosSummaryProps = {
@@ -7,6 +9,8 @@ type UploadedPhotosSummaryProps = {
 export default function UploadedPhotosSummary({
   photos,
 }: UploadedPhotosSummaryProps) {
+  const { t } = useTranslation();
+
   function hasUploadedPhotos() {
     return photos.length > 0;
   }
@@ -18,11 +22,13 @@ export default function UploadedPhotosSummary({
   return (
     <div className="apartment-wizard-step__uploaded-section">
       <div className="apartment-wizard-step__selected-title">
-        Uploaded (backend returned)
+        {t("createApartment.photos.uploadedTitle")}
       </div>
 
       <div className="apartment-wizard-step__empty-text">
-        Uploaded {photos.length} photo(s).
+        {t("createApartment.photos.uploadedCount", {
+          count: photos.length,
+        })}
       </div>
     </div>
   );

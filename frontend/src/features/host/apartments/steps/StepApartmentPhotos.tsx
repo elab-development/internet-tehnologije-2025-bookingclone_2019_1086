@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   type ApartmentPhotoDto,
@@ -31,6 +32,8 @@ export default function StepApartmentPhotos({
   onPrev,
   onFinish,
 }: StepApartmentPhotosProps) {
+  const { t } = useTranslation();
+
   const [uploadedPhotos, setUploadedPhotos] = useState<ApartmentPhotoDto[]>([]);
 
   const {
@@ -56,15 +59,15 @@ export default function StepApartmentPhotos({
 
   function getFinishButtonText() {
     if (busy) {
-      return "Uploading...";
+      return t("createApartment.actions.uploading");
     }
 
-    return "Finish";
+    return t("createApartment.actions.finish");
   }
 
   function getFinishButtonTitle() {
     if (!hasPendingPhotos()) {
-      return "Add at least one photo first";
+      return t("createApartment.photos.addAtLeastOne");
     }
 
     return "";
@@ -75,7 +78,7 @@ export default function StepApartmentPhotos({
       setError(null);
 
       if (!hasPendingPhotos()) {
-        throw new Error("Please add at least one photo before finishing.");
+        throw new Error(t("createApartment.photos.addAtLeastOne"));
       }
 
       setBusy(true);
@@ -94,7 +97,7 @@ export default function StepApartmentPhotos({
         return;
       }
 
-      setError("Failed to upload photos");
+      setError(t("createApartment.errors.uploadPhotosFailed"));
     } finally {
       setBusy(false);
     }
@@ -102,8 +105,8 @@ export default function StepApartmentPhotos({
 
   return (
     <WizardStepShell
-      title="Step 3: Photos"
-      subtitle="Add photos locally, then click Finish to upload them."
+      title={t("createApartment.photos.title")}
+      subtitle={t("createApartment.photos.subtitle")}
     >
       <PhotoUploadToolbar
         busy={busy}
@@ -127,7 +130,7 @@ export default function StepApartmentPhotos({
           onClick={onPrev}
           disabled={busy}
         >
-          Back
+          {t("createApartment.actions.back")}
         </button>
 
         <button
@@ -142,7 +145,7 @@ export default function StepApartmentPhotos({
       </WizardStepActions>
 
       <div className="apartment-wizard-step__upload-note">
-        Finish uploads everything in one request:{" "}
+        {t("createApartment.photos.uploadNote")}{" "}
         <span className="apartment-wizard-step__upload-endpoint">
           POST /apartments/{apartmentId}/photos
         </span>
