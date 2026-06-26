@@ -6,6 +6,7 @@ import ReactDatePicker from "react-datepicker";
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
 
 import { useDateRange } from "../../../../shared/hooks/useDateRange";
+import { formatApartmentPrice } from "../../services/apartmentService";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -14,16 +15,6 @@ const DatePicker = ReactDatePicker as unknown as ComponentType<any>;
 type Props = {
   apartment: ApartmentDetailsDto;
 };
-
-function formatPrice(price: string) {
-  const value = Number(price);
-
-  if (!Number.isFinite(value)) {
-    return "€0";
-  }
-
-  return `€${value.toFixed(0)}`;
-}
 
 function calculateNights(checkInDate: Date | null, checkOutDate: Date | null) {
   if (!checkInDate) {
@@ -44,6 +35,16 @@ function calculateNights(checkInDate: Date | null, checkOutDate: Date | null) {
   return nights;
 }
 
+function getPriceValue(price: string | number | null | undefined) {
+  const value = Number(price);
+
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return value;
+}
+
 export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const { t } = useTranslation();
 
@@ -58,7 +59,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
     getCheckOutMinDate,
   } = useDateRange();
 
-  const price = Number(apartment.price_per_night);
+  const price = getPriceValue(apartment.price_per_night);
   const nights = calculateNights(checkInDate, checkOutDate);
   const total = price * nights;
 
@@ -94,16 +95,16 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
       <div className="details-booking__summary">
         <div className="details-booking__summary-row">
           <span>
-            {formatPrice(apartment.price_per_night)} x {nights}{" "}
+            {formatApartmentPrice(apartment.price_per_night)} x {nights}{" "}
             {getNightsLabel()}
           </span>
 
-          <strong>€{total.toFixed(0)}</strong>
+          <strong>{formatApartmentPrice(total)}</strong>
         </div>
 
         <div className="details-booking__summary-row details-booking__summary-row--total">
           <span>{t("apartments.details.booking.total")}</span>
-          <strong>€{total.toFixed(0)}</strong>
+          <strong>{formatApartmentPrice(total)}</strong>
         </div>
       </div>
     );
@@ -118,7 +119,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
           </p>
 
           <h2 className="details-booking__price">
-            {formatPrice(apartment.price_per_night)}
+            {formatApartmentPrice(apartment.price_per_night)}
           </h2>
         </div>
 
