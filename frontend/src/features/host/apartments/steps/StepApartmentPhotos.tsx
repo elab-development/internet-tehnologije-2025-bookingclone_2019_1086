@@ -1,20 +1,18 @@
-import type { ChangeEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
   type ApartmentPhotoDto,
   uploadApartmentPhotos,
 } from "../../../apartments/services/apartmentService";
+
+import { usePendingPhotos } from "../hooks/usePendingPhotos";
+import PhotoUploadToolbar from "./components/PhotoUploadToolbar";
+import PendingPhotoGrid from "./components/PendingPhotoGrid";
+import UploadedPhotosSummary from "./components/UploadedPhotosSummary";
 import WizardStepActions from "./components/WizardStepActions";
 import WizardStepShell from "./components/WizardStepShell";
 
 import "../styles/ApartmentWizardSteps.css";
-
-type PendingPhoto = {
-  id: string;
-  file: File;
-  previewUrl: string;
-};
 
 type StepApartmentPhotosProps = {
   apartmentId: number;
@@ -25,15 +23,6 @@ type StepApartmentPhotosProps = {
   onFinish: () => void;
 };
 
-function createPhotoId(file: File, index: number) {
-  return `${file.name}-${file.size}-${file.lastModified}-${Date.now()}-${index}`;
-}
-
-function formatFileSize(size: number) {
-  const sizeInMb = size / 1024 / 1024;
-  return `${sizeInMb.toFixed(2)} MB`;
-}
-
 export default function StepApartmentPhotos({
   apartmentId,
   busy,
@@ -42,79 +31,16 @@ export default function StepApartmentPhotos({
   onPrev,
   onFinish,
 }: StepApartmentPhotosProps) {
-  const [pending, setPending] = useState<PendingPhoto[]>([]);
-  const [uploaded, setUploaded] = useState<ApartmentPhotoDto[]>([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState<ApartmentPhotoDto[]>([]);
 
-  const pendingRef = useRef<PendingPhoto[]>([]);
-
-  useEffect(() => {
-    pendingRef.current = pending;
-  }, [pending]);
-
-  useEffect(() => {
-    return () => {
-      pendingRef.current.forEach((photo) => {
-        URL.revokeObjectURL(photo.previewUrl);
-      });
-    };
-  }, []);
-
-  function addFiles(fileList: FileList | null) {
-    if (!fileList) {
-      return;
-    }
-
-    const nextPhotos = Array.from(fileList).map((file, index) => {
-      return {
-        id: createPhotoId(file, index),
-        file,
-        previewUrl: URL.createObjectURL(file),
-      };
-    });
-
-    setPending((currentPending) => {
-      return [...currentPending, ...nextPhotos];
-    });
-  }
-
-  function handleFilesChange(event: ChangeEvent<HTMLInputElement>) {
-    addFiles(event.target.files);
-    event.target.value = "";
-  }
-
-  function removePending(id: string) {
-    setPending((currentPending) => {
-      const itemToRemove = currentPending.find((photo) => {
-        return photo.id === id;
-      });
-
-      if (itemToRemove) {
-        URL.revokeObjectURL(itemToRemove.previewUrl);
-      }
-
-      return currentPending.filter((photo) => {
-        return photo.id !== id;
-      });
-    });
-  }
-
-  function clearAll() {
-    setPending((currentPending) => {
-      currentPending.forEach((photo) => {
-        URL.revokeObjectURL(photo.previewUrl);
-      });
-
-      return [];
-    });
-  }
-
-  function hasPendingPhotos() {
-    return pending.length > 0;
-  }
-
-  function hasUploadedPhotos() {
-    return uploaded.length > 0;
-  }
+  const {
+    pendingPhotos,
+    addFiles,
+    removePendingPhoto,
+    clearPendingPhotos,
+    hasPendingPhotos,
+    getPendingFiles,
+  } = usePendingPhotos();
 
   function isFinishDisabled() {
     if (busy) {
@@ -154,14 +80,13 @@ export default function StepApartmentPhotos({
 
       setBusy(true);
 
-      const files = pending.map((photo) => {
-        return photo.file;
-      });
+      const createdPhotos = await uploadApartmentPhotos(
+        apartmentId,
+        getPendingFiles()
+      );
 
-      const created = await uploadApartmentPhotos(apartmentId, files);
-
-      setUploaded(created);
-      clearAll();
+      setUploadedPhotos(createdPhotos);
+      clearPendingPhotos();
       onFinish();
     } catch (uploadError) {
       if (uploadError instanceof Error) {
@@ -180,88 +105,20 @@ export default function StepApartmentPhotos({
       title="Step 3: Photos"
       subtitle="Add photos locally, then click Finish to upload them."
     >
-      <div className="apartment-wizard-step__photo-toolbar">
-        <input
-          type="file"
-          className="form-control apartment-wizard-step__photo-input"
-          accept="image/*"
-          multiple
-          onChange={handleFilesChange}
-          disabled={busy}
-        />
+      <PhotoUploadToolbar
+        busy={busy}
+        hasPendingPhotos={hasPendingPhotos()}
+        onFilesChange={addFiles}
+        onClear={clearPendingPhotos}
+      />
 
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={clearAll}
-          disabled={busy || !hasPendingPhotos()}
-        >
-          Clear
-        </button>
-      </div>
+      <PendingPhotoGrid
+        photos={pendingPhotos}
+        busy={busy}
+        onRemove={removePendingPhoto}
+      />
 
-      {!hasPendingPhotos() && (
-        <div className="apartment-wizard-step__empty-text apartment-wizard-step__photos-empty">
-          No photos selected yet.
-        </div>
-      )}
-
-      {hasPendingPhotos() && (
-        <div className="apartment-wizard-step__pending-section">
-          <div className="apartment-wizard-step__selected-title">
-            Selected photos (not uploaded yet)
-          </div>
-
-          <div className="apartment-wizard-step__pending-grid">
-            {pending.map((photo) => (
-              <div key={photo.id} className="apartment-wizard-step__photo-card">
-                <img
-                  src={photo.previewUrl}
-                  alt={photo.file.name}
-                  className="apartment-wizard-step__photo-image"
-                />
-
-                <div className="apartment-wizard-step__photo-body">
-                  <div className="apartment-wizard-step__photo-name">
-                    {photo.file.name}
-                  </div>
-
-                  <div className="apartment-wizard-step__photo-size">
-                    {formatFileSize(photo.file.size)}
-                  </div>
-
-                  <div className="apartment-wizard-step__photo-footer">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => removePending(photo.id)}
-                      disabled={busy}
-                    >
-                      Remove
-                    </button>
-
-                    <div className="apartment-wizard-step__photo-status">
-                      staged
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {hasUploadedPhotos() && (
-        <div className="apartment-wizard-step__uploaded-section">
-          <div className="apartment-wizard-step__selected-title">
-            Uploaded (backend returned)
-          </div>
-
-          <div className="apartment-wizard-step__empty-text">
-            Uploaded {uploaded.length} photo(s).
-          </div>
-        </div>
-      )}
+      <UploadedPhotosSummary photos={uploadedPhotos} />
 
       <WizardStepActions>
         <button
