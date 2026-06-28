@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { changeLanguage } from "../../../i18n/i18n";
+import {
+  changeLanguage,
+  getStoredLanguage,
+  type SupportedLanguage,
+} from "../../../i18n/i18n";
 
 type LanguageOption = {
-  code: "sr" | "en";
+  code: SupportedLanguage;
   iso: "SRB" | "EN";
   labelKey: string;
 };
@@ -22,17 +26,53 @@ const languages: LanguageOption[] = [
   },
 ];
 
+function getDefaultLanguage(): SupportedLanguage {
+  return "en";
+}
+
+function getCurrentLanguageCode(): SupportedLanguage {
+  const storedLanguage = getStoredLanguage();
+
+  if (storedLanguage) {
+    return storedLanguage;
+  }
+
+  return getDefaultLanguage();
+}
+
+function getLanguageByCode(code: SupportedLanguage): LanguageOption {
+  const language = languages.find((item) => item.code === code);
+
+  if (language) {
+    return language;
+  }
+
+  return languages[1];
+}
+
+function getLanguageOptionClassName(
+  language: LanguageOption,
+  currentLanguage: LanguageOption
+) {
+  const classNames = ["header__language-option"];
+
+  if (language.code === currentLanguage.code) {
+    classNames.push("header__language-option--active");
+  }
+
+  return classNames.join(" ");
+}
+
 export default function HeaderLanguageSwitcher() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
+  const [selectedLanguageCode, setSelectedLanguageCode] =
+    useState<SupportedLanguage>(getCurrentLanguageCode);
+
   const switcherRef = useRef<HTMLDivElement | null>(null);
 
-  const currentLanguageCode = i18n.language === "sr" ? "sr" : "en";
-
-  const currentLanguage =
-    languages.find((language) => language.code === currentLanguageCode) ??
-    languages[1];
+  const currentLanguage = getLanguageByCode(selectedLanguageCode);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -52,9 +92,47 @@ export default function HeaderLanguageSwitcher() {
     };
   }, []);
 
+  function toggleDropdown() {
+    setOpen((value) => !value);
+  }
+
+  function closeDropdown() {
+    setOpen(false);
+  }
+
   function handleLanguageChange(language: LanguageOption) {
     changeLanguage(language.code);
-    setOpen(false);
+    setSelectedLanguageCode(language.code);
+    closeDropdown();
+  }
+
+  function renderDropdown() {
+    if (!open) {
+      return null;
+    }
+
+    return (
+      <div className="header__language-dropdown" role="listbox">
+        {languages.map((language) => (
+          <button
+            key={language.code}
+            type="button"
+            className={getLanguageOptionClassName(language, currentLanguage)}
+            onClick={() => handleLanguageChange(language)}
+            role="option"
+            aria-selected={language.code === currentLanguage.code}
+          >
+            <span className="header__language-option-code">
+              {language.iso}
+            </span>
+
+            <span className="header__language-label">
+              {t(language.labelKey)}
+            </span>
+          </button>
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -62,7 +140,7 @@ export default function HeaderLanguageSwitcher() {
       <button
         type="button"
         className="header__language-current"
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggleDropdown}
         aria-label="Change language"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -70,32 +148,7 @@ export default function HeaderLanguageSwitcher() {
         {currentLanguage.iso}
       </button>
 
-      {open ? (
-        <div className="header__language-dropdown" role="listbox">
-          {languages.map((language) => (
-            <button
-              key={language.code}
-              type="button"
-              className={
-                language.code === currentLanguage.code
-                  ? "header__language-option header__language-option--active"
-                  : "header__language-option"
-              }
-              onClick={() => handleLanguageChange(language)}
-              role="option"
-              aria-selected={language.code === currentLanguage.code}
-            >
-              <span className="header__language-option-code">
-                {language.iso}
-              </span>
-
-              <span className="header__language-label">
-                {t(language.labelKey)}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : null}
+      {renderDropdown()}
     </div>
   );
 }

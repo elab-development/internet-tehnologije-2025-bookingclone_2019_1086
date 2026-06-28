@@ -68,10 +68,30 @@ export default function Header() {
     setAuthOpen(true);
   }
 
+  function closeAuthModal() {
+    setAuthOpen(false);
+  }
+
+  function toggleUserMenu() {
+    setOpen((value) => !value);
+  }
+
+  function closeUserMenu() {
+    setOpen(false);
+  }
+
+  function getUserRole() {
+    if (!user) {
+      return undefined;
+    }
+
+    return user.role;
+  }
+
   function handleAuthSuccess() {
     setLogged(isLoggedIn());
     setUser(getAuthUser());
-    setAuthOpen(false);
+    closeAuthModal();
   }
 
   async function onLogout() {
@@ -88,40 +108,57 @@ export default function Header() {
     }
   }
 
+  function renderHeaderActions() {
+    if (!logged) {
+      return (
+        <GuestActions
+          onLoginClick={openLogin}
+          onRegisterClick={openRegister}
+        />
+      );
+    }
+
+    if (!user) {
+      return (
+        <GuestActions
+          onLoginClick={openLogin}
+          onRegisterClick={openRegister}
+        />
+      );
+    }
+
+    return (
+      <UserMenu
+        user={user}
+        menuItems={menuItems}
+        open={open}
+        menuRef={menuRef}
+        onToggle={toggleUserMenu}
+        onClose={closeUserMenu}
+        onLogout={onLogout}
+      />
+    );
+  }
+
   return (
     <>
       <header className="header">
         <div className="header__top">
           <HeaderLogo />
 
-          <HeaderNavigation logged={logged} role={user?.role} />
+          <HeaderNavigation logged={logged} role={getUserRole()} />
 
           <div className="header__actions">
             <HeaderLanguageSwitcher />
 
-            {!logged || !user ? (
-              <GuestActions
-                onLoginClick={openLogin}
-                onRegisterClick={openRegister}
-              />
-            ) : (
-              <UserMenu
-                user={user}
-                menuItems={menuItems}
-                open={open}
-                menuRef={menuRef}
-                onToggle={() => setOpen((value) => !value)}
-                onClose={() => setOpen(false)}
-                onLogout={onLogout}
-              />
-            )}
+            {renderHeaderActions()}
           </div>
         </div>
       </header>
 
       <AuthModal
         open={authOpen}
-        onClose={() => setAuthOpen(false)}
+        onClose={closeAuthModal}
         defaultMode={authDefaultMode}
         onSuccess={handleAuthSuccess}
       />

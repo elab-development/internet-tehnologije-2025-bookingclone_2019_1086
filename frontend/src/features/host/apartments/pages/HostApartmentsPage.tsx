@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
-
-import ApartmentCard from "../../../apartments/components/ApartmentCard";
-import { getMainPhotoUrl } from "../../../apartments/services/apartmentService";
 import { useHostApartments } from "../hooks/useHostApartments";
+
+import DeleteApartmentModal from "../components/DeleteApartmentModal";
+import HostApartmentsEmptyState from "../components/HostApartmentsEmptyState";
+import HostApartmentsGrid from "../components/HostApartmentsGrid";
+import HostApartmentsHeader from "../components/HostApartmentsHeader";
+import HostApartmentsMessage from "../components/HostApartmentsMessage";
+import HostApartmentsStatus from "../components/HostApartmentsStatus";
 
 import "../styles/HostApartmentsPage.css";
 
@@ -23,172 +26,46 @@ export default function HostApartmentsPage() {
     confirmDelete,
   } = useHostApartments();
 
-  function getMessageClassName() {
-    if (!message) {
-      return "alert";
+  function shouldShowGrid() {
+    if (!hasItems) {
+      return false;
     }
 
-    if (message.type === "success") {
-      return "alert alert-success";
+    if (loading) {
+      return false;
     }
 
-    return "alert alert-danger";
-  }
-
-  function getDeleteButtonText() {
-    if (deleteBusy) {
-      return "Deleting...";
+    if (error) {
+      return false;
     }
 
-    return "Delete";
+    return true;
   }
 
   return (
     <div className="container my-4 host-apartments-page">
-      <div className="host-apartments-page__header">
-        <div>
-          <h2 className="host-apartments-page__title">My apartments</h2>
-          <div className="host-apartments-page__subtitle">
-            Manage your listings
-          </div>
-        </div>
+      <HostApartmentsHeader isHost={isHost} />
 
-        {isHost && (
-          <Link to="/host/apartments/create" className="btn btn-primary">
-            + Add apartment
-          </Link>
-        )}
-      </div>
+      <HostApartmentsMessage message={message} />
 
-      {message && (
-        <div className={getMessageClassName()} role="alert">
-          {message.text}
-        </div>
-      )}
+      <HostApartmentsStatus loading={loading} error={error} />
 
-      {loading && <div>Loading...</div>}
+      <HostApartmentsEmptyState show={showEmpty} isHost={isHost} />
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
+      <HostApartmentsGrid
+        show={shouldShowGrid()}
+        items={items}
+        isHost={isHost}
+        onDeleteClick={openDeleteModal}
+      />
 
-      {showEmpty && (
-        <div className="card shadow-sm host-apartments-page__empty-card">
-          <div className="card-body p-4">
-            <div className="host-apartments-page__empty-title">
-              No apartments yet
-            </div>
-
-            <div className="host-apartments-page__empty-text">
-              Create your first apartment listing.
-            </div>
-
-            {isHost && (
-              <Link to="/host/apartments/create" className="btn btn-primary">
-                Create apartment
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-
-      {hasItems && !loading && !error && (
-        <div className="row g-4 host-apartments-page__grid">
-          {items.map((apartment) => (
-            <div
-              key={apartment.id}
-              className="col-12 col-sm-6 col-md-4 col-lg-3"
-            >
-              <div className="host-apartments-page__card-wrapper">
-                <ApartmentCard
-                  id={apartment.id}
-                  name={apartment.title}
-                  country={apartment.country}
-                  city={apartment.city}
-                  imageUrl={getMainPhotoUrl(apartment)}
-                  pricePerNight={apartment.price_per_night}
-                />
-
-                {isHost && (
-                  <div className="host-apartments-page__actions">
-                    <button
-                      type="button"
-                      className="btn btn-light border shadow-sm host-apartments-page__icon-button"
-                      title="Delete"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        openDeleteModal(apartment);
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {isDeleteModalOpen && (
-        <div
-          className="modal host-apartments-page__modal-backdrop"
-          tabIndex={-1}
-          role="dialog"
-        >
-          <div className="modal-dialog modal-dialog-centered" role="document">
-            <div className="modal-content host-apartments-page__modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Delete apartment</h5>
-
-                <button
-                  type="button"
-                  className="btn-close"
-                  aria-label="Close"
-                  onClick={closeDeleteModal}
-                />
-              </div>
-
-              <div className="modal-body">
-                <div className="host-apartments-page__delete-title">
-                  Are you sure?
-                </div>
-
-                <div className="host-apartments-page__delete-text">
-                  This will permanently delete{" "}
-                  <span className="host-apartments-page__delete-name">
-                    {deleteModal.apartmentTitle}
-                  </span>{" "}
-                  and its photos.
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={closeDeleteModal}
-                  disabled={deleteBusy}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={confirmDelete}
-                  disabled={deleteBusy}
-                >
-                  {getDeleteButtonText()}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteApartmentModal
+        open={isDeleteModalOpen}
+        apartmentTitle={deleteModal.apartmentTitle}
+        busy={deleteBusy}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
