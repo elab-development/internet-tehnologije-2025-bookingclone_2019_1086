@@ -1,7 +1,4 @@
-type HostMessage = {
-  type: "success" | "danger";
-  text: string;
-};
+import type { HostMessage } from "../hooks/useHostApartments";
 
 type Props = {
   message: HostMessage | null;

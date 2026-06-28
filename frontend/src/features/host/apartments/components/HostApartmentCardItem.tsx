@@ -1,3 +1,5 @@
+import type { MouseEvent } from "react";
+
 import ApartmentCard from "../../../apartments/components/ApartmentCard";
 import {
   getMainPhotoUrl,
@@ -7,22 +9,46 @@ import {
 type Props = {
   apartment: ApartmentDto;
   isHost: boolean;
+  deleteBusyId: number | null;
   onDeleteClick: (apartment: ApartmentDto) => void;
 };
+
+function isApartmentDeleting(
+  apartment: ApartmentDto,
+  deleteBusyId: number | null
+) {
+  if (deleteBusyId === null) {
+    return false;
+  }
+
+  return deleteBusyId === apartment.id;
+}
+
+function getDeleteButtonText(
+  apartment: ApartmentDto,
+  deleteBusyId: number | null
+) {
+  if (isApartmentDeleting(apartment, deleteBusyId)) {
+    return "Deleting...";
+  }
+
+  return "🗑️";
+}
 
 export default function HostApartmentCardItem({
   apartment,
   isHost,
+  deleteBusyId,
   onDeleteClick,
 }: Props) {
-  function handleDeleteClick(event: React.MouseEvent<HTMLButtonElement>) {
+  function handleDeleteClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
 
     onDeleteClick(apartment);
   }
 
-  function renderDeleteAction() {
+  function renderDeleteButton() {
     if (!isHost) {
       return null;
     }
@@ -33,9 +59,10 @@ export default function HostApartmentCardItem({
           type="button"
           className="btn btn-light border shadow-sm host-apartments-page__icon-button"
           title="Delete"
+          disabled={isApartmentDeleting(apartment, deleteBusyId)}
           onClick={handleDeleteClick}
         >
-          🗑️
+          {getDeleteButtonText(apartment, deleteBusyId)}
         </button>
       </div>
     );
@@ -53,7 +80,7 @@ export default function HostApartmentCardItem({
           pricePerNight={apartment.price_per_night}
         />
 
-        {renderDeleteAction()}
+        {renderDeleteButton()}
       </div>
     </div>
   );
