@@ -5,16 +5,35 @@ import en from "./locales/en.json";
 import sr from "./locales/sr.json";
 
 const supportedLanguages = ["en", "sr"] as const;
+const LANGUAGE_STORAGE_KEY = "language";
 
-type SupportedLanguage = (typeof supportedLanguages)[number];
+export type SupportedLanguage = (typeof supportedLanguages)[number];
 
-function getInitialLanguage(): SupportedLanguage {
-  const savedLanguage = localStorage.getItem("language");
+export function isSupportedLanguage(
+  language: string | null
+): language is SupportedLanguage {
+  if (language === "en") {
+    return true;
+  }
 
-  if (savedLanguage === "en" || savedLanguage === "sr") {
+  if (language === "sr") {
+    return true;
+  }
+
+  return false;
+}
+
+export function getStoredLanguage(): SupportedLanguage | null {
+  const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+
+  if (isSupportedLanguage(savedLanguage)) {
     return savedLanguage;
   }
 
+  return null;
+}
+
+function getBrowserLanguage(): SupportedLanguage {
   const browserLanguage = navigator.language.toLowerCase();
 
   if (browserLanguage.startsWith("sr")) {
@@ -22,6 +41,16 @@ function getInitialLanguage(): SupportedLanguage {
   }
 
   return "en";
+}
+
+function getInitialLanguage(): SupportedLanguage {
+  const storedLanguage = getStoredLanguage();
+
+  if (storedLanguage) {
+    return storedLanguage;
+  }
+
+  return getBrowserLanguage();
 }
 
 i18n.use(initReactI18next).init({
@@ -41,7 +70,7 @@ i18n.use(initReactI18next).init({
 });
 
 export function changeLanguage(language: SupportedLanguage) {
-  localStorage.setItem("language", language);
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   i18n.changeLanguage(language);
 }
 
