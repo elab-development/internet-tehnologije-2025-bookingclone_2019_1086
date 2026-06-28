@@ -2,19 +2,14 @@ import { useEffect, useState } from "react";
 
 import { getAuthUser } from "../../../auth/storage/authStorage";
 import {
-  type ApartmentDto,
   deleteApartment,
   getMyApartments,
+  type ApartmentDto,
 } from "../../../apartments/services/apartmentService";
 
-type HostMessage = {
+export type HostMessage = {
   type: "success" | "danger";
   text: string;
-};
-
-type DeleteModalState = {
-  apartmentId: number | null;
-  apartmentTitle: string;
 };
 
 export function useHostApartments() {
@@ -24,19 +19,12 @@ export function useHostApartments() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<HostMessage | null>(null);
-
-  const [deleteModal, setDeleteModal] = useState<DeleteModalState>({
-    apartmentId: null,
-    apartmentTitle: "",
-  });
-
-  const [deleteBusy, setDeleteBusy] = useState<boolean>(false);
+  const [deleteBusyId, setDeleteBusyId] = useState<number | null>(null);
 
   const userId = user?.id ?? null;
   const isHost = user?.role === "HOST";
   const hasItems = items.length > 0;
   const showEmpty = !loading && !error && !hasItems;
-  const isDeleteModalOpen = deleteModal.apartmentId !== null;
 
   useEffect(() => {
     let cancelled = false;
@@ -57,15 +45,11 @@ export function useHostApartments() {
           page_size: 50,
         });
 
-        const myApartments = response.items.filter((apartment) => {
-          return apartment.user_id === userId;
-        });
-
         if (cancelled) {
           return;
         }
 
-        setItems(myApartments);
+        setItems(response.items);
       } catch (loadError) {
         if (cancelled) {
           return;
@@ -91,51 +75,26 @@ export function useHostApartments() {
     };
   }, [userId]);
 
-  function openDeleteModal(apartment: ApartmentDto) {
-    setDeleteModal({
-      apartmentId: apartment.id,
-      apartmentTitle: apartment.title,
-    });
-  }
-
-  function closeDeleteModal() {
-    if (deleteBusy) {
+  async function deleteApartmentFromCard(apartment: ApartmentDto) {
+    if (deleteBusyId !== null) {
       return;
     }
 
-    setDeleteModal({
-      apartmentId: null,
-      apartmentTitle: "",
-    });
-  }
-
-  async function confirmDelete() {
-    const apartmentId = deleteModal.apartmentId;
-
-    if (!apartmentId) {
-      return;
-    }
-
-    setDeleteBusy(true);
+    setDeleteBusyId(apartment.id);
     setMessage(null);
 
     try {
-      await deleteApartment(apartmentId);
+      await deleteApartment(apartment.id);
 
       setItems((currentItems) => {
-        return currentItems.filter((apartment) => {
-          return apartment.id !== apartmentId;
+        return currentItems.filter((currentApartment) => {
+          return currentApartment.id !== apartment.id;
         });
       });
 
       setMessage({
         type: "success",
         text: "Apartment deleted successfully.",
-      });
-
-      setDeleteModal({
-        apartmentId: null,
-        apartmentTitle: "",
       });
     } catch (deleteError) {
       if (deleteError instanceof Error) {
@@ -149,15 +108,11 @@ export function useHostApartments() {
 
       setMessage({
         type: "danger",
-        text: "Failed to delete apartment",
+        text: "Failed to delete apartment.",
       });
     } finally {
-      setDeleteBusy(false);
+      setDeleteBusyId(null);
     }
-  }
-
-  function clearMessage() {
-    setMessage(null);
   }
 
   return {
@@ -168,12 +123,7 @@ export function useHostApartments() {
     isHost,
     hasItems,
     showEmpty,
-    deleteBusy,
-    deleteModal,
-    isDeleteModalOpen,
-    openDeleteModal,
-    closeDeleteModal,
-    confirmDelete,
-    clearMessage,
+    deleteBusyId,
+    deleteApartmentFromCard,
   };
 }

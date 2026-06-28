@@ -11,20 +11,15 @@ import {
 
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
 
+import {
+  buildAddressText,
+  getMapCenter,
+  getMapPosition,
+  getMapZoom,
+} from "./map/apartmentMapUtils";
+
 type Props = {
   apartment: ApartmentDetailsDto;
-};
-
-type MapPosition = {
-  latitude: number;
-  longitude: number;
-  hasExactCoordinates: boolean;
-};
-
-const DEFAULT_MAP_POSITION: MapPosition = {
-  latitude: 44.8125,
-  longitude: 20.4612,
-  hasExactCoordinates: false,
 };
 
 const apartmentMarkerIcon = L.divIcon({
@@ -35,71 +30,22 @@ const apartmentMarkerIcon = L.divIcon({
   popupAnchor: [0, -20],
 });
 
-function getValidCoordinate(value: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  return parsed;
-}
-
-function getMapPosition(apartment: ApartmentDetailsDto): MapPosition {
-  const latitude = getValidCoordinate(apartment.latitude);
-  const longitude = getValidCoordinate(apartment.longitude);
-
-  if (latitude !== null && longitude !== null) {
-    return {
-      latitude,
-      longitude,
-      hasExactCoordinates: true,
-    };
-  }
-
-  return DEFAULT_MAP_POSITION;
-}
-
-function buildAddressText(apartment: ApartmentDetailsDto) {
-  const parts = [apartment.address, apartment.city, apartment.country].filter(
-    Boolean
-  );
-
-  if (parts.length > 0) {
-    return parts.join(", ");
-  }
-
-  return "Belgrade";
-}
-
-function buildOpenMapUrl(apartment: ApartmentDetailsDto, position: MapPosition) {
-  if (position.hasExactCoordinates) {
-    return `https://www.openstreetmap.org/?mlat=${position.latitude}&mlon=${position.longitude}#map=15/${position.latitude}/${position.longitude}`;
-  }
-
-  const query = encodeURIComponent(buildAddressText(apartment));
-
-  return `https://www.openstreetmap.org/search?query=${query}`;
-}
-
 export default function ApartmentDetailsMap({ apartment }: Props) {
   const { t } = useTranslation();
 
-  const position = useMemo(() => getMapPosition(apartment), [apartment]);
+  const position = useMemo(() => {
+    return getMapPosition(apartment);
+  }, [apartment]);
 
-  const mapCenter = useMemo<[number, number]>(() => {
-    return [position.latitude, position.longitude];
+  const mapCenter = useMemo(() => {
+    return getMapCenter(position);
   }, [position]);
 
-  let zoom = 12;
+  const addressText = useMemo(() => {
+    return buildAddressText(apartment);
+  }, [apartment]);
 
-  if (position.hasExactCoordinates) {
-    zoom = 15;
-  }
+  const zoom = getMapZoom(position);
 
   function getMapDescription() {
     if (position.hasExactCoordinates) {
@@ -120,9 +66,7 @@ export default function ApartmentDetailsMap({ apartment }: Props) {
             {t("apartments.details.map.title")}
           </h2>
 
-          <p className="apartment-map-header__address">
-            {buildAddressText(apartment)}
-          </p>
+          <p className="apartment-map-header__address">{addressText}</p>
         </div>
       </div>
 
@@ -149,7 +93,7 @@ export default function ApartmentDetailsMap({ apartment }: Props) {
             <Popup>
               <strong>{apartment.title}</strong>
               <br />
-              {buildAddressText(apartment)}
+              {addressText}
             </Popup>
           </Marker>
         </MapContainer>

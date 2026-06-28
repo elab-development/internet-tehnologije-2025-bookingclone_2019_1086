@@ -6,6 +6,7 @@ type Props = {
   show: boolean;
   items: ApartmentDto[];
   isHost: boolean;
+  deleteBusyId: number | null;
   onDeleteClick: (apartment: ApartmentDto) => void;
 };
 
@@ -13,6 +14,7 @@ export default function HostApartmentsGrid({
   show,
   items,
   isHost,
+  deleteBusyId,
   onDeleteClick,
 }: Props) {
   if (!show) {
@@ -26,6 +28,7 @@ export default function HostApartmentsGrid({
           key={apartment.id}
           apartment={apartment}
           isHost={isHost}
+          deleteBusyId={deleteBusyId}
           onDeleteClick={onDeleteClick}
         />
       ))}

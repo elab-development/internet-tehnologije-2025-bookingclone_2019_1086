@@ -1,49 +1,22 @@
 import { useState } from "react";
-import type { ComponentType, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import ReactDatePicker from "react-datepicker";
 
 import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
 
 import { useDateRange } from "../../../../shared/hooks/useDateRange";
 import { formatApartmentPrice } from "../../services/apartmentService";
 
-import "react-datepicker/dist/react-datepicker.css";
+import BookingDateFields from "./booking/BookingDateFields";
+import BookingGuestsField from "./booking/BookingGuestsField";
+import BookingPriceSummary from "./booking/BookingPriceSummary";
+import { calculateNights, getPriceValue } from "./booking/bookingUtils";
 
-const DatePicker = ReactDatePicker as unknown as ComponentType<any>;
+import "react-datepicker/dist/react-datepicker.css";
 
 type Props = {
   apartment: ApartmentDetailsDto;
 };
-
-function calculateNights(checkInDate: Date | null, checkOutDate: Date | null) {
-  if (!checkInDate) {
-    return 0;
-  }
-
-  if (!checkOutDate) {
-    return 0;
-  }
-
-  const milliseconds = checkOutDate.getTime() - checkInDate.getTime();
-  const nights = Math.ceil(milliseconds / 86_400_000);
-
-  if (nights < 1) {
-    return 0;
-  }
-
-  return nights;
-}
-
-function getPriceValue(price: string | number | null | undefined) {
-  const value = Number(price);
-
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-
-  return value;
-}
 
 export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const { t } = useTranslation();
@@ -63,14 +36,6 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const nights = calculateNights(checkInDate, checkOutDate);
   const total = price * nights;
 
-  function getNightsLabel() {
-    if (nights === 1) {
-      return t("apartments.details.booking.nightSingular");
-    }
-
-    return t("apartments.details.booking.nightPlural");
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -80,34 +45,6 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
       checkOutDate,
       guests,
     });
-  }
-
-  function renderPriceSummary() {
-    if (nights === 0) {
-      return (
-        <div className="details-booking__summary-muted">
-          {t("apartments.details.booking.selectDates")}
-        </div>
-      );
-    }
-
-    return (
-      <div className="details-booking__summary">
-        <div className="details-booking__summary-row">
-          <span>
-            {formatApartmentPrice(apartment.price_per_night)} x {nights}{" "}
-            {getNightsLabel()}
-          </span>
-
-          <strong>{formatApartmentPrice(total)}</strong>
-        </div>
-
-        <div className="details-booking__summary-row details-booking__summary-row--total">
-          <span>{t("apartments.details.booking.total")}</span>
-          <strong>{formatApartmentPrice(total)}</strong>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -131,64 +68,27 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
       </div>
 
       <div className="details-booking__grid">
-        <div className="details-booking__field">
-          <label className="details-booking__field-label">
-            {t("apartments.details.booking.checkIn")}
-          </label>
+        <BookingDateFields
+          checkInDate={checkInDate}
+          checkOutDate={checkOutDate}
+          onCheckInChange={handleCheckInChange}
+          onCheckOutChange={handleCheckOutChange}
+          getCheckInMinDate={getCheckInMinDate}
+          getCheckOutMinDate={getCheckOutMinDate}
+        />
 
-          <DatePicker
-            selected={checkInDate}
-            onChange={handleCheckInChange}
-            selectsStart
-            startDate={checkInDate}
-            endDate={checkOutDate}
-            minDate={getCheckInMinDate()}
-            dateFormat="dd.MM.yyyy"
-            placeholderText={t("apartments.details.booking.datePlaceholder")}
-            className="details-booking__input"
-            calendarClassName="home-calendar"
-            popperClassName="home-calendar-popper"
-          />
-        </div>
-
-        <div className="details-booking__field">
-          <label className="details-booking__field-label">
-            {t("apartments.details.booking.checkOut")}
-          </label>
-
-          <DatePicker
-            selected={checkOutDate}
-            onChange={handleCheckOutChange}
-            selectsEnd
-            startDate={checkInDate}
-            endDate={checkOutDate}
-            minDate={getCheckOutMinDate()}
-            dateFormat="dd.MM.yyyy"
-            placeholderText={t("apartments.details.booking.datePlaceholder")}
-            className="details-booking__input"
-            calendarClassName="home-calendar"
-            popperClassName="home-calendar-popper"
-          />
-        </div>
-
-        <div className="details-booking__field details-booking__field--full">
-          <label className="details-booking__field-label">
-            {t("apartments.details.booking.guests")}
-          </label>
-
-          <input
-            type="number"
-            min="1"
-            max={apartment.max_guests}
-            value={guests}
-            onChange={(event) => setGuests(event.target.value)}
-            className="details-booking__input"
-            placeholder="2"
-          />
-        </div>
+        <BookingGuestsField
+          guests={guests}
+          maxGuests={apartment.max_guests}
+          onGuestsChange={setGuests}
+        />
       </div>
 
-      {renderPriceSummary()}
+      <BookingPriceSummary
+        pricePerNight={apartment.price_per_night}
+        nights={nights}
+        total={total}
+      />
 
       <button type="submit" className="details-booking__button">
         {t("apartments.details.booking.reserve")}

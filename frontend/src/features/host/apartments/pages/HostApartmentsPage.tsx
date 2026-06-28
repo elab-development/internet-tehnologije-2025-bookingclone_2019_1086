@@ -1,11 +1,9 @@
-import { useHostApartments } from "../hooks/useHostApartments";
-
-import DeleteApartmentModal from "../components/DeleteApartmentModal";
 import HostApartmentsEmptyState from "../components/HostApartmentsEmptyState";
 import HostApartmentsGrid from "../components/HostApartmentsGrid";
 import HostApartmentsHeader from "../components/HostApartmentsHeader";
 import HostApartmentsMessage from "../components/HostApartmentsMessage";
 import HostApartmentsStatus from "../components/HostApartmentsStatus";
+import { useHostApartments } from "../hooks/useHostApartments";
 
 import "../styles/HostApartmentsPage.css";
 
@@ -18,12 +16,8 @@ export default function HostApartmentsPage() {
     isHost,
     hasItems,
     showEmpty,
-    deleteBusy,
-    deleteModal,
-    isDeleteModalOpen,
-    openDeleteModal,
-    closeDeleteModal,
-    confirmDelete,
+    deleteBusyId,
+    deleteApartmentFromCard,
   } = useHostApartments();
 
   function shouldShowGrid() {
@@ -56,15 +50,8 @@ export default function HostApartmentsPage() {
         show={shouldShowGrid()}
         items={items}
         isHost={isHost}
-        onDeleteClick={openDeleteModal}
-      />
-
-      <DeleteApartmentModal
-        open={isDeleteModalOpen}
-        apartmentTitle={deleteModal.apartmentTitle}
-        busy={deleteBusy}
-        onClose={closeDeleteModal}
-        onConfirm={confirmDelete}
+        deleteBusyId={deleteBusyId}
+        onDeleteClick={deleteApartmentFromCard}
       />
     </div>
   );
