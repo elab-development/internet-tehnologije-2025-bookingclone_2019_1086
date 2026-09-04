@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { useClickOutside } from "../../../shared/hooks/useClickOutside";
 
 import * as authService from "../../../features/auth/services/authService";
 import {
@@ -25,7 +27,7 @@ export default function Header() {
   const [user, setUser] = useState(getAuthUser());
 
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useClickOutside<HTMLDivElement>(closeUserMenu);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authDefaultMode, setAuthDefaultMode] = useState<"login" | "register">(
@@ -39,24 +41,6 @@ export default function Header() {
 
     return getMenuByRole(user.role);
   }, [user]);
-
-  useEffect(() => {
-    function handleClick(event: MouseEvent) {
-      if (!menuRef.current) {
-        return;
-      }
-
-      if (!menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-    };
-  }, []);
 
   function openLogin() {
     setAuthDefaultMode("login");
