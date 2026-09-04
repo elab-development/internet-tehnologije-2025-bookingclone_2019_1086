@@ -65,7 +65,11 @@
     "loginFailed": "Login failed",
     "registrationFailed": "Registration failed",
     "noAccount": "Don’t have an account?",
-    "hasAccount": "Already have an account?"
+    "hasAccount": "Already have an account?",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Repeat your password",
+    "passwordTooShort": "Password must be at least {{count}} characters long.",
+    "passwordsDoNotMatch": "Passwords do not match."
   },
   "roles": {
     "user": "User",
@@ -128,9 +132,7 @@
       },
       "map": {
         "title": "Location",
-        "iframeTitle": "Apartment location",
-        "coordinates": "Coordinates: {{latitude}}, {{longitude}}",
-        "addressSearch": "Using address search because coordinates are not provided."
+        "coordinates": "Coordinates: {{latitude}}, {{longitude}}"
       }
     }
   },
@@ -190,11 +192,8 @@
       "fileInputAriaLabel": "Apartment photos",
       "empty": "No photos selected yet.",
       "selectedTitle": "Selected photos (not uploaded yet)",
-      "uploadedTitle": "Uploaded photos",
-      "uploadedCount": "Uploaded {{count}} photo(s).",
       "staged": "staged",
-      "addAtLeastOne": "Add at least one photo first",
-      "uploadNote": "Finish uploads everything in one request:"
+      "addAtLeastOne": "Add at least one photo first"
     },
     "errors": {
       "requiredFields": "All fields are required.",

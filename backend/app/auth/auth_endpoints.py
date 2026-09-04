@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -23,11 +23,31 @@ SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
 
 class RegisterRequest(BaseModel):
-    name: str
+    name: str = Field(min_length=2, max_length=255)
     email: EmailStr
-    password: str
-    phone: str | None = None
+    password: str = Field(min_length=8, max_length=128)
+    phone: str | None = Field(default=None, max_length=50)
     role: Role = Role.USER
+
+    @field_validator("role")
+    @classmethod
+    def block_admin_self_registration(cls, value: Role) -> Role:
+        if value == Role.ADMIN:
+            raise ValueError("Role ADMIN cannot be assigned during registration")
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str) -> str:
+        stripped = value.strip()
+        if len(stripped) < 2:
+            raise ValueError("Name must be at least 2 characters long")
+        return stripped
 
 
 @router.post("/register", status_code=201)
@@ -98,7 +118,7 @@ async def login(
     form: OAuth2PasswordRequestForm = Depends(),
     auth: AuthHelper = Depends(get_auth_service),
 ):
-    email = form.username
+    email = form.username.strip().lower()
     password = form.password
 
     q = await session.exec(select(User).where(User.email == email))
@@ -129,6 +149,12 @@ async def login(
         "access_token": auth.create_access_token(user),
         "token_type": "bearer",
         "expires_in": auth.ACCESS_TTL_MIN * 60,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+        },
     }
 
 
@@ -154,7 +180,7 @@ async def refresh(
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     if old.revoked_at is not None:
         raise HTTPException(status_code=401, detail="Refresh token revoked")
-    if old.expires_at <= auth.utcnow():
+    if auth.as_utc(old.expires_at) <= auth.utcnow():
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
     user = await session.get(User, old.user_id)

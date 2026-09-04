@@ -3,6 +3,10 @@ import { useTranslation } from "react-i18next";
 
 import * as authService from "../services/authService";
 import { setAccessToken, setAuthUser } from "../storage/authStorage";
+import { useAuthSubmit } from "../hooks/useAuthSubmit";
+
+import AuthField from "./AuthField";
+import AuthFormError from "./AuthFormError";
 
 type Props = {
   onSuccess: () => void;
@@ -14,41 +18,22 @@ export default function LoginForm({ onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, isSubmitting, submit } = useAuthSubmit(t("auth.loginFailed"));
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
+    submit(async () => {
       const response = await authService.login(
         email.trim().toLowerCase(),
         password
       );
 
       setAccessToken(response.access_token);
-
-      const user = await authService.me();
-      setAuthUser(user);
+      setAuthUser(response.user);
 
       onSuccess();
-    } catch (error) {
-      handleSubmitError(error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  function handleSubmitError(error: unknown) {
-    if (error instanceof Error) {
-      setError(error.message);
-      return;
-    }
-
-    setError(t("auth.loginFailed"));
+    });
   }
 
   function getSubmitButtonText() {
@@ -59,51 +44,33 @@ export default function LoginForm({ onSuccess }: Props) {
     return t("auth.signIn");
   }
 
-  function renderErrorMessage() {
-    if (!error) {
-      return null;
-    }
-
-    return (
-      <div className="auth-form__error">
-        <strong>{t("common.error")}:</strong> {error}
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={onSubmit} className="auth-form">
-      {renderErrorMessage()}
+      <AuthFormError message={error} />
 
-      <div className="auth-form__field">
-        <label className="auth-form__label">{t("auth.email")}</label>
+      <AuthField
+        label={t("auth.email")}
+        name="email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        required
+        disabled={isSubmitting}
+        placeholder={t("auth.emailPlaceholder")}
+        autoComplete="email"
+      />
 
-        <input
-          name="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          placeholder={t("auth.emailPlaceholder")}
-          autoComplete="email"
-          className="auth-form__input"
-        />
-      </div>
-
-      <div className="auth-form__field">
-        <label className="auth-form__label">{t("auth.password")}</label>
-
-        <input
-          name="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          placeholder={t("auth.passwordPlaceholder")}
-          autoComplete="current-password"
-          className="auth-form__input"
-        />
-      </div>
+      <AuthField
+        label={t("auth.password")}
+        name="password"
+        type="password"
+        value={password}
+        onChange={setPassword}
+        required
+        disabled={isSubmitting}
+        placeholder={t("auth.passwordPlaceholder")}
+        autoComplete="current-password"
+      />
 
       <button
         type="submit"
