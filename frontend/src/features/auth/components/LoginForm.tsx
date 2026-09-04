@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import * as authService from "../services/authService";
-import { setAccessToken, setAuthUser } from "../storage/authStorage";
+import { useAuth } from "../hooks/useAuth";
 import { useAuthSubmit } from "../hooks/useAuthSubmit";
 
 import AuthField from "./AuthField";
@@ -18,6 +18,7 @@ export default function LoginForm({ onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const { signIn } = useAuth();
   const { error, isSubmitting, submit } = useAuthSubmit(t("auth.loginFailed"));
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -29,8 +30,7 @@ export default function LoginForm({ onSuccess }: Props) {
         password
       );
 
-      setAccessToken(response.access_token);
-      setAuthUser(response.user);
+      signIn(response.access_token, response.user);
 
       onSuccess();
     });

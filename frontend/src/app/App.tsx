@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import AppLayout from "./layout/AppLayout/AppLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AuthProvider from "../features/auth/context/AuthProvider";
 
 import HomePage from "../pages/HomePage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
@@ -19,34 +20,36 @@ function NotFoundPage() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
 
-          <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
+            <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
 
-          <Route
-            path="/host/apartments"
-            element={
-              <ProtectedRoute allowedRoles={["HOST"]}>
-                <HostApartmentsPage />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/host/apartments"
+              element={
+                <ProtectedRoute allowedRoles={["HOST"]}>
+                  <HostApartmentsPage />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/host/apartments/create"
-            element={
-              <ProtectedRoute allowedRoles={["HOST"]}>
-                <CreateApartmentWizard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/host/apartments/create"
+              element={
+                <ProtectedRoute allowedRoles={["HOST"]}>
+                  <CreateApartmentWizard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

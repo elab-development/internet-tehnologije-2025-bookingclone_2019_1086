@@ -15,10 +15,6 @@ export function clearAccessToken() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
 }
 
-export function isLoggedIn(): boolean {
-  return !!getAccessToken();
-}
-
 export function setAuthUser(user: AuthUser) {
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 }

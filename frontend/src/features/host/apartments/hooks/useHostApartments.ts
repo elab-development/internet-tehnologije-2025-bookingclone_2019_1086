@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getAuthUser } from "../../../auth/storage/authStorage";
+import { useAuth } from "../../../auth/hooks/useAuth";
 import {
   deleteApartment,
   getMyApartments,
@@ -13,7 +13,7 @@ export type HostMessage = {
 };
 
 export function useHostApartments() {
-  const user = getAuthUser();
+  const { user } = useAuth();
 
   const [items, setItems] = useState<ApartmentDto[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
