@@ -1,15 +1,10 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type ApartmentPhotoDto,
-  uploadApartmentPhotos,
-} from "../../../apartments/services/apartmentService";
+import { uploadApartmentPhotos } from "../../../apartments/services/apartmentService";
 
 import { usePendingPhotos } from "../hooks/usePendingPhotos";
 import PhotoUploadToolbar from "./components/PhotoUploadToolbar";
 import PendingPhotoGrid from "./components/PendingPhotoGrid";
-import UploadedPhotosSummary from "./components/UploadedPhotosSummary";
 import WizardStepActions from "./components/WizardStepActions";
 import WizardStepShell from "./components/WizardStepShell";
 
@@ -33,8 +28,6 @@ export default function StepApartmentPhotos({
   onFinish,
 }: StepApartmentPhotosProps) {
   const { t } = useTranslation();
-
-  const [uploadedPhotos, setUploadedPhotos] = useState<ApartmentPhotoDto[]>([]);
 
   const {
     pendingPhotos,
@@ -83,12 +76,8 @@ export default function StepApartmentPhotos({
 
       setBusy(true);
 
-      const createdPhotos = await uploadApartmentPhotos(
-        apartmentId,
-        getPendingFiles()
-      );
+      await uploadApartmentPhotos(apartmentId, getPendingFiles());
 
-      setUploadedPhotos(createdPhotos);
       clearPendingPhotos();
       onFinish();
     } catch (uploadError) {
@@ -121,8 +110,6 @@ export default function StepApartmentPhotos({
         onRemove={removePendingPhoto}
       />
 
-      <UploadedPhotosSummary photos={uploadedPhotos} />
-
       <WizardStepActions>
         <button
           type="button"
@@ -143,13 +130,6 @@ export default function StepApartmentPhotos({
           {getFinishButtonText()}
         </button>
       </WizardStepActions>
-
-      <div className="apartment-wizard-step__upload-note">
-        {t("createApartment.photos.uploadNote")}{" "}
-        <span className="apartment-wizard-step__upload-endpoint">
-          POST /apartments/{apartmentId}/photos
-        </span>
-      </div>
     </WizardStepShell>
   );
 }
