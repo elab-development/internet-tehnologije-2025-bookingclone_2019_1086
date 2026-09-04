@@ -33,6 +33,12 @@ class AuthHelper:
     def utcnow(self) -> datetime:
         return datetime.now(timezone.utc)
 
+    def as_utc(self, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+
+        return value.astimezone(timezone.utc)
+
     def hash_password(self, password: str) -> str:
         return self._pwd_context.hash(password)
 

@@ -148,20 +148,6 @@
   margin-left: auto;
 }
 
-.apartment-wizard-step__uploaded-section {
-  margin-bottom: 24px;
-}
-
-.apartment-wizard-step__upload-note {
-  color: #6c757d;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-.apartment-wizard-step__upload-endpoint {
-  font-weight: 600;
-}
-
 /* Legacy / fallback file list styles, safe to keep */
 
 .apartment-wizard-step__selected-files {

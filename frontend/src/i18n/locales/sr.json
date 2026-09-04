@@ -65,7 +65,11 @@
     "loginFailed": "Prijava nije uspela",
     "registrationFailed": "Registracija nije uspela",
     "noAccount": "Nemate nalog?",
-    "hasAccount": "Već imate nalog?"
+    "hasAccount": "Već imate nalog?",
+    "confirmPassword": "Potvrda lozinke",
+    "confirmPasswordPlaceholder": "Ponovite lozinku",
+    "passwordTooShort": "Lozinka mora imati najmanje {{count}} karaktera.",
+    "passwordsDoNotMatch": "Lozinke se ne poklapaju."
   },
   "roles": {
     "user": "Korisnik",
@@ -128,9 +132,7 @@
       },
       "map": {
         "title": "Lokacija",
-        "iframeTitle": "Lokacija apartmana",
-        "coordinates": "Koordinate: {{latitude}}, {{longitude}}",
-        "addressSearch": "Mapa koristi pretragu po adresi jer koordinate nisu unete."
+        "coordinates": "Koordinate: {{latitude}}, {{longitude}}"
       }
     }
   },
@@ -190,11 +192,8 @@
       "fileInputAriaLabel": "Slike apartmana",
       "empty": "Još uvek nije izabrana nijedna slika.",
       "selectedTitle": "Izabrane slike koje još nisu otpremljene",
-      "uploadedTitle": "Otpremljene slike",
-      "uploadedCount": "Otpremljeno slika: {{count}}.",
       "staged": "spremno",
-      "addAtLeastOne": "Dodajte bar jednu sliku",
-      "uploadNote": "Završavanje otprema sve slike u jednom zahtevu:"
+      "addAtLeastOne": "Dodajte bar jednu sliku"
     },
     "errors": {
       "requiredFields": "Sva polja su obavezna.",
