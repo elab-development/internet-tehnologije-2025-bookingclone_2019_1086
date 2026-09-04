@@ -162,7 +162,6 @@ export default function RegisterForm({ onSuccess }: Props) {
         >
           <option value="USER">{t("roles.user")}</option>
           <option value="HOST">{t("roles.host")}</option>
-          <option value="ADMIN">{t("roles.admin")}</option>
         </select>
       </div>
 
