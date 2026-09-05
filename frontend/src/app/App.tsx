@@ -8,6 +8,7 @@ import HomePage from "../pages/HomePage";
 import ApartmentsPage from "../pages/ApartmentsPage";
 import ContactPage from "../pages/ContactPage";
 import ReservationsPage from "../features/reservations/pages/ReservationsPage";
+import AdminTagsPage from "../features/admin/tags/pages/AdminTagsPage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
 import CreateApartmentWizard from "../features/host/apartments/pages/CreateApartmentWizard";
@@ -49,6 +50,15 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={["HOST"]}>
                   <ReservationsPage scope="host" />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/tags"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN"]}>
+                  <AdminTagsPage />
                 </ProtectedRoute>
               }
             />

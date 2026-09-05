@@ -265,5 +265,43 @@
       "loginRequired": "Prijavite se da biste rezervisali.",
       "ownApartment": "Ne možete rezervisati sopstveni apartman."
     }
+  },
+  "admin": {
+    "tags": {
+      "title": "Tagovi",
+      "subtitle": "Pogodnosti koje domaćini mogu da dodaju apartmanima.",
+      "addButton": "Novi tag",
+      "loading": "Učitavanje tagova...",
+      "empty": "Još nema tagova.",
+      "created": "Tag je kreiran.",
+      "updated": "Tag je izmenjen.",
+      "deleted": "Tag je obrisan.",
+      "confirmDelete": "Obrisati tag \"{{name}}\"? Apartmani koji ga koriste će ga izgubiti.",
+      "table": {
+        "icon": "Ikonica",
+        "name": "Naziv",
+        "key": "Ključ",
+        "actions": "Akcije",
+        "edit": "Izmeni",
+        "delete": "Obriši"
+      },
+      "form": {
+        "createTitle": "Novi tag",
+        "editTitle": "Izmena: {{name}}",
+        "name": "Naziv",
+        "namePlaceholder": "npr. Wi-Fi",
+        "iconKey": "Ključ ikonice",
+        "svg": "SVG ikonica",
+        "preview": "Pregled",
+        "save": "Sačuvaj",
+        "saving": "Čuvanje...",
+        "cancel": "Odustani"
+      },
+      "errors": {
+        "loadFailed": "Tagovi nisu mogli da se učitaju.",
+        "saveFailed": "Tag nije mogao da se sačuva.",
+        "deleteFailed": "Tag nije mogao da se obriše."
+      }
+    }
   }
 }
