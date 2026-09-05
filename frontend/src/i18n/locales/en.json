@@ -23,6 +23,8 @@
   "footer": {
     "description": "Find and book apartments easily, with a simple and reliable reservation experience.",
     "navigation": "Navigation",
+    "stays": "Stays",
+    "availableApartments": "Available apartments",
     "support": "Support",
     "help": "Help",
     "terms": "Terms of use",
@@ -299,6 +301,75 @@
         "loadFailed": "Could not load tags.",
         "saveFailed": "Could not save the tag.",
         "deleteFailed": "Could not delete the tag."
+      }
+    }
+  },
+  "info": {
+    "note": "This is a student project built for a university course. The text on this page is illustrative and is not a real legal document.",
+    "help": {
+      "title": "Help",
+      "intro": "Short answers to the questions guests and hosts ask most often.",
+      "sections": {
+        "booking": {
+          "heading": "How do I book an apartment?",
+          "body": "Open an apartment, pick your check-in and check-out dates and the number of guests, then press Reserve. Dates that are already taken are greyed out in the calendar. Your request is sent to the host, who confirms it."
+        },
+        "cancelling": {
+          "heading": "Can I cancel a reservation?",
+          "body": "Yes. Open My reservations and press Cancel on the booking you no longer need. Cancelling frees those dates immediately, so someone else can book them."
+        },
+        "hosting": {
+          "heading": "How do I list my apartment?",
+          "body": "Register as a host, then open My apartments and follow the three steps: details, amenities and photos. Your address is turned into map coordinates automatically."
+        },
+        "account": {
+          "heading": "I forgot my password",
+          "body": "Password recovery is not available yet. For now, contact us and we will help you get back into your account."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "The rules that apply when you use this site as a guest or as a host.",
+      "sections": {
+        "usage": {
+          "heading": "Using the service",
+          "body": "You may use the site to search for accommodation, make reservations and list your own property. You are responsible for keeping your login details to yourself."
+        },
+        "bookings": {
+          "heading": "Reservations",
+          "body": "A reservation is a request until the host confirms it. The price shown is calculated from the nightly rate and the number of nights, and is the amount agreed between you and the host."
+        },
+        "listings": {
+          "heading": "Listings",
+          "body": "Hosts must describe their property accurately and use photographs of the actual place. Listings that are misleading may be removed."
+        },
+        "liability": {
+          "heading": "Liability",
+          "body": "The site connects guests and hosts. The agreement about the stay itself is made between them, and we are not a party to it."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "What data this site keeps about you and what happens to it.",
+      "sections": {
+        "collected": {
+          "heading": "What we collect",
+          "body": "Your name, email address and optionally a phone number when you register, plus the reservations you make and the apartments you list."
+        },
+        "usage": {
+          "heading": "What it is used for",
+          "body": "To sign you in, show you your reservations, and let hosts see who booked their apartment. Nothing is used for advertising."
+        },
+        "sharing": {
+          "heading": "Who sees it",
+          "body": "A host sees the name of the guest who booked their apartment. Your email address and phone number are not shown to other users."
+        },
+        "rights": {
+          "heading": "Your data",
+          "body": "You can ask us to correct or delete your data at any time through the contact page."
+        }
       }
     }
   }

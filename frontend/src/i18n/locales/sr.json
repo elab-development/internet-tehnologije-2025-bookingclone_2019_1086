@@ -19,6 +19,8 @@
   "footer": {
     "description": "Pronađite i rezervišite apartmane lako, uz jednostavno i pouzdano iskustvo rezervacije.",
     "navigation": "Navigacija",
+    "stays": "Smeštaj",
+    "availableApartments": "Dostupni apartmani",
     "support": "Podrška",
     "help": "Pomoć",
     "terms": "Uslovi korišćenja",
@@ -301,6 +303,75 @@
         "loadFailed": "Tagovi nisu mogli da se učitaju.",
         "saveFailed": "Tag nije mogao da se sačuva.",
         "deleteFailed": "Tag nije mogao da se obriše."
+      }
+    }
+  },
+  "info": {
+    "note": "Ovo je studentski projekat rađen za fakultetski kurs. Tekst na ovoj stranici je ilustrativan i nije pravni dokument.",
+    "help": {
+      "title": "Pomoć",
+      "intro": "Kratki odgovori na pitanja koja gosti i domaćini najčešće postavljaju.",
+      "sections": {
+        "booking": {
+          "heading": "Kako da rezervišem apartman?",
+          "body": "Otvorite apartman, izaberite datum dolaska i odlaska i broj gostiju, pa pritisnite Rezerviši. Zauzeti dani su zasivljeni u kalendaru. Zahtev se šalje domaćinu, koji ga potvrđuje."
+        },
+        "cancelling": {
+          "heading": "Mogu li da otkažem rezervaciju?",
+          "body": "Da. Otvorite Moje rezervacije i pritisnite Otkaži na rezervaciji koja vam više ne treba. Otkazivanje odmah oslobađa te datume, pa ih neko drugi može rezervisati."
+        },
+        "hosting": {
+          "heading": "Kako da oglasim svoj apartman?",
+          "body": "Registrujte se kao domaćin, pa otvorite Moji apartmani i prođite kroz tri koraka: podaci, pogodnosti i slike. Adresa se automatski pretvara u koordinate za mapu."
+        },
+        "account": {
+          "heading": "Zaboravio sam lozinku",
+          "body": "Povraćaj lozinke još nije dostupan. Za sada nam se javite preko kontakt stranice pa ćemo vam pomoći da se vratite na nalog."
+        }
+      }
+    },
+    "terms": {
+      "title": "Uslovi korišćenja",
+      "intro": "Pravila koja važe kada koristite sajt kao gost ili kao domaćin.",
+      "sections": {
+        "usage": {
+          "heading": "Korišćenje servisa",
+          "body": "Sajt možete da koristite za pretragu smeštaja, rezervisanje i oglašavanje sopstvenog objekta. Odgovorni ste da svoje podatke za prijavu čuvate za sebe."
+        },
+        "bookings": {
+          "heading": "Rezervacije",
+          "body": "Rezervacija je zahtev sve dok je domaćin ne potvrdi. Prikazana cena se računa iz cene po noći i broja noći i predstavlja iznos dogovoren između vas i domaćina."
+        },
+        "listings": {
+          "heading": "Oglasi",
+          "body": "Domaćini su dužni da objekat opišu tačno i da koriste fotografije stvarnog smeštaja. Oglasi koji dovode u zabludu mogu biti uklonjeni."
+        },
+        "liability": {
+          "heading": "Odgovornost",
+          "body": "Sajt povezuje goste i domaćine. Dogovor o samom boravku sklapa se između njih, a mi nismo strana u tom dogovoru."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Politika privatnosti",
+      "intro": "Koje podatke sajt čuva o vama i šta se sa njima dešava.",
+      "sections": {
+        "collected": {
+          "heading": "Šta prikupljamo",
+          "body": "Vaše ime, email adresu i opciono broj telefona pri registraciji, kao i rezervacije koje napravite i apartmane koje oglasite."
+        },
+        "usage": {
+          "heading": "Za šta se koristi",
+          "body": "Da vas prijavimo, prikažemo vam vaše rezervacije i omogućimo domaćinu da vidi ko mu je rezervisao apartman. Ništa se ne koristi za reklame."
+        },
+        "sharing": {
+          "heading": "Ko ih vidi",
+          "body": "Domaćin vidi ime gosta koji mu je rezervisao apartman. Vaša email adresa i broj telefona nisu vidljivi drugim korisnicima."
+        },
+        "rights": {
+          "heading": "Vaši podaci",
+          "body": "U svakom trenutku možete tražiti ispravku ili brisanje svojih podataka preko kontakt stranice."
+        }
       }
     }
   }

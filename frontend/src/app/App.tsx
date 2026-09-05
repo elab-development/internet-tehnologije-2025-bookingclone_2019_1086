@@ -7,6 +7,7 @@ import AuthProvider from "../features/auth/context/AuthProvider";
 import HomePage from "../pages/HomePage";
 import ApartmentsPage from "../pages/ApartmentsPage";
 import ContactPage from "../pages/ContactPage";
+import InfoPage from "../pages/InfoPage";
 import ReservationsPage from "../features/reservations/pages/ReservationsPage";
 import AdminTagsPage from "../features/admin/tags/pages/AdminTagsPage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
@@ -35,6 +36,12 @@ export default function App() {
             <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
 
             <Route path="/contact" element={<ContactPage />} />
+
+            <Route path="/help" element={<InfoPage page="help" />} />
+
+            <Route path="/terms" element={<InfoPage page="terms" />} />
+
+            <Route path="/privacy" element={<InfoPage page="privacy" />} />
 
             <Route
               path="/reservations"
