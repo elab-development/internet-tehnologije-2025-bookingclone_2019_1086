@@ -6,9 +6,22 @@ import {
   getMyReservations,
   updateReservationStatus,
   type ReservationDto,
+  type ReservationStatus,
 } from "../services/reservationService";
 
 export type ReservationScope = "guest" | "host";
+
+export type ReservationFilters = {
+  status: ReservationStatus | "";
+  dateFrom: string;
+  dateTo: string;
+};
+
+export const EMPTY_RESERVATION_FILTERS: ReservationFilters = {
+  status: "",
+  dateFrom: "",
+  dateTo: "",
+};
 
 const PAGE_SIZE = 10;
 
@@ -18,6 +31,9 @@ export function useReservationList(scope: ReservationScope) {
   const [items, setItems] = useState<ReservationDto[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [filters, setFilters] = useState<ReservationFilters>(
+    EMPTY_RESERVATION_FILTERS
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
@@ -26,7 +42,13 @@ export function useReservationList(scope: ReservationScope) {
     setIsLoading(true);
     setError(null);
 
-    const args = { page_number: page, page_size: PAGE_SIZE };
+    const args = {
+      page_number: page,
+      page_size: PAGE_SIZE,
+      status: filters.status || undefined,
+      date_from: filters.dateFrom || undefined,
+      date_to: filters.dateTo || undefined,
+    };
 
     try {
       const loaded =
@@ -45,7 +67,7 @@ export function useReservationList(scope: ReservationScope) {
     } finally {
       setIsLoading(false);
     }
-  }, [scope, page, t]);
+  }, [scope, page, filters, t]);
 
   useEffect(() => {
     load();
@@ -55,6 +77,16 @@ export function useReservationList(scope: ReservationScope) {
   useEffect(() => {
     setPage(1);
   }, [scope]);
+
+  // A narrower list would otherwise keep the page number of the wider one.
+  function applyFilters(next: ReservationFilters) {
+    setFilters(next);
+    setPage(1);
+  }
+
+  function resetFilters() {
+    applyFilters(EMPTY_RESERVATION_FILTERS);
+  }
 
   function goToPage(nextPage: number) {
     setPage(nextPage);
@@ -90,8 +122,16 @@ export function useReservationList(scope: ReservationScope) {
     }
   }
 
+  const hasFilters = Boolean(
+    filters.status || filters.dateFrom || filters.dateTo
+  );
+
   return {
     items,
+    filters,
+    hasFilters,
+    applyFilters,
+    resetFilters,
     page,
     pageSize: PAGE_SIZE,
     total,

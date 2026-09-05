@@ -224,6 +224,8 @@
       "namePlaceholder": "e.g. studio in the centre",
       "city": "City",
       "cityPlaceholder": "e.g. Belgrade",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
       "guests": "Guests",
       "submit": "Search",
       "reset": "Clear"
@@ -247,6 +249,7 @@
     "loading": "Loading reservations...",
     "emptyGuest": "You have no reservations yet.",
     "emptyHost": "Nobody has booked your apartments yet.",
+    "emptyFiltered": "No reservations match the chosen filters.",
     "created": "Reservation sent. The host still has to confirm it.",
     "booking": "Booking...",
     "deletedApartment": "Apartment no longer available",
@@ -272,6 +275,14 @@
       "updateFailed": "Could not update the reservation.",
       "loginRequired": "Sign in to book this apartment.",
       "ownApartment": "You cannot book your own apartment."
+    },
+    "filters": {
+      "status": "Status",
+      "statusAll": "All",
+      "from": "From",
+      "to": "To",
+      "apply": "Show",
+      "reset": "Clear"
     }
   },
   "admin": {

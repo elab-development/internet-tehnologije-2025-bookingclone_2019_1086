@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import ApartmentList from "../features/apartments/components/ApartmentList";
 import type { ApartmentSearchParams } from "../features/apartments/services/apartmentService";
 import ApartmentsSearchBar from "./components/ApartmentsSearchBar";
+import type { ApartmentSearchValues } from "./components/ApartmentsSearchBar";
 
 import "./ApartmentsPage.css";
 
@@ -25,6 +26,8 @@ export default function ApartmentsPage() {
   const name = searchParams.get("name") ?? "";
   const city = searchParams.get("city") ?? "";
   const guests = searchParams.get("guests") ?? "";
+  const checkIn = searchParams.get("check_in") ?? "";
+  const checkOut = searchParams.get("check_out") ?? "";
   const page = readPage(searchParams.get("page"));
 
   // Built from primitives so ApartmentList does not refetch on every render.
@@ -47,10 +50,16 @@ export default function ApartmentsPage() {
       params.max_guests = parsedGuests;
     }
 
-    return params;
-  }, [name, city, guests]);
+    // The backend only filters by availability when it gets the whole range.
+    if (checkIn && checkOut) {
+      params.check_in = checkIn;
+      params.check_out = checkOut;
+    }
 
-  function handleSearch(next: { name: string; city: string; guests: string }) {
+    return params;
+  }, [name, city, guests, checkIn, checkOut]);
+
+  function handleSearch(next: ApartmentSearchValues) {
     const params = new URLSearchParams();
 
     if (next.name) {
@@ -63,6 +72,11 @@ export default function ApartmentsPage() {
 
     if (next.guests) {
       params.set("guests", next.guests);
+    }
+
+    if (next.checkIn && next.checkOut) {
+      params.set("check_in", next.checkIn);
+      params.set("check_out", next.checkOut);
     }
 
     setSearchParams(params);
@@ -85,7 +99,7 @@ export default function ApartmentsPage() {
     setSearchParams(params);
   }
 
-  const hasFilters = Boolean(name || city || guests);
+  const hasFilters = Boolean(name || city || guests || checkIn || checkOut);
 
   return (
     <main className="apartments-page">
@@ -101,6 +115,8 @@ export default function ApartmentsPage() {
         name={name}
         city={city}
         guests={guests}
+        checkIn={checkIn}
+        checkOut={checkOut}
         hasFilters={hasFilters}
         onSearch={handleSearch}
         onReset={handleReset}

@@ -19,6 +19,96 @@
   margin: 0;
 }
 
+.reservations-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+}
+
+.reservations-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.reservations-filters__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.reservations-filters__input {
+  padding: 9px 12px;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  font-size: 14px;
+  width: 100%;
+  background: #fff;
+}
+
+.reservations-filters__input:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+/* react-datepicker wraps the input in its own divs, which break the column. */
+.reservations-filters__field .react-datepicker-wrapper,
+.reservations-filters__field .react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.reservations-filters__field .react-datepicker__close-icon {
+  padding-right: 8px;
+}
+
+.reservations-filters__field .react-datepicker__close-icon::after {
+  background: #adb5bd;
+  font-size: 14px;
+}
+
+.reservations-filters__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reservations-filters__button {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reservations-filters__button:hover {
+  background: #0b5ed7;
+}
+
+.reservations-filters__reset {
+  padding: 9px 16px;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  background: #fff;
+  color: #495057;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reservations-filters__reset:hover {
+  background: #f1f3f5;
+}
+
 .reservations-page__state {
   padding: 24px;
   text-align: center;

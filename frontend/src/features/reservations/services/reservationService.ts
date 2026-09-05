@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../shared/api/apiClient";
+import { toApiDate } from "../../../shared/utils/date";
 import { resolveImageUrl } from "../../apartments/services/apartmentService";
 import type { BasePagedResponse } from "../../apartments/services/apartmentService";
 
@@ -33,6 +34,8 @@ export type ReservationSearchParams = {
   page_number?: number;
   page_size?: number;
   status?: ReservationStatus;
+  date_from?: string;
+  date_to?: string;
 };
 
 export type CreateReservationRequest = {
@@ -77,14 +80,7 @@ function buildQuery(params: Record<string, string | number | undefined>) {
   return queryString ? `?${queryString}` : "";
 }
 
-/** Dates are sent as plain YYYY-MM-DD so the timezone cannot shift the day. */
-export function toApiDate(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
+export { toApiDate };
 
 export async function createReservation(body: CreateReservationRequest) {
   const created = await apiRequest<ReservationDto>("/reservations", {
@@ -104,6 +100,8 @@ async function getReservationsPage(
     page_number: args?.page_number ?? 1,
     page_size: args?.page_size ?? DEFAULT_PAGE_SIZE,
     status: args?.status,
+    date_from: args?.date_from,
+    date_to: args?.date_to,
   });
 
   const response = await apiRequest<BasePagedResponse<ReservationDto>>(

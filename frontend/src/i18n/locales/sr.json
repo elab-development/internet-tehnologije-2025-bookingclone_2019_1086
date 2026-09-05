@@ -224,6 +224,8 @@
       "namePlaceholder": "npr. garsonjera u centru",
       "city": "Grad",
       "cityPlaceholder": "npr. Beograd",
+      "checkIn": "Dolazak",
+      "checkOut": "Odlazak",
       "guests": "Gosti",
       "submit": "Pretraži",
       "reset": "Poništi"
@@ -247,6 +249,7 @@
     "loading": "Učitavanje rezervacija...",
     "emptyGuest": "Još nemate nijednu rezervaciju.",
     "emptyHost": "Još niko nije rezervisao vaše apartmane.",
+    "emptyFiltered": "Nema rezervacija za izabrane filtere.",
     "created": "Rezervacija je poslata. Domaćin još treba da je potvrdi.",
     "booking": "Rezervisanje...",
     "deletedApartment": "Apartman više nije dostupan",
@@ -274,6 +277,14 @@
       "updateFailed": "Rezervacija nije mogla da se izmeni.",
       "loginRequired": "Prijavite se da biste rezervisali.",
       "ownApartment": "Ne možete rezervisati sopstveni apartman."
+    },
+    "filters": {
+      "status": "Status",
+      "statusAll": "Sve",
+      "from": "Od",
+      "to": "Do",
+      "apply": "Prikaži",
+      "reset": "Poništi"
     }
   },
   "admin": {

@@ -86,6 +86,28 @@ class ReservationStatusRequest(BaseModel):
 class ReservationFilter(BasePaginationRequest):
     status: Optional[str] = None
 
+    # Period the stay has to touch. Either side can be sent on its own.
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+
+
+def apply_reservation_filters(query, q: ReservationFilter):
+    if q.date_from and q.date_to and q.date_to < q.date_from:
+        raise HTTPException(status_code=400, detail="date_to cannot be before date_from")
+
+    if q.status:
+        query = query.where(Reservation.status == q.status)
+
+    # A stay belongs to the period when it overlaps it, not only when it fits
+    # inside it, so a booking that started earlier still shows up.
+    if q.date_from:
+        query = query.where(Reservation.check_out >= q.date_from)
+
+    if q.date_to:
+        query = query.where(Reservation.check_in <= q.date_to)
+
+    return query
+
 
 def count_nights(check_in: date, check_out: date) -> int:
     return (check_out - check_in).days
@@ -212,10 +234,9 @@ async def get_my_reservations(
     q: Annotated[ReservationFilter, Depends()],
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Reservation).where(Reservation.user_id == current_user.id)
-
-    if q.status:
-        query = query.where(Reservation.status == q.status)
+    query = apply_reservation_filters(
+        select(Reservation).where(Reservation.user_id == current_user.id), q
+    )
 
     return await paginate_reservations(session, query, q)
 
@@ -228,10 +249,9 @@ async def get_reservations_for_my_apartments(
 ):
     owned = select(Apartment.id).where(Apartment.user_id == current_user.id)
 
-    query = select(Reservation).where(Reservation.apartment_id.in_(owned))
-
-    if q.status:
-        query = query.where(Reservation.status == q.status)
+    query = apply_reservation_filters(
+        select(Reservation).where(Reservation.apartment_id.in_(owned)), q
+    )
 
     return await paginate_reservations(session, query, q)
 

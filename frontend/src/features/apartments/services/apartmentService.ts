@@ -50,6 +50,9 @@ export type ApartmentSearchParams = {
   city?: string;
   country?: string;
   max_guests?: number;
+  /** YYYY-MM-DD. Both have to be set for the availability filter to apply. */
+  check_in?: string;
+  check_out?: string;
 };
 
 export type ApartmentCreateRequest = {
@@ -202,6 +205,8 @@ export async function getApartments(args?: ApartmentSearchParams) {
     city: args?.city,
     country: args?.country,
     max_guests: args?.max_guests,
+    check_in: args?.check_in,
+    check_out: args?.check_out,
   });
 
   const json = await apiRequest<BasePagedResponse<unknown>>(
@@ -237,6 +242,8 @@ export async function getMyApartments(args?: ApartmentSearchParams) {
     city: args?.city,
     country: args?.country,
     max_guests: args?.max_guests,
+    check_in: args?.check_in,
+    check_out: args?.check_out,
   });
 
   const json = await apiRequest<BasePagedResponse<unknown>>(

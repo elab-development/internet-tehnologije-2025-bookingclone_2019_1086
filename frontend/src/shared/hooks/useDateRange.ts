@@ -1,8 +1,17 @@
 import { useState } from "react";
 
-export function useDateRange() {
-  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
-  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+export function useDateRange(
+  initialCheckIn: Date | null = null,
+  initialCheckOut: Date | null = null
+) {
+  const [checkInDate, setCheckInDate] = useState<Date | null>(initialCheckIn);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(initialCheckOut);
+
+  /** Used when the range comes from outside, e.g. after the URL changed. */
+  function setRange(nextCheckIn: Date | null, nextCheckOut: Date | null) {
+    setCheckInDate(nextCheckIn);
+    setCheckOutDate(nextCheckOut);
+  }
 
   function handleCheckInChange(date: Date | null) {
     setCheckInDate(date);
@@ -44,6 +53,7 @@ export function useDateRange() {
   return {
     checkInDate,
     checkOutDate,
+    setRange,
     handleCheckInChange,
     handleCheckOutChange,
     getCheckInMinDate,

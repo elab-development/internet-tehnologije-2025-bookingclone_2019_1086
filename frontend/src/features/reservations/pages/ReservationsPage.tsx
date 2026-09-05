@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import Pagination from "../../../shared/components/Pagination";
 import ReservationCard from "../components/ReservationCard";
+import ReservationsFilterBar from "../components/ReservationsFilterBar";
 import {
   useReservationList,
   type ReservationScope,
@@ -19,6 +20,10 @@ export default function ReservationsPage({ scope }: Props) {
 
   const {
     items,
+    filters,
+    hasFilters,
+    applyFilters,
+    resetFilters,
     page,
     pageSize,
     total,
@@ -40,6 +45,14 @@ export default function ReservationsPage({ scope }: Props) {
     changeStatus(reservation, "cancelled");
   }
 
+  function getEmptyMessage() {
+    if (hasFilters) {
+      return t("reservations.emptyFiltered");
+    }
+
+    return isHost ? t("reservations.emptyHost") : t("reservations.emptyGuest");
+  }
+
   function renderState() {
     if (isLoading) {
       return (
@@ -58,7 +71,7 @@ export default function ReservationsPage({ scope }: Props) {
     if (isEmpty) {
       return (
         <p className="reservations-page__state">
-          {isHost ? t("reservations.emptyHost") : t("reservations.emptyGuest")}
+          {getEmptyMessage()}
         </p>
       );
     }
@@ -79,6 +92,13 @@ export default function ReservationsPage({ scope }: Props) {
             : t("reservations.mySubtitle")}
         </p>
       </header>
+
+      <ReservationsFilterBar
+        filters={filters}
+        hasFilters={hasFilters}
+        onApply={applyFilters}
+        onReset={resetFilters}
+      />
 
       {renderState()}
 
