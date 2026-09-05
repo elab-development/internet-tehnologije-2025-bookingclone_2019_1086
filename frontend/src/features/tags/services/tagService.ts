@@ -1,4 +1,16 @@
 import { apiRequest } from "../../../shared/api/apiClient";
+import type { BasePagedResponse } from "../../apartments/services/apartmentService";
+
+/** Highest page_size the API accepts. */
+const MAX_PAGE_SIZE = 50;
+
+const DEFAULT_PAGE_SIZE = 10;
+
+export type TagSearchParams = {
+  page_number?: number;
+  page_size?: number;
+  name?: string;
+};
 
 export type TagDto = {
   id: number;
@@ -29,12 +41,68 @@ function normalizeTag(tag: unknown): TagDto {
   };
 }
 
-export async function getTags(): Promise<TagDto[]> {
-  const tags = await apiRequest<unknown[]>("/tags", {
-    method: "GET",
+function buildQuery(params: Record<string, string | number | undefined | null>) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+
+    searchParams.set(key, String(value));
   });
 
-  return tags.map(normalizeTag).filter((tag) => tag.id > 0 && tag.name);
+  const queryString = searchParams.toString();
+
+  return queryString ? `?${queryString}` : "";
+}
+
+export async function getTags(
+  args?: TagSearchParams
+): Promise<BasePagedResponse<TagDto>> {
+  const pageSize = args?.page_size ?? DEFAULT_PAGE_SIZE;
+
+  const query = buildQuery({
+    page_number: args?.page_number ?? 1,
+    page_size: pageSize,
+    name: args?.name,
+  });
+
+  const response = await apiRequest<BasePagedResponse<unknown>>(
+    `/tags${query}`,
+    { method: "GET" }
+  );
+
+  return {
+    ...response,
+    items: (response.items ?? [])
+      .map(normalizeTag)
+      .filter((tag) => tag.id > 0 && tag.name),
+  };
+}
+
+/** The apartment wizard offers every tag at once, so it walks through all pages. */
+export async function getAllTags(): Promise<TagDto[]> {
+  const tags: TagDto[] = [];
+
+  let pageNumber = 1;
+
+  for (;;) {
+    const page = await getTags({
+      page_number: pageNumber,
+      page_size: MAX_PAGE_SIZE,
+    });
+
+    tags.push(...page.items);
+
+    const pageCount = Math.ceil(page.total / MAX_PAGE_SIZE);
+
+    if (pageNumber >= pageCount) {
+      return tags;
+    }
+
+    pageNumber += 1;
+  }
 }
 
 export async function createTag(payload: TagPayload): Promise<TagDto> {

@@ -1,3 +1,4 @@
+import Pagination from "../../../../shared/components/Pagination";
 import HostApartmentsEmptyState from "../components/HostApartmentsEmptyState";
 import HostApartmentsGrid from "../components/HostApartmentsGrid";
 import HostApartmentsHeader from "../components/HostApartmentsHeader";
@@ -10,6 +11,9 @@ import "../styles/HostApartmentsPage.css";
 export default function HostApartmentsPage() {
   const {
     items,
+    page,
+    pageSize,
+    total,
     loading,
     error,
     message,
@@ -17,6 +21,7 @@ export default function HostApartmentsPage() {
     hasItems,
     showEmpty,
     deleteBusyId,
+    goToPage,
     deleteApartmentFromCard,
   } = useHostApartments();
 
@@ -52,6 +57,14 @@ export default function HostApartmentsPage() {
         isHost={isHost}
         deleteBusyId={deleteBusyId}
         onDeleteClick={deleteApartmentFromCard}
+      />
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        disabled={loading || deleteBusyId !== null}
+        onPageChange={goToPage}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import Pagination from "../../../../shared/components/Pagination";
 import { useAdminTags } from "../hooks/useAdminTags";
 import TagForm from "../components/TagForm";
 import TagIcon from "../../../tags/components/TagIcon";
@@ -11,8 +12,21 @@ import "../styles/AdminTagsPage.css";
 export default function AdminTagsPage() {
   const { t } = useTranslation();
 
-  const { tags, isLoading, error, message, busyId, isSaving, save, remove, isEmpty } =
-    useAdminTags();
+  const {
+    tags,
+    page,
+    pageSize,
+    total,
+    isLoading,
+    error,
+    message,
+    busyId,
+    isSaving,
+    save,
+    remove,
+    goToPage,
+    isEmpty,
+  } = useAdminTags();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<TagDto | null>(null);
@@ -150,6 +164,14 @@ export default function AdminTagsPage() {
           </table>
         </div>
       ) : null}
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        disabled={isLoading || busyId !== null}
+        onPageChange={goToPage}
+      />
     </main>
   );
 }

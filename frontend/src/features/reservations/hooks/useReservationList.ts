@@ -10,10 +10,14 @@ import {
 
 export type ReservationScope = "guest" | "host";
 
+const PAGE_SIZE = 10;
+
 export function useReservationList(scope: ReservationScope) {
   const { t } = useTranslation();
 
   const [items, setItems] = useState<ReservationDto[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
@@ -22,11 +26,16 @@ export function useReservationList(scope: ReservationScope) {
     setIsLoading(true);
     setError(null);
 
+    const args = { page_number: page, page_size: PAGE_SIZE };
+
     try {
       const loaded =
-        scope === "host" ? await getHostReservations() : await getMyReservations();
+        scope === "host"
+          ? await getHostReservations(args)
+          : await getMyReservations(args);
 
-      setItems(loaded);
+      setItems(loaded.items);
+      setTotal(loaded.total);
     } catch (loadError) {
       if (loadError instanceof Error) {
         setError(loadError.message);
@@ -36,11 +45,20 @@ export function useReservationList(scope: ReservationScope) {
     } finally {
       setIsLoading(false);
     }
-  }, [scope, t]);
+  }, [scope, page, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // A different list starts from its own first page.
+  useEffect(() => {
+    setPage(1);
+  }, [scope]);
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+  }
 
   async function changeStatus(
     reservation: ReservationDto,
@@ -74,10 +92,14 @@ export function useReservationList(scope: ReservationScope) {
 
   return {
     items,
+    page,
+    pageSize: PAGE_SIZE,
+    total,
     isLoading,
     error,
     busyId,
     changeStatus,
+    goToPage,
     isEmpty: !isLoading && !error && items.length === 0,
   };
 }

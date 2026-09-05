@@ -4,6 +4,8 @@ import type { BasePagedResponse } from "../../apartments/services/apartmentServi
 
 export type ReservationStatus = "pending" | "confirmed" | "cancelled";
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export type ReservationApartmentDto = {
   id: number;
   title: string;
@@ -25,6 +27,12 @@ export type ReservationDto = {
   created_at: string;
   apartment: ReservationApartmentDto | null;
   guest_name: string | null;
+};
+
+export type ReservationSearchParams = {
+  page_number?: number;
+  page_size?: number;
+  status?: ReservationStatus;
 };
 
 export type CreateReservationRequest = {
@@ -88,26 +96,33 @@ export async function createReservation(body: CreateReservationRequest) {
   return normalizeReservation(created);
 }
 
-export async function getMyReservations(status?: ReservationStatus) {
-  const query = buildQuery({ page_number: 1, page_size: 50, status });
+async function getReservationsPage(
+  path: string,
+  args?: ReservationSearchParams
+): Promise<BasePagedResponse<ReservationDto>> {
+  const query = buildQuery({
+    page_number: args?.page_number ?? 1,
+    page_size: args?.page_size ?? DEFAULT_PAGE_SIZE,
+    status: args?.status,
+  });
 
   const response = await apiRequest<BasePagedResponse<ReservationDto>>(
-    `/reservations${query}`,
+    `${path}${query}`,
     { method: "GET", auth: true }
   );
 
-  return (response.items ?? []).map(normalizeReservation);
+  return {
+    ...response,
+    items: (response.items ?? []).map(normalizeReservation),
+  };
 }
 
-export async function getHostReservations(status?: ReservationStatus) {
-  const query = buildQuery({ page_number: 1, page_size: 50, status });
+export async function getMyReservations(args?: ReservationSearchParams) {
+  return getReservationsPage("/reservations", args);
+}
 
-  const response = await apiRequest<BasePagedResponse<ReservationDto>>(
-    `/reservations/host${query}`,
-    { method: "GET", auth: true }
-  );
-
-  return (response.items ?? []).map(normalizeReservation);
+export async function getHostReservations(args?: ReservationSearchParams) {
+  return getReservationsPage("/reservations/host", args);
 }
 
 export async function updateReservationStatus(

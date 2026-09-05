@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Annotated, Optional, List
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import func
 
 from app.db import db
 from app.auth.authorization import Policy
@@ -13,10 +14,17 @@ from app.auth.current_user import get_current_user
 from app.enums.role_enum import Role
 from app.models.user import User
 from app.models.tag import Tag
+from app.base_pagination_request import BasePaginationRequest
+from app.base_response import BasePagedResponse
 
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
+
+
+# Filters
+class TagFilter(BasePaginationRequest):
+    name: Optional[str] = Field(default=None, max_length=100)
 
 
 # DTOs / Requests
@@ -91,11 +99,30 @@ async def _ensure_unique_on_update(
 
 
 # Endpoints
-@router.get("", response_model=List[TagDto])
-async def list_tags(session: SessionDep):
-    result = await session.exec(select(Tag).order_by(Tag.name))
-    tags = result.all()
-    return [map_tag_to_dto(t) for t in tags]
+@router.get("", response_model=BasePagedResponse[TagDto])
+async def list_tags(
+    session: SessionDep,
+    q: Annotated[TagFilter, Depends()],
+):
+    query = select(Tag)
+
+    if q.name:
+        query = query.where(Tag.name.ilike(f"%{q.name}%"))
+
+    count_query = select(func.count()).select_from(query.subquery())
+    total = (await session.exec(count_query)).one()
+
+    offset = (q.page_number - 1) * q.page_size
+    query = query.order_by(Tag.name).offset(offset).limit(q.page_size)
+
+    tags = (await session.exec(query)).all()
+
+    return {
+        "page_number": q.page_number,
+        "page_size": q.page_size,
+        "total": total,
+        "items": [map_tag_to_dto(t) for t in tags],
+    }
 
 
 @router.get("/{tag_id}", response_model=TagDto)

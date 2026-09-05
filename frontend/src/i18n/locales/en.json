@@ -82,6 +82,13 @@
     "close": "Close",
     "error": "Error"
   },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}",
+    "summary": "Showing {{from}}-{{to}} of {{total}}"
+  },
   "apartments": {
     "addToWishlist": "Add to wishlist",
     "exceptional": "Exceptional",
@@ -134,7 +141,8 @@
       },
       "map": {
         "title": "Location",
-        "coordinates": "Coordinates: {{latitude}}, {{longitude}}"
+        "coordinates": "Coordinates: {{latitude}}, {{longitude}}",
+        "approximateLocation": "Approximate location - the city centre is shown."
       }
     }
   },

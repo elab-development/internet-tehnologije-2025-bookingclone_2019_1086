@@ -82,6 +82,13 @@
     "close": "Zatvori",
     "error": "Greška"
   },
+  "pagination": {
+    "ariaLabel": "Paginacija",
+    "previous": "Prethodna",
+    "next": "Sledeća",
+    "page": "Strana {{page}}",
+    "summary": "Prikazano {{from}}-{{to}} od {{total}}"
+  },
   "apartments": {
     "addToWishlist": "Dodaj u omiljene",
     "exceptional": "Izuzetno",
@@ -134,7 +141,8 @@
       },
       "map": {
         "title": "Lokacija",
-        "coordinates": "Koordinate: {{latitude}}, {{longitude}}"
+        "coordinates": "Koordinate: {{latitude}}, {{longitude}}",
+        "approximateLocation": "Približna lokacija - prikazan je centar grada."
       }
     }
   },

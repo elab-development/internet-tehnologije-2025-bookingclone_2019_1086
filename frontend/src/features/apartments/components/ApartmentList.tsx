@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import ApartmentCard from "./ApartmentCard";
+import Pagination from "../../../shared/components/Pagination";
 import {
   type ApartmentDto,
   type ApartmentSearchParams,
@@ -10,14 +11,28 @@ import {
 
 import "./ApartmentList.css";
 
+const DEFAULT_PAGE_SIZE = 12;
+
 type Props = {
   searchParams?: ApartmentSearchParams;
+  /** Pass together with onPageChange when the page has to live outside, e.g. in the URL. */
+  page?: number;
+  onPageChange?: (page: number) => void;
 };
 
-export default function ApartmentList({ searchParams }: Props) {
+export default function ApartmentList({
+  searchParams,
+  page,
+  onPageChange,
+}: Props) {
   const [apartments, setApartments] = useState<ApartmentDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [internalPage, setInternalPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const currentPage = page ?? internalPage;
+  const pageSize = searchParams?.page_size ?? DEFAULT_PAGE_SIZE;
 
   useEffect(() => {
     let cancelled = false;
@@ -28,13 +43,14 @@ export default function ApartmentList({ searchParams }: Props) {
 
       try {
         const response = await getApartments({
-          page_number: 1,
-          page_size: 12,
           ...searchParams,
+          page_number: currentPage,
+          page_size: pageSize,
         });
 
         if (!cancelled) {
           setApartments(response.items);
+          setTotal(response.total);
         }
       } catch (error) {
         if (!cancelled) {
@@ -52,6 +68,11 @@ export default function ApartmentList({ searchParams }: Props) {
     return () => {
       cancelled = true;
     };
+  }, [searchParams, currentPage, pageSize]);
+
+  // New filters always start from the first page.
+  useEffect(() => {
+    setInternalPage(1);
   }, [searchParams]);
 
   function handleLoadError(error: unknown) {
@@ -61,6 +82,15 @@ export default function ApartmentList({ searchParams }: Props) {
     }
 
     setError("Failed to load apartments");
+  }
+
+  function handlePageChange(nextPage: number) {
+    if (onPageChange) {
+      onPageChange(nextPage);
+      return;
+    }
+
+    setInternalPage(nextPage);
   }
 
   function renderLoading() {
@@ -109,12 +139,29 @@ export default function ApartmentList({ searchParams }: Props) {
     );
   }
 
+  function renderPagination() {
+    if (error) {
+      return null;
+    }
+
+    return (
+      <Pagination
+        page={currentPage}
+        pageSize={pageSize}
+        total={total}
+        disabled={isLoading}
+        onPageChange={handlePageChange}
+      />
+    );
+  }
+
   return (
     <section className="apartment-list">
       {renderLoading()}
       {renderError()}
       {renderEmptyState()}
       {renderApartments()}
+      {renderPagination()}
     </section>
   );
 }

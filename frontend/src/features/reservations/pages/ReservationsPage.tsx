@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import Pagination from "../../../shared/components/Pagination";
 import ReservationCard from "../components/ReservationCard";
 import {
   useReservationList,
@@ -16,8 +17,18 @@ type Props = {
 export default function ReservationsPage({ scope }: Props) {
   const { t } = useTranslation();
 
-  const { items, isLoading, error, busyId, changeStatus, isEmpty } =
-    useReservationList(scope);
+  const {
+    items,
+    page,
+    pageSize,
+    total,
+    isLoading,
+    error,
+    busyId,
+    changeStatus,
+    goToPage,
+    isEmpty,
+  } = useReservationList(scope);
 
   const isHost = scope === "host";
 
@@ -83,6 +94,14 @@ export default function ReservationsPage({ scope }: Props) {
           />
         ))}
       </div>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        disabled={isLoading || busyId !== null}
+        onPageChange={goToPage}
+      />
     </main>
   );
 }
