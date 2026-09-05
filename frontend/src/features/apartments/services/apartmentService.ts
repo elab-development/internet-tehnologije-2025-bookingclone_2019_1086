@@ -48,6 +48,7 @@ export type ApartmentSearchParams = {
   name?: string;
   city?: string;
   country?: string;
+  max_guests?: number;
 };
 
 export type ApartmentCreateRequest = {
@@ -199,6 +200,7 @@ export async function getApartments(args?: ApartmentSearchParams) {
     name: args?.name,
     city: args?.city,
     country: args?.country,
+    max_guests: args?.max_guests,
   });
 
   const json = await apiRequest<BasePagedResponse<unknown>>(
@@ -233,6 +235,7 @@ export async function getMyApartments(args?: ApartmentSearchParams) {
     name: args?.name,
     city: args?.city,
     country: args?.country,
+    max_guests: args?.max_guests,
   });
 
   const json = await apiRequest<BasePagedResponse<unknown>>(

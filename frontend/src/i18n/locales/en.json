@@ -205,5 +205,63 @@
       "missingApartmentId": "Apartment created but no id returned from API.",
       "uploadPhotosFailed": "Failed to upload photos"
     }
+  },
+  "apartmentsPage": {
+    "title": "Apartments",
+    "subtitle": "Browse every place available right now.",
+    "search": {
+      "name": "Name",
+      "namePlaceholder": "e.g. studio in the centre",
+      "city": "City",
+      "cityPlaceholder": "e.g. Belgrade",
+      "guests": "Guests",
+      "submit": "Search",
+      "reset": "Clear"
+    }
+  },
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "Questions about a booking or listing your place? Reach out and we will get back to you.",
+    "email": "Email",
+    "emailNote": "We usually reply within one business day.",
+    "phone": "Phone",
+    "phoneNote": "Available every day from 9am to 5pm.",
+    "address": "Address",
+    "addressNote": "Visits by appointment only."
+  },
+  "reservations": {
+    "myTitle": "My reservations",
+    "mySubtitle": "Places you have booked.",
+    "hostTitle": "Reservations",
+    "hostSubtitle": "Requests for your apartments.",
+    "loading": "Loading reservations...",
+    "emptyGuest": "You have no reservations yet.",
+    "emptyHost": "Nobody has booked your apartments yet.",
+    "created": "Reservation sent. The host still has to confirm it.",
+    "booking": "Booking...",
+    "deletedApartment": "Apartment no longer available",
+    "guestLabel": "Guest",
+    "nights": "{{count}} night",
+    "nights_other": "{{count}} nights",
+    "guests": "{{count}} guest",
+    "guests_other": "{{count}} guests",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "pickDates": "Pick a check-in and check-out date.",
+      "datesTaken": "Some of those nights are already taken.",
+      "createFailed": "Could not create the reservation.",
+      "loadFailed": "Could not load reservations.",
+      "updateFailed": "Could not update the reservation.",
+      "loginRequired": "Sign in to book this apartment.",
+      "ownApartment": "You cannot book your own apartment."
+    }
   }
 }

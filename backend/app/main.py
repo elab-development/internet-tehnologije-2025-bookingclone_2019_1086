@@ -23,6 +23,7 @@ from app.apartment_photo.apartment_photo_endpoints import (
     router as apartment_photo_router,
 )
 from app.tag.tag_endpoints import router as tag_router
+from app.reservation.reservation_endpoints import router as reservation_router
 
 
 UPLOAD_DIR = Path("static/images/apartments")
@@ -65,6 +66,7 @@ app.include_router(auth_router)
 app.include_router(apartments_router)
 app.include_router(apartment_photo_router)
 app.include_router(tag_router)
+app.include_router(reservation_router)
 
 # Serves ./static at /static
 app.mount("/static", StaticFiles(directory="static"), name="static")

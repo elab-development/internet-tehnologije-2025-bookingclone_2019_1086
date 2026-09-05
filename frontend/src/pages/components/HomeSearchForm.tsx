@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactDatePicker from "react-datepicker";
 
@@ -8,6 +9,7 @@ const DatePicker = ReactDatePicker as unknown as React.FC<any>;
 
 export default function HomeSearchForm() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [location, setLocation] = useState("");
   const [guests, setGuests] = useState("");
@@ -43,16 +45,22 @@ export default function HomeSearchForm() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const searchParams = {
-      location,
-      checkInDate,
-      checkOutDate,
-      guests,
-    };
+    const searchParams = new URLSearchParams();
 
-    console.log(searchParams);
+    const trimmedLocation = location.trim();
 
-    // Kasnije ovde povezujemo filter / query parametre.
+    if (trimmedLocation) {
+      searchParams.set("city", trimmedLocation);
+    }
+
+    if (guests.trim()) {
+      searchParams.set("guests", guests.trim());
+    }
+
+    navigate({
+      pathname: "/apartments",
+      search: searchParams.toString(),
+    });
   }
 
   return (

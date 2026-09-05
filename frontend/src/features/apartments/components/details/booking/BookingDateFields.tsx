@@ -11,6 +11,7 @@ type Props = {
   onCheckOutChange: (date: Date | null) => void;
   getCheckInMinDate: () => Date;
   getCheckOutMinDate: () => Date;
+  filterDate?: (date: Date) => boolean;
 };
 
 export default function BookingDateFields({
@@ -20,6 +21,7 @@ export default function BookingDateFields({
   onCheckOutChange,
   getCheckInMinDate,
   getCheckOutMinDate,
+  filterDate,
 }: Props) {
   const { t } = useTranslation();
 
@@ -37,6 +39,7 @@ export default function BookingDateFields({
           startDate={checkInDate}
           endDate={checkOutDate}
           minDate={getCheckInMinDate()}
+          filterDate={filterDate}
           dateFormat="dd.MM.yyyy"
           placeholderText={t("apartments.details.booking.datePlaceholder")}
           className="details-booking__input"
@@ -57,6 +60,7 @@ export default function BookingDateFields({
           startDate={checkInDate}
           endDate={checkOutDate}
           minDate={getCheckOutMinDate()}
+          filterDate={filterDate}
           dateFormat="dd.MM.yyyy"
           placeholderText={t("apartments.details.booking.datePlaceholder")}
           className="details-booking__input"

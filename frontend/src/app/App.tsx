@@ -5,6 +5,9 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthProvider from "../features/auth/context/AuthProvider";
 
 import HomePage from "../pages/HomePage";
+import ApartmentsPage from "../pages/ApartmentsPage";
+import ContactPage from "../pages/ContactPage";
+import ReservationsPage from "../features/reservations/pages/ReservationsPage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
 import CreateApartmentWizard from "../features/host/apartments/pages/CreateApartmentWizard";
@@ -26,7 +29,29 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
 
+            <Route path="/apartments" element={<ApartmentsPage />} />
+
             <Route path="/apartments/:id" element={<ApartmentDetailsPage />} />
+
+            <Route path="/contact" element={<ContactPage />} />
+
+            <Route
+              path="/reservations"
+              element={
+                <ProtectedRoute>
+                  <ReservationsPage scope="guest" />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/host/reservations"
+              element={
+                <ProtectedRoute allowedRoles={["HOST"]}>
+                  <ReservationsPage scope="host" />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/host/apartments"
