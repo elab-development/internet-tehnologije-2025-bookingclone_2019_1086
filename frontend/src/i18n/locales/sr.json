@@ -205,5 +205,65 @@
       "missingApartmentId": "Apartman je kreiran, ali API nije vratio ID.",
       "uploadPhotosFailed": "Otpremanje slika nije uspelo"
     }
+  },
+  "apartmentsPage": {
+    "title": "Apartmani",
+    "subtitle": "Pregledajte sve trenutno dostupne smeštaje.",
+    "search": {
+      "name": "Naziv",
+      "namePlaceholder": "npr. garsonjera u centru",
+      "city": "Grad",
+      "cityPlaceholder": "npr. Beograd",
+      "guests": "Gosti",
+      "submit": "Pretraži",
+      "reset": "Poništi"
+    }
+  },
+  "contact": {
+    "title": "Kontaktirajte nas",
+    "subtitle": "Imate pitanje o rezervaciji ili želite da oglasite smeštaj? Javite nam se.",
+    "email": "Email",
+    "emailNote": "Odgovaramo najčešće u roku od jednog radnog dana.",
+    "phone": "Telefon",
+    "phoneNote": "Dostupni smo svakog dana od 9 do 17 časova.",
+    "address": "Adresa",
+    "addressNote": "Poseta isključivo uz najavu."
+  },
+  "reservations": {
+    "myTitle": "Moje rezervacije",
+    "mySubtitle": "Smeštaji koje ste rezervisali.",
+    "hostTitle": "Rezervacije",
+    "hostSubtitle": "Zahtevi za vaše apartmane.",
+    "loading": "Učitavanje rezervacija...",
+    "emptyGuest": "Još nemate nijednu rezervaciju.",
+    "emptyHost": "Još niko nije rezervisao vaše apartmane.",
+    "created": "Rezervacija je poslata. Domaćin još treba da je potvrdi.",
+    "booking": "Rezervisanje...",
+    "deletedApartment": "Apartman više nije dostupan",
+    "guestLabel": "Gost",
+    "nights": "{{count}} noć",
+    "nights_few": "{{count}} noći",
+    "nights_other": "{{count}} noći",
+    "guests": "{{count}} gost",
+    "guests_few": "{{count}} gosta",
+    "guests_other": "{{count}} gostiju",
+    "status": {
+      "pending": "Na čekanju",
+      "confirmed": "Potvrđena",
+      "cancelled": "Otkazana"
+    },
+    "actions": {
+      "confirm": "Potvrdi",
+      "cancel": "Otkaži"
+    },
+    "errors": {
+      "pickDates": "Izaberite datum dolaska i odlaska.",
+      "datesTaken": "Neke od tih noći su već zauzete.",
+      "createFailed": "Rezervacija nije mogla da se kreira.",
+      "loadFailed": "Rezervacije nisu mogle da se učitaju.",
+      "updateFailed": "Rezervacija nije mogla da se izmeni.",
+      "loginRequired": "Prijavite se da biste rezervisali.",
+      "ownApartment": "Ne možete rezervisati sopstveni apartman."
+    }
   }
 }

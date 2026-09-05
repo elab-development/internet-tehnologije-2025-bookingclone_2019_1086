@@ -23,6 +23,7 @@ from app.services.geocoding import geocode_osm_nominatim
 
 from datetime import datetime, date, UTC, timedelta
 from app.models.reservation import Reservation
+from app.enums.reservation_status_enum import BLOCKING_STATUSES
 
 
 router = APIRouter(prefix="/apartments", tags=["apartments"])
@@ -166,7 +167,7 @@ async def get_apartments(
 
     # filters
     if q.name:
-        query = query.where(Apartment.name.ilike(f"%{q.name}%"))
+        query = query.where(Apartment.title.ilike(f"%{q.name}%"))
 
     if q.address:
         query = query.where(Apartment.address.ilike(f"%{q.address}%"))
@@ -224,7 +225,7 @@ async def get_my_apartments(
 
     # filters (same as get_apartments)
     if q.name:
-        query = query.where(Apartment.name.ilike(f"%{q.name}%"))
+        query = query.where(Apartment.title.ilike(f"%{q.name}%"))
 
     if q.address:
         query = query.where(Apartment.address.ilike(f"%{q.address}%"))
@@ -381,7 +382,8 @@ async def get_rented_days(
     query = (
         select(Reservation)
         .where(
-            Reservation.apartment_id == apartment_id, Reservation.status == "confirmed"
+            Reservation.apartment_id == apartment_id,
+            Reservation.status.in_(BLOCKING_STATUSES),
         )
         .where(Reservation.check_in < month_end_exclusive)
         .where(Reservation.check_out > month_start)

@@ -2,9 +2,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { ApartmentDetailsDto } from "../ApartmentDetailsPage";
+import type { ApartmentDetailsDto } from "../../types/apartmentDetailsTypes";
 
 import { useDateRange } from "../../../../shared/hooks/useDateRange";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { useApartmentBooking } from "../../../reservations/hooks/useApartmentBooking";
 import { formatApartmentPrice } from "../../services/apartmentService";
 
 import BookingDateFields from "./booking/BookingDateFields";
@@ -20,6 +22,7 @@ type Props = {
 
 export default function ApartmentDetailsBookingCard({ apartment }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const [guests, setGuests] = useState("1");
 
@@ -32,19 +35,71 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
     getCheckOutMinDate,
   } = useDateRange();
 
+  const { isDayAvailable, isBooking, error, confirmation, book } =
+    useApartmentBooking(apartment.id);
+
   const price = getPriceValue(apartment.price_per_night);
   const nights = calculateNights(checkInDate, checkOutDate);
   const total = price * nights;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const isOwnApartment = user !== null && user.id === apartment.user_id;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    console.log({
-      apartmentId: apartment.id,
-      checkInDate,
-      checkOutDate,
-      guests,
-    });
+    await book(checkInDate, checkOutDate, Number(guests));
+  }
+
+  function getButtonText() {
+    if (isBooking) {
+      return t("reservations.booking");
+    }
+
+    return t("apartments.details.booking.reserve");
+  }
+
+  function isDisabled() {
+    return isBooking || !user || isOwnApartment;
+  }
+
+  function renderNotice() {
+    if (!user) {
+      return (
+        <p className="details-booking__note details-booking__note--warning">
+          {t("reservations.errors.loginRequired")}
+        </p>
+      );
+    }
+
+    if (isOwnApartment) {
+      return (
+        <p className="details-booking__note details-booking__note--warning">
+          {t("reservations.errors.ownApartment")}
+        </p>
+      );
+    }
+
+    return null;
+  }
+
+  function renderFeedback() {
+    if (error) {
+      return (
+        <p className="details-booking__feedback details-booking__feedback--error" role="alert">
+          {error}
+        </p>
+      );
+    }
+
+    if (confirmation) {
+      return (
+        <p className="details-booking__feedback details-booking__feedback--success" role="status">
+          {confirmation}
+        </p>
+      );
+    }
+
+    return null;
   }
 
   return (
@@ -75,6 +130,7 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
           onCheckOutChange={handleCheckOutChange}
           getCheckInMinDate={getCheckInMinDate}
           getCheckOutMinDate={getCheckOutMinDate}
+          filterDate={isDayAvailable}
         />
 
         <BookingGuestsField
@@ -90,9 +146,17 @@ export default function ApartmentDetailsBookingCard({ apartment }: Props) {
         total={total}
       />
 
-      <button type="submit" className="details-booking__button">
-        {t("apartments.details.booking.reserve")}
+      {renderFeedback()}
+
+      <button
+        type="submit"
+        className="details-booking__button"
+        disabled={isDisabled()}
+      >
+        {getButtonText()}
       </button>
+
+      {renderNotice()}
 
       <p className="details-booking__note">
         {t("apartments.details.booking.note")}
