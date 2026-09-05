@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import type { ApartmentTagDto } from "../../services/apartmentService";
+import TagIcon from "../../../tags/components/TagIcon";
 
 type Props = {
   description: string;
@@ -41,12 +42,25 @@ export default function ApartmentDetailsInfo({ description, tags }: Props) {
 
     return (
       <div className="apartment-amenities">
-        {tags.map((tag, index) => (
-          <div key={getTagKey(tag, index)} className="apartment-amenities__item">
-            <span className="apartment-amenities__icon">✓</span>
-            <span>{getTagName(tag, t("apartments.details.info.facility"))}</span>
-          </div>
-        ))}
+        {tags.map((tag, index) => {
+          const name = getTagName(tag, t("apartments.details.info.facility"));
+
+          return (
+            <div
+              key={getTagKey(tag, index)}
+              className="apartment-amenities__item"
+            >
+              <TagIcon
+                svg={tag.svg_icon}
+                label={name}
+                className="apartment-amenities__icon"
+                size={20}
+              />
+
+              <span>{name}</span>
+            </div>
+          );
+        })}
       </div>
     );
   }

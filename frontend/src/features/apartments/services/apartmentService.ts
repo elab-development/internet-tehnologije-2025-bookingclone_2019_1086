@@ -14,6 +14,7 @@ export type ApartmentPhotoDto = {
 export type ApartmentTagDto = {
   id?: number;
   name?: string;
+  svg_icon?: string | null;
 };
 
 export type ApartmentDto = {

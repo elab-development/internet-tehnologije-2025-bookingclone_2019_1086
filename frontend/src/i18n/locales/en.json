@@ -263,5 +263,43 @@
       "loginRequired": "Sign in to book this apartment.",
       "ownApartment": "You cannot book your own apartment."
     }
+  },
+  "admin": {
+    "tags": {
+      "title": "Tags",
+      "subtitle": "Amenities that hosts can attach to their apartments.",
+      "addButton": "New tag",
+      "loading": "Loading tags...",
+      "empty": "No tags yet.",
+      "created": "Tag created.",
+      "updated": "Tag updated.",
+      "deleted": "Tag deleted.",
+      "confirmDelete": "Delete the tag \"{{name}}\"? Apartments using it will lose it.",
+      "table": {
+        "icon": "Icon",
+        "name": "Name",
+        "key": "Key",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "form": {
+        "createTitle": "New tag",
+        "editTitle": "Editing: {{name}}",
+        "name": "Name",
+        "namePlaceholder": "e.g. Wi-Fi",
+        "iconKey": "Icon key",
+        "svg": "SVG icon",
+        "preview": "Preview",
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "loadFailed": "Could not load tags.",
+        "saveFailed": "Could not save the tag.",
+        "deleteFailed": "Could not delete the tag."
+      }
+    }
   }
 }
