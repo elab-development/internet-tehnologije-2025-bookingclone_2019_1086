@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
-import { getAuthUser } from "../../features/auth/storage/authStorage";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import type { Role } from "../../features/auth/types/authTypes";
 
 type ProtectedRouteProps = {
@@ -14,7 +14,7 @@ export default function ProtectedRoute({
   children,
 }: ProtectedRouteProps) {
   const location = useLocation();
-  const user = getAuthUser();
+  const { user } = useAuth();
 
   if (!user) {
     return <Navigate to="/" replace state={{ from: location }} />;

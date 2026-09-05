@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -6,6 +6,7 @@ import {
   getStoredLanguage,
   type SupportedLanguage,
 } from "../../../i18n/i18n";
+import { useClickOutside } from "../../../shared/hooks/useClickOutside";
 
 type LanguageOption = {
   code: SupportedLanguage;
@@ -70,27 +71,9 @@ export default function HeaderLanguageSwitcher() {
   const [selectedLanguageCode, setSelectedLanguageCode] =
     useState<SupportedLanguage>(getCurrentLanguageCode);
 
-  const switcherRef = useRef<HTMLDivElement | null>(null);
+  const switcherRef = useClickOutside<HTMLDivElement>(closeDropdown);
 
   const currentLanguage = getLanguageByCode(selectedLanguageCode);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (!switcherRef.current) {
-        return;
-      }
-
-      if (!switcherRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   function toggleDropdown() {
     setOpen((value) => !value);

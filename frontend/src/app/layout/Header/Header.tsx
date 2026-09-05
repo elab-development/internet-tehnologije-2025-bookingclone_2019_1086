@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import * as authService from "../../../features/auth/services/authService";
-import {
-  getAuthUser,
-  isLoggedIn,
-  logoutLocal,
-} from "../../../features/auth/storage/authStorage";
+import { useClickOutside } from "../../../shared/hooks/useClickOutside";
+
+import { useAuth } from "../../../features/auth/hooks/useAuth";
 import AuthModal from "../../../features/auth/components/AuthModal";
 
 import HeaderLogo from "./HeaderLogo";
@@ -21,11 +18,10 @@ import "./Header.css";
 export default function Header() {
   const navigate = useNavigate();
 
-  const [logged, setLogged] = useState<boolean>(isLoggedIn());
-  const [user, setUser] = useState(getAuthUser());
+  const { user, isLoggedIn, signOut } = useAuth();
 
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useClickOutside<HTMLDivElement>(closeUserMenu);
 
   const [authOpen, setAuthOpen] = useState(false);
   const [authDefaultMode, setAuthDefaultMode] = useState<"login" | "register">(
@@ -39,24 +35,6 @@ export default function Header() {
 
     return getMenuByRole(user.role);
   }, [user]);
-
-  useEffect(() => {
-    function handleClick(event: MouseEvent) {
-      if (!menuRef.current) {
-        return;
-      }
-
-      if (!menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-    };
-  }, []);
 
   function openLogin() {
     setAuthDefaultMode("login");
@@ -89,35 +67,17 @@ export default function Header() {
   }
 
   function handleAuthSuccess() {
-    setLogged(isLoggedIn());
-    setUser(getAuthUser());
     closeAuthModal();
   }
 
   async function onLogout() {
-    try {
-      await authService.logout();
-    } catch {
-      // Ignore backend logout failure.
-    } finally {
-      logoutLocal();
-      setLogged(false);
-      setUser(null);
-      setOpen(false);
-      navigate("/", { replace: true });
-    }
+    await signOut();
+
+    setOpen(false);
+    navigate("/", { replace: true });
   }
 
   function renderHeaderActions() {
-    if (!logged) {
-      return (
-        <GuestActions
-          onLoginClick={openLogin}
-          onRegisterClick={openRegister}
-        />
-      );
-    }
-
     if (!user) {
       return (
         <GuestActions
@@ -146,7 +106,7 @@ export default function Header() {
         <div className="header__top">
           <HeaderLogo />
 
-          <HeaderNavigation logged={logged} role={getUserRole()} />
+          <HeaderNavigation logged={isLoggedIn} role={getUserRole()} />
 
           <div className="header__actions">
             <HeaderLanguageSwitcher />

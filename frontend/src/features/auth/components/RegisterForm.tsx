@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import * as authService from "../services/authService";
-import { setAccessToken, setAuthUser } from "../storage/authStorage";
+import { useAuth } from "../hooks/useAuth";
 import { useAuthSubmit } from "../hooks/useAuthSubmit";
 
 import AuthField from "./AuthField";
@@ -26,6 +26,7 @@ export default function RegisterForm({ onSuccess }: Props) {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<Role>("USER");
 
+  const { signIn } = useAuth();
   const { error, isSubmitting, submit } = useAuthSubmit(
     t("auth.registrationFailed")
   );
@@ -66,8 +67,7 @@ export default function RegisterForm({ onSuccess }: Props) {
         role,
       });
 
-      setAccessToken(response.access_token);
-      setAuthUser(response.user);
+      signIn(response.access_token, response.user);
 
       onSuccess();
     });
