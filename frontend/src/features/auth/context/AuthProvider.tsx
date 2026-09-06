@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import { setSessionExpiredHandler } from "../../../shared/api/apiClient";
 import * as authService from "../services/authService";
 import {
   getAuthUser,
@@ -34,6 +35,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       logoutLocal();
       setUser(null);
     }
+  }, []);
+
+  // The api client refreshes an expired access token on its own. It only calls
+  // back here when the refresh token is gone as well and the session is really
+  // over, so the app stops pretending somebody is logged in.
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      logoutLocal();
+      setUser(null);
+    });
+
+    return () => setSessionExpiredHandler(null);
   }, []);
 
   const value = useMemo<AuthContextValue>(() => {

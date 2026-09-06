@@ -20,6 +20,7 @@ from app.enums.role_enum import Role
 from app.base_pagination_request import BasePaginationRequest
 from app.base_response import BasePagedResponse
 from app.services.geocoding import geocode_osm_nominatim
+from app.models.apartment import utcnow
 
 from datetime import datetime, date, UTC, timedelta
 from app.models.reservation import Reservation
@@ -167,6 +168,9 @@ def map_apartment_to_detail_dto(apartment: Apartment) -> ApartmentByIdDto:
 
 
 def apply_apartment_filters(query, q: ApartmentFilter):
+    # A soft deleted apartment is gone as far as any list is concerned.
+    query = query.where(Apartment.deleted_at.is_(None))
+
     if q.name:
         query = query.where(Apartment.title.ilike(f"%{q.name}%"))
 
@@ -343,6 +347,7 @@ async def get_apartment_by_id(
     result = await session.exec(
         select(Apartment)
         .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
         .options(
             selectinload(Apartment.photos),
             selectinload(Apartment.tags),
@@ -364,7 +369,9 @@ async def get_rented_days(
     year: int = Query(...),
 ):
     apartment_result = await session.exec(
-        select(Apartment).where(Apartment.id == apartment_id)
+        select(Apartment)
+        .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
     )
     apartment = apartment_result.first()
     if not apartment:
@@ -416,11 +423,6 @@ async def get_rented_days(
 from fastapi import Response
 
 
-from fastapi import Response
-from sqlalchemy import delete as sqldelete
-from app.models.apartment_photo import ApartmentPhoto
-
-
 @router.delete("/{apartment_id}", status_code=204)
 async def delete_apartment(
     apartment_id: int,
@@ -428,7 +430,19 @@ async def delete_apartment(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
-    result = await session.exec(select(Apartment).where(Apartment.id == apartment_id))
+    """Soft delete.
+
+    The row and its photos stay in the database because reservations point at
+    them: a guest still has to see where they stayed and the host still has to
+    see what was booked. Setting deleted_at takes the apartment out of every
+    list and makes it impossible to book again, which is all a delete has to do
+    here.
+    """
+    result = await session.exec(
+        select(Apartment)
+        .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
+    )
     apartment = result.first()
 
     if not apartment:
@@ -437,11 +451,11 @@ async def delete_apartment(
     if apartment.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    await session.exec(
-        sqldelete(ApartmentPhoto).where(ApartmentPhoto.apartment_id == apartment_id)
-    )
+    apartment.deleted_at = utcnow()
+    apartment.status = "inactive"
+    apartment.updated_at = utcnow()
 
-    await session.delete(apartment)
+    session.add(apartment)
     await session.commit()
 
     return Response(status_code=204)

@@ -285,6 +285,16 @@
       "reset": "Clear"
     }
   },
+  "reservationLink": {
+    "title": "Reservation",
+    "subtitleGuest": "The current status of your reservation.",
+    "subtitleHost": "Confirm or decline this reservation.",
+    "signInRequired": "Sign in with the account this reservation belongs to and the details will show up here.",
+    "errors": {
+      "load": "This reservation could not be opened.",
+      "update": "The reservation could not be updated."
+    }
+  },
   "admin": {
     "tags": {
       "title": "Tags",

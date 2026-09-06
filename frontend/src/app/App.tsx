@@ -9,6 +9,7 @@ import ApartmentsPage from "../pages/ApartmentsPage";
 import ContactPage from "../pages/ContactPage";
 import InfoPage from "../pages/InfoPage";
 import ReservationsPage from "../features/reservations/pages/ReservationsPage";
+import ReservationLinkPage from "../features/reservations/pages/ReservationLinkPage";
 import AdminTagsPage from "../features/admin/tags/pages/AdminTagsPage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
@@ -50,6 +51,14 @@ export default function App() {
                   <ReservationsPage scope="guest" />
                 </ProtectedRoute>
               }
+            />
+
+            {/* Opened from a reservation mail. Not wrapped in ProtectedRoute:
+                that would bounce to the home page and throw the token away,
+                so the page asks for a sign in while keeping the url. */}
+            <Route
+              path="/reservations/link/:token"
+              element={<ReservationLinkPage />}
             />
 
             <Route

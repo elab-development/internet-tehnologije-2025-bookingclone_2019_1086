@@ -24,6 +24,7 @@ from app.apartment_photo.apartment_photo_endpoints import (
 )
 from app.tag.tag_endpoints import router as tag_router
 from app.reservation.reservation_endpoints import router as reservation_router
+from app.outbox.outbox_worker import OutboxWorker
 
 
 UPLOAD_DIR = Path("static/images/apartments")
@@ -42,8 +43,13 @@ async def lifespan(app: FastAPI):
         await seed_database(session)
         await session.commit()
 
+    # background delivery of everything sitting in the outbox table
+    outbox_worker = OutboxWorker(db.session_factory)
+    outbox_worker.start()
+
     yield
 
+    await outbox_worker.stop()
     await db.engine.dispose()
 
 

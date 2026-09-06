@@ -13,6 +13,7 @@ export type ReservationApartmentDto = {
   city: string;
   country: string;
   image_url: string | null;
+  is_deleted: boolean;
 };
 
 export type ReservationDto = {
@@ -148,4 +149,43 @@ export async function getRentedDays(
     `/apartments/${apartmentId}/rented-days?year=${year}&month=${month}`,
     { method: "GET" }
   );
+}
+
+// --- the page behind a link from a reservation mail ---
+
+export type ReservationLinkDto = {
+  reservation: ReservationDto;
+  can_manage: boolean;
+};
+
+function normalizeLink(value: ReservationLinkDto): ReservationLinkDto {
+  return {
+    ...value,
+    reservation: normalizeReservation(value.reservation),
+  };
+}
+
+export async function getReservationByLink(token: string) {
+  const response = await apiRequest<ReservationLinkDto>(
+    `/reservations/link/${token}`,
+    { method: "GET", auth: true }
+  );
+
+  return normalizeLink(response);
+}
+
+export async function updateReservationByLink(
+  token: string,
+  status: "confirmed" | "cancelled"
+) {
+  const response = await apiRequest<ReservationLinkDto>(
+    `/reservations/link/${token}`,
+    {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  return normalizeLink(response);
 }

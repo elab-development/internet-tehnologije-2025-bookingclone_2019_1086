@@ -287,6 +287,16 @@
       "reset": "Poništi"
     }
   },
+  "reservationLink": {
+    "title": "Rezervacija",
+    "subtitleGuest": "Trenutni status vaše rezervacije.",
+    "subtitleHost": "Potvrdite ili odbijte ovu rezervaciju.",
+    "signInRequired": "Prijavite se nalogom kojem pripada ova rezervacija i detalji će se pojaviti ovde.",
+    "errors": {
+      "load": "Ova rezervacija ne može da se otvori.",
+      "update": "Rezervacija ne može da se izmeni."
+    }
+  },
   "admin": {
     "tags": {
       "title": "Tagovi",
