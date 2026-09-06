@@ -25,6 +25,7 @@ from app.apartment_photo.apartment_photo_endpoints import (
 from app.tag.tag_endpoints import router as tag_router
 from app.reservation.reservation_endpoints import router as reservation_router
 from app.outbox.outbox_worker import OutboxWorker
+from app.exception_handlers import ExceptionHandlers
 
 
 UPLOAD_DIR = Path("static/images/apartments")
@@ -67,6 +68,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# One place decides what an error looks like on the wire.
+ExceptionHandlers.register(app)
+
 
 app.include_router(auth_router)
 app.include_router(apartments_router)

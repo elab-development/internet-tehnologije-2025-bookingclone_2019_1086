@@ -16,6 +16,7 @@ from app.models.user import User
 from app.models.tag import Tag
 from app.base_pagination_request import BasePaginationRequest
 from app.base_response import BasePagedResponse
+from app.errors import conflict, not_found
 
 
 router = APIRouter(prefix="/tags", tags=["tags"])
@@ -68,13 +69,13 @@ async def _ensure_unique_on_create(
 ) -> None:
     existing_by_name = (await session.exec(select(Tag).where(Tag.name == name))).first()
     if existing_by_name:
-        raise HTTPException(status_code=409, detail="Tag name already exists")
+        raise conflict("tag_name_taken", "Tag name already exists")
 
     existing_by_key = (
         await session.exec(select(Tag).where(Tag.icon_key == icon_key))
     ).first()
     if existing_by_key:
-        raise HTTPException(status_code=409, detail="Tag icon_key already exists")
+        raise conflict("tag_icon_taken", "Tag icon_key already exists")
 
 
 async def _ensure_unique_on_update(
@@ -88,14 +89,14 @@ async def _ensure_unique_on_update(
             await session.exec(select(Tag).where(Tag.name == name))
         ).first()
         if existing_by_name and existing_by_name.id != tag_id:
-            raise HTTPException(status_code=409, detail="Tag name already exists")
+            raise conflict("tag_name_taken", "Tag name already exists")
 
     if icon_key is not None:
         existing_by_key = (
             await session.exec(select(Tag).where(Tag.icon_key == icon_key))
         ).first()
         if existing_by_key and existing_by_key.id != tag_id:
-            raise HTTPException(status_code=409, detail="Tag icon_key already exists")
+            raise conflict("tag_icon_taken", "Tag icon_key already exists")
 
 
 # Endpoints
@@ -129,7 +130,7 @@ async def list_tags(
 async def get_tag_by_id(tag_id: int, session: SessionDep):
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        raise not_found("tag_not_found", "Tag not found")
     return map_tag_to_dto(tag)
 
 
@@ -168,7 +169,7 @@ async def update_tag(
 ):
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        raise not_found("tag_not_found", "Tag not found")
 
     await _ensure_unique_on_update(
         session, tag_id, request_body.name, request_body.icon_key
@@ -194,7 +195,7 @@ async def patch_tag(
 ):
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        raise not_found("tag_not_found", "Tag not found")
 
     # ensure uniqueness only for fields provided
     await _ensure_unique_on_update(
@@ -224,7 +225,7 @@ async def delete_tag(
 ):
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        raise not_found("tag_not_found", "Tag not found")
 
     await session.delete(tag)
     await session.commit()

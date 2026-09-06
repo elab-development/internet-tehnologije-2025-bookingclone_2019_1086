@@ -3,6 +3,7 @@ from fastapi import Depends, HTTPException
 from app.models.user import User
 from app.enums.role_enum import Role
 from app.auth.current_user import get_current_user
+from app.errors import forbidden
 
 
 class Policy:
@@ -14,6 +15,6 @@ class Policy:
             return True
 
         if user.role not in self.allowed_roles:
-            raise HTTPException(status_code=403, detail="Forbidden")
+            raise forbidden("forbidden", "Forbidden")
 
         return True

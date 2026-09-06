@@ -2,6 +2,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from "../../features/auth/storage/authStorage";
+import i18n from "../../i18n/i18n";
 import { buildApiUrl } from "../config/api";
 
 type ApiRequestOptions = RequestInit & {
@@ -20,11 +21,25 @@ async function parseApiError(response: Response): Promise<string> {
   const text = await response.text();
 
   if (!text) {
-    return `Request failed (${response.status})`;
+    return i18n.t("errors.requestFailed", { status: response.status });
   }
 
   try {
     const data = JSON.parse(text);
+
+    // The backend sends a stable code next to its English sentence. When we
+    // know the code we say it in the language the user picked; when we do not,
+    // the English sentence is still better than a status number.
+    if (typeof data?.code === "string") {
+      const translated = i18n.t(`errors.${data.code}`, {
+        ...(data.params ?? {}),
+        defaultValue: "",
+      }) as string;
+
+      if (translated) {
+        return translated;
+      }
+    }
 
     if (typeof data?.detail === "string") {
       return data.detail;
@@ -38,7 +53,7 @@ async function parseApiError(response: Response): Promise<string> {
       return data.error;
     }
 
-    return `Request failed (${response.status})`;
+    return i18n.t("errors.requestFailed", { status: response.status });
   } catch {
     return text;
   }

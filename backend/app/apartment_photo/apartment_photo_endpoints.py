@@ -35,6 +35,7 @@ class ApartmentPhotoDto(BaseModel):
 
 from fastapi import Depends, HTTPException
 from sqlmodel import select
+from app.errors import bad_request, forbidden, not_found
 
 
 async def apartment_belongs_to_host(
@@ -51,10 +52,10 @@ async def apartment_belongs_to_host(
     ).first()
 
     if not apt:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     if apt.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="This apartment is not yours")
+        raise forbidden("apartment_not_yours", "This apartment is not yours")
 
     return apt
 
@@ -73,7 +74,7 @@ async def get_apartment_main_photo(
     ).first()
 
     if not apt:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     photos = (
         await session.exec(
@@ -117,9 +118,10 @@ async def upload_apartment_photos(
 
     for file in photos:
         if not file.content_type or not file.content_type.startswith("image/"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Only image files are allowed. Invalid: {file.filename}",
+            raise bad_request(
+                "not_an_image",
+                f"Only image files are allowed. Invalid: {file.filename}",
+                {"filename": file.filename},
             )
 
     for file in photos:
