@@ -142,7 +142,19 @@
       "map": {
         "title": "Lokacija",
         "coordinates": "Koordinate: {{latitude}}, {{longitude}}",
-        "approximateLocation": "Približna lokacija - prikazan je centar grada."
+        "approximateLocation": "Približna lokacija - prikazan je centar grada.",
+        "layers": {
+          "standard": "Standardna",
+          "humanitarian": "Humanitarna",
+          "satellite": "Satelitska",
+          "terrain": "Teren"
+        },
+        "overlays": {
+          "walking": "Pešačka zona",
+          "walkingHint": "Oko 5 minuta pešačenja od apartmana.",
+          "neighbourhood": "Šira okolina",
+          "neighbourhoodHint": "Oko 20 minuta pešačenja od apartmana."
+        }
       }
     }
   },

@@ -2,9 +2,12 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import L from "leaflet";
 import {
+  Circle,
+  LayersControl,
   MapContainer,
   Marker,
   Popup,
+  ScaleControl,
   TileLayer,
   ZoomControl,
 } from "react-leaflet";
@@ -17,6 +20,14 @@ import {
   getMapPosition,
   getMapZoom,
 } from "./map/apartmentMapUtils";
+import {
+  BASE_LAYERS,
+  DEFAULT_BASE_LAYER_ID,
+  NEIGHBOURHOOD_CIRCLE_STYLE,
+  NEIGHBOURHOOD_RADIUS_METERS,
+  WALKING_CIRCLE_STYLE,
+  WALKING_RADIUS_METERS,
+} from "./map/mapLayers";
 
 type Props = {
   apartment: ApartmentDetailsDto;
@@ -58,6 +69,62 @@ export default function ApartmentDetailsMap({ apartment }: Props) {
     return t("apartments.details.map.approximateLocation");
   }
 
+  function renderBaseLayers() {
+    return BASE_LAYERS.map((layer) => (
+      <LayersControl.BaseLayer
+        key={layer.id}
+        name={t(`apartments.details.map.layers.${layer.id}`)}
+        checked={layer.id === DEFAULT_BASE_LAYER_ID}
+      >
+        <TileLayer
+          attribution={layer.attribution}
+          url={layer.url}
+          maxZoom={layer.maxZoom}
+        />
+      </LayersControl.BaseLayer>
+    ));
+  }
+
+  function renderAreaOverlays() {
+    // Drawing a walking radius around a guessed city centre would be a lie, so
+    // the rings only appear once the apartment was actually geocoded.
+    if (!position.hasExactCoordinates) {
+      return null;
+    }
+
+    return (
+      <>
+        {/* Both rings start off, so the map opens clean and the guest turns
+            them on only if they care about the surroundings. */}
+        <LayersControl.Overlay
+          name={t("apartments.details.map.overlays.walking")}
+        >
+          <Circle
+            center={mapCenter}
+            radius={WALKING_RADIUS_METERS}
+            pathOptions={WALKING_CIRCLE_STYLE}
+          >
+            <Popup>{t("apartments.details.map.overlays.walkingHint")}</Popup>
+          </Circle>
+        </LayersControl.Overlay>
+
+        <LayersControl.Overlay
+          name={t("apartments.details.map.overlays.neighbourhood")}
+        >
+          <Circle
+            center={mapCenter}
+            radius={NEIGHBOURHOOD_RADIUS_METERS}
+            pathOptions={NEIGHBOURHOOD_CIRCLE_STYLE}
+          >
+            <Popup>
+              {t("apartments.details.map.overlays.neighbourhoodHint")}
+            </Popup>
+          </Circle>
+        </LayersControl.Overlay>
+      </>
+    );
+  }
+
   return (
     <section className="apartment-details-section apartment-details-section--map">
       <div className="apartment-map-header">
@@ -81,13 +148,13 @@ export default function ApartmentDetailsMap({ apartment }: Props) {
           zoomControl={false}
           className="apartment-map__leaflet"
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, tiles by <a href="https://www.hotosm.org/">HOT</a>'
-            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-            maxZoom={20}
-          />
+          <LayersControl position="topleft" collapsed>
+            {renderBaseLayers()}
+            {renderAreaOverlays()}
+          </LayersControl>
 
           <ZoomControl position="topright" />
+          <ScaleControl position="bottomleft" imperial={false} />
 
           <Marker position={mapCenter} icon={apartmentMarkerIcon}>
             <Popup>
