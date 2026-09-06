@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../auth/hooks/useAuth";
 import {
@@ -15,6 +16,7 @@ export type HostMessage = {
 const PAGE_SIZE = 12;
 
 export function useHostApartments() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const [items, setItems] = useState<ApartmentDto[]>([]);
@@ -24,6 +26,8 @@ export function useHostApartments() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<HostMessage | null>(null);
   const [deleteBusyId, setDeleteBusyId] = useState<number | null>(null);
+  // The apartment sitting in the confirm dialog, waiting for an answer.
+  const [pendingDelete, setPendingDelete] = useState<ApartmentDto | null>(null);
 
   const userId = user?.id ?? null;
   const isHost = user?.role === "HOST";
@@ -53,12 +57,12 @@ export function useHostApartments() {
       if (loadError instanceof Error) {
         setError(loadError.message);
       } else {
-        setError("Failed to load apartments");
+        setError(t("hostApartments.loadFailed"));
       }
     } finally {
       setLoading(false);
     }
-  }, [userId, page]);
+  }, [userId, page, t]);
 
   useEffect(() => {
     load();
@@ -68,8 +72,29 @@ export function useHostApartments() {
     setPage(nextPage);
   }
 
-  async function deleteApartmentFromCard(apartment: ApartmentDto) {
+  // Clicking the bin only opens the dialog. Nothing is deleted until the
+  // person confirms it there.
+  function requestDelete(apartment: ApartmentDto) {
     if (deleteBusyId !== null) {
+      return;
+    }
+
+    setMessage(null);
+    setPendingDelete(apartment);
+  }
+
+  function cancelDelete() {
+    if (deleteBusyId !== null) {
+      return;
+    }
+
+    setPendingDelete(null);
+  }
+
+  async function confirmDelete() {
+    const apartment = pendingDelete;
+
+    if (!apartment || deleteBusyId !== null) {
       return;
     }
 
@@ -81,7 +106,7 @@ export function useHostApartments() {
 
       setMessage({
         type: "success",
-        text: "Apartment deleted successfully.",
+        text: t("hostApartments.deleted"),
       });
 
       // Removing the last card of a page would leave it empty, so step back instead.
@@ -102,10 +127,11 @@ export function useHostApartments() {
 
       setMessage({
         type: "danger",
-        text: "Failed to delete apartment.",
+        text: t("hostApartments.deleteFailed"),
       });
     } finally {
       setDeleteBusyId(null);
+      setPendingDelete(null);
     }
   }
 
@@ -121,7 +147,10 @@ export function useHostApartments() {
     hasItems,
     showEmpty,
     deleteBusyId,
+    pendingDelete,
     goToPage,
-    deleteApartmentFromCard,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
   };
 }

@@ -23,6 +23,7 @@ from app.enums.reservation_status_enum import (
     ReservationStatus,
 )
 from app.enums.outbox_status_enum import OutboxEventType
+from app.enums.apartment_status_enum import ApartmentStatus
 from app.outbox.outbox_service import (
     build_reservation_payload,
     enqueue_event,
@@ -208,13 +209,11 @@ async def create_reservation(
     if not apartment:
         raise HTTPException(status_code=404, detail="Apartment not found")
 
-    if apartment.status != "active":
+    if apartment.status != ApartmentStatus.ACTIVE.value:
         raise HTTPException(status_code=400, detail="Apartment is not available")
 
     if apartment.user_id == current_user.id:
-        raise HTTPException(
-            status_code=400, detail="You cannot book your own apartment"
-        )
+        raise HTTPException(status_code=400, detail="You cannot book your own apartment")
 
     if request_body.guests_count > apartment.max_guests:
         raise HTTPException(
@@ -230,9 +229,7 @@ async def create_reservation(
     )
 
     if overlapping:
-        raise HTTPException(
-            status_code=409, detail="Selected dates are already taken"
-        )
+        raise HTTPException(status_code=409, detail="Selected dates are already taken")
 
     nights = count_nights(request_body.check_in, request_body.check_out)
 
@@ -417,15 +414,11 @@ async def apply_status_change(
     confirmed from an email is handled exactly like one confirmed in the app.
     """
     if reservation.status == STATUS_CANCELLED:
-        raise HTTPException(
-            status_code=400, detail="Cancelled reservation cannot be changed"
-        )
+        raise HTTPException(status_code=400, detail="Cancelled reservation cannot be changed")
 
     # Only the host decides whether a booking is accepted.
     if new_status == STATUS_CONFIRMED and not is_host:
-        raise HTTPException(
-            status_code=403, detail="Only the host can confirm a reservation"
-        )
+        raise HTTPException(status_code=403, detail="Only the host can confirm a reservation")
 
     previous_status = reservation.status
     reservation.status = new_status
@@ -520,9 +513,7 @@ async def resolve_link_access(
     if is_host or reservation.user_id == current_user.id:
         return is_host
 
-    raise HTTPException(
-        status_code=403, detail="This reservation belongs to a different account"
-    )
+    raise HTTPException(status_code=403, detail="This reservation belongs to a different account")
 
 
 @router.get("/link/{token}", response_model=ReservationLinkDto)
@@ -560,9 +551,7 @@ async def update_reservation_by_link(
 
     # The guest opens the link to follow the booking, not to answer it.
     if not is_host:
-        raise HTTPException(
-            status_code=403, detail="Only the host can answer this reservation"
-        )
+        raise HTTPException(status_code=403, detail="Only the host can answer this reservation")
 
     await apply_status_change(session, reservation, request_body.status, is_host=True)
 

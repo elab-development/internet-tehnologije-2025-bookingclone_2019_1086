@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
+import ConfirmDialog from "../../../../shared/components/ConfirmDialog";
 import Pagination from "../../../../shared/components/Pagination";
 import HostApartmentsEmptyState from "../components/HostApartmentsEmptyState";
 import HostApartmentsGrid from "../components/HostApartmentsGrid";
@@ -9,6 +12,8 @@ import { useHostApartments } from "../hooks/useHostApartments";
 import "../styles/HostApartmentsPage.css";
 
 export default function HostApartmentsPage() {
+  const { t } = useTranslation();
+
   const {
     items,
     page,
@@ -21,8 +26,11 @@ export default function HostApartmentsPage() {
     hasItems,
     showEmpty,
     deleteBusyId,
+    pendingDelete,
     goToPage,
-    deleteApartmentFromCard,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
   } = useHostApartments();
 
   function shouldShowGrid() {
@@ -56,7 +64,7 @@ export default function HostApartmentsPage() {
         items={items}
         isHost={isHost}
         deleteBusyId={deleteBusyId}
-        onDeleteClick={deleteApartmentFromCard}
+        onDeleteClick={requestDelete}
       />
 
       <Pagination
@@ -65,6 +73,19 @@ export default function HostApartmentsPage() {
         total={total}
         disabled={loading || deleteBusyId !== null}
         onPageChange={goToPage}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        danger
+        busy={deleteBusyId !== null}
+        title={t("hostApartments.confirmDeleteTitle")}
+        message={t("hostApartments.confirmDelete", {
+          name: pendingDelete?.title ?? "",
+        })}
+        confirmLabel={t("hostApartments.actions.delete")}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
       />
     </div>
   );
