@@ -80,7 +80,9 @@
   },
   "common": {
     "close": "Close",
-    "error": "Error"
+    "error": "Error",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "pagination": {
     "ariaLabel": "Pagination",
@@ -227,6 +229,53 @@
       "missingApartmentId": "Apartment created but no id returned from API.",
       "uploadPhotosFailed": "Failed to upload photos"
     }
+  },
+  "editApartment": {
+    "title": "Edit apartment",
+    "subtitle": "Changes apply as soon as you save.",
+    "loading": "Loading apartment...",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "saved": "Apartment updated.",
+    "cancel": "Cancel",
+    "fields": {
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "hint": "An inactive apartment stays in your list but cannot be booked."
+    },
+    "photos": {
+      "label": "Photos",
+      "empty": "This apartment has no photos yet.",
+      "hint": "Pick one or more images to add them.",
+      "working": "Working on the photos...",
+      "remove": "Remove",
+      "confirmTitle": "Remove photo?",
+      "confirmMessage": "The photo is deleted from the apartment and from the server."
+    },
+    "errors": {
+      "load": "This apartment could not be opened.",
+      "save": "The apartment could not be saved.",
+      "photoUpload": "The photos could not be uploaded.",
+      "photoDelete": "The photo could not be removed.",
+      "titleRequired": "Title cannot be empty.",
+      "priceInvalid": "Price must be greater than zero.",
+      "guestsInvalid": "The apartment has to take at least one guest."
+    }
+  },
+  "hostApartments": {
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleting": "Deleting..."
+    },
+    "confirmDeleteTitle": "Delete apartment?",
+    "confirmDelete": "\"{{name}}\" disappears from the listings, but existing reservations stay.",
+    "deleted": "Apartment deleted successfully.",
+    "deleteFailed": "Failed to delete apartment.",
+    "loadFailed": "Failed to load apartments"
   },
   "apartmentsPage": {
     "title": "Apartments",

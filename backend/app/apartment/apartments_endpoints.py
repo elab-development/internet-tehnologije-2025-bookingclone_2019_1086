@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Annotated, Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import func
@@ -17,6 +17,7 @@ from app.models.user import User
 from app.auth.authorization import Policy
 from app.auth.current_user import get_current_user
 from app.enums.role_enum import Role
+from app.enums.apartment_status_enum import ApartmentStatus, SETTABLE_STATUSES
 from app.base_pagination_request import BasePaginationRequest
 from app.base_response import BasePagedResponse
 from app.services.geocoding import geocode_osm_nominatim
@@ -221,7 +222,11 @@ async def get_apartments(
     session: SessionDep,
     q: Annotated[ApartmentFilter, Depends()],
 ):
-    query = apply_apartment_filters(select(Apartment), q)
+    # Only the public list hides inactive apartments. The host keeps seeing
+    # them under /my, otherwise a paused listing could never be switched back on.
+    query = apply_apartment_filters(
+        select(Apartment).where(Apartment.status == ApartmentStatus.ACTIVE.value), q
+    )
 
 
     count_query = select(func.count()).select_from(query.subquery())
@@ -315,7 +320,7 @@ async def create_apartment(
         country=request_body.country,
         price_per_night=request_body.price_per_night,
         max_guests=request_body.max_guests,
-        status="active",
+        status=ApartmentStatus.ACTIVE.value,
         latitude=coords[0] if coords else None,
         longitude=coords[1] if coords else None,
     )
@@ -326,9 +331,7 @@ async def create_apartment(
         ).all()
 
         if len(tags) != len(set(request_body.tag_ids)):
-            raise HTTPException(
-                status_code=400, detail="One or more tag_ids are invalid"
-            )
+            raise HTTPException(status_code=400, detail="One or more tag_ids are invalid")
 
         apartment.tags = list(tags)
 
@@ -337,6 +340,93 @@ async def create_apartment(
     await session.refresh(apartment)
 
     return apartment
+
+
+class ApartmentUpdateRequest(BaseModel):
+    """Every field is optional: only what is sent gets changed."""
+
+    title: Optional[str] = Field(default=None, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=5000)
+    address: Optional[str] = Field(default=None, max_length=255)
+    city: Optional[str] = Field(default=None, max_length=100)
+    country: Optional[str] = Field(default=None, max_length=100)
+
+    price_per_night: Optional[Decimal] = Field(default=None, gt=0)
+    max_guests: Optional[int] = Field(default=None, ge=1)
+
+    status: Optional[str] = None
+    tag_ids: Optional[list[int]] = None
+
+    @field_validator("status")
+    @classmethod
+    def check_status(cls, value: Optional[str]) -> Optional[str]:
+        if value is not None and value not in SETTABLE_STATUSES:
+            raise ValueError("status must be 'active' or 'inactive'")
+
+        return value
+
+
+@router.patch("/{apartment_id}", response_model=ApartmentByIdDto)
+async def update_apartment(
+    apartment_id: int,
+    session: SessionDep,
+    request_body: ApartmentUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    allowed: bool = Depends(Policy({Role.HOST}).check_access),
+):
+    result = await session.exec(
+        select(Apartment)
+        .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
+        .options(
+            selectinload(Apartment.photos),
+            selectinload(Apartment.tags),
+        )
+    )
+    apartment = result.first()
+
+    if not apartment:
+        raise HTTPException(status_code=404, detail="Apartment not found")
+
+    if apartment.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    changes = request_body.model_dump(exclude_unset=True, exclude_none=True)
+    tag_ids = changes.pop("tag_ids", None)
+
+    for field, value in changes.items():
+        setattr(apartment, field, value)
+
+    # The pin on the map has to follow the address, so a moved apartment is
+    # geocoded again. A failed lookup keeps the old coordinates rather than
+    # blanking them, which is better than losing the pin over a flaky request.
+    if {"address", "city", "country"} & changes.keys():
+        try:
+            coords = await geocode_osm_nominatim(
+                address=apartment.address,
+                city=apartment.city,
+                country=apartment.country,
+            )
+
+            if coords:
+                apartment.latitude, apartment.longitude = coords
+        except Exception as e:
+            print(f"Geocoding failed on update: {e}")
+
+    if tag_ids is not None:
+        tags = (await session.exec(select(Tag).where(Tag.id.in_(tag_ids)))).all()
+
+        if len(tags) != len(set(tag_ids)):
+            raise HTTPException(status_code=400, detail="One or more tag_ids are invalid")
+
+        apartment.tags = list(tags)
+
+    apartment.updated_at = utcnow()
+
+    session.add(apartment)
+    await session.commit()
+
+    return map_apartment_to_detail_dto(apartment)
 
 
 @router.get("/{apartment_id}", response_model=ApartmentByIdDto)
@@ -375,14 +465,14 @@ async def get_rented_days(
     )
     apartment = apartment_result.first()
     if not apartment:
-        raise HTTPException(404, "Invalid apartment")
+        raise HTTPException(status_code=404, detail="Invalid apartment")
 
     month_start = date(year, month, 1)
 
     now = datetime.now(UTC)
     current_month_start = date(now.year, now.month, 1)
     if month_start < current_month_start:
-        raise HTTPException(400, "You can't query previous dates")
+        raise HTTPException(status_code=400, detail="You can't query previous dates")
 
     month_end_exclusive = (month_start.replace(day=28) + timedelta(days=4)).replace(
         day=1
@@ -452,7 +542,7 @@ async def delete_apartment(
         raise HTTPException(status_code=403, detail="Not allowed")
 
     apartment.deleted_at = utcnow()
-    apartment.status = "inactive"
+    apartment.status = ApartmentStatus.INACTIVE.value
     apartment.updated_at = utcnow()
 
     session.add(apartment)

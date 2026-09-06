@@ -14,6 +14,7 @@ import AdminTagsPage from "../features/admin/tags/pages/AdminTagsPage";
 import ApartmentDetailsPage from "../features/apartments/components/ApartmentDetailsPage";
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
 import CreateApartmentWizard from "../features/host/apartments/pages/CreateApartmentWizard";
+import EditApartmentPage from "../features/host/apartments/pages/EditApartmentPage";
 
 function NotFoundPage() {
   return (
@@ -84,6 +85,15 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={["HOST"]}>
                   <HostApartmentsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/host/apartments/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={["HOST"]}>
+                  <EditApartmentPage />
                 </ProtectedRoute>
               }
             />

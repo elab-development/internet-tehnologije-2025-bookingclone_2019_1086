@@ -80,7 +80,9 @@
   },
   "common": {
     "close": "Zatvori",
-    "error": "Greška"
+    "error": "Greška",
+    "cancel": "Odustani",
+    "confirm": "Potvrdi"
   },
   "pagination": {
     "ariaLabel": "Paginacija",
@@ -227,6 +229,53 @@
       "missingApartmentId": "Apartman je kreiran, ali API nije vratio ID.",
       "uploadPhotosFailed": "Otpremanje slika nije uspelo"
     }
+  },
+  "editApartment": {
+    "title": "Izmena apartmana",
+    "subtitle": "Izmene važe čim sačuvate.",
+    "loading": "Učitavanje apartmana...",
+    "save": "Sačuvaj izmene",
+    "saving": "Čuvanje...",
+    "saved": "Apartman je izmenjen.",
+    "cancel": "Odustani",
+    "fields": {
+      "status": "Status"
+    },
+    "status": {
+      "active": "Aktivan",
+      "inactive": "Neaktivan",
+      "hint": "Neaktivan apartman ostaje u vašoj listi ali ne može da se rezerviše."
+    },
+    "photos": {
+      "label": "Slike",
+      "empty": "Ovaj apartman još nema slike.",
+      "hint": "Izaberite jednu ili više slika da ih dodate.",
+      "working": "Radim na slikama...",
+      "remove": "Ukloni",
+      "confirmTitle": "Ukloniti sliku?",
+      "confirmMessage": "Slika se briše sa apartmana i sa servera."
+    },
+    "errors": {
+      "load": "Ovaj apartman ne može da se otvori.",
+      "save": "Apartman nije mogao da se sačuva.",
+      "photoUpload": "Slike nisu mogle da se otpreme.",
+      "photoDelete": "Slika nije mogla da se ukloni.",
+      "titleRequired": "Naziv ne sme biti prazan.",
+      "priceInvalid": "Cena mora biti veća od nule.",
+      "guestsInvalid": "Apartman mora primati bar jednog gosta."
+    }
+  },
+  "hostApartments": {
+    "actions": {
+      "edit": "Izmeni",
+      "delete": "Obriši",
+      "deleting": "Brisanje..."
+    },
+    "confirmDeleteTitle": "Obrisati apartman?",
+    "confirmDelete": "\"{{name}}\" nestaje iz ponude, ali postojeće rezervacije ostaju.",
+    "deleted": "Apartman je obrisan.",
+    "deleteFailed": "Brisanje apartmana nije uspelo.",
+    "loadFailed": "Učitavanje apartmana nije uspelo"
   },
   "apartmentsPage": {
     "title": "Apartmani",
