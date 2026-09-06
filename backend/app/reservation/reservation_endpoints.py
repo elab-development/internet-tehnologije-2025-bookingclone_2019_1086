@@ -22,6 +22,7 @@ from app.enums.reservation_status_enum import (
     BLOCKING_STATUSES,
     ReservationStatus,
 )
+from app.errors import bad_request, conflict, forbidden, not_found
 from app.enums.outbox_status_enum import OutboxEventType
 from app.enums.apartment_status_enum import ApartmentStatus
 from app.outbox.outbox_service import (
@@ -114,7 +115,7 @@ class ReservationFilter(BasePaginationRequest):
 
 def apply_reservation_filters(query, q: ReservationFilter):
     if q.date_from and q.date_to and q.date_to < q.date_from:
-        raise HTTPException(status_code=400, detail="date_to cannot be before date_from")
+        raise bad_request("date_to_before_from", "date_to cannot be before date_from")
 
     if q.status:
         query = query.where(Reservation.status == q.status)
@@ -207,18 +208,19 @@ async def create_reservation(
     ).first()
 
     if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     if apartment.status != ApartmentStatus.ACTIVE.value:
-        raise HTTPException(status_code=400, detail="Apartment is not available")
+        raise bad_request("apartment_inactive", "Apartment is not available")
 
     if apartment.user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="You cannot book your own apartment")
+        raise bad_request("own_apartment", "You cannot book your own apartment")
 
     if request_body.guests_count > apartment.max_guests:
-        raise HTTPException(
-            status_code=400,
-            detail=f"This apartment allows at most {apartment.max_guests} guests",
+        raise bad_request(
+            "too_many_guests",
+            f"This apartment allows at most {apartment.max_guests} guests",
+            {"max_guests": apartment.max_guests},
         )
 
     overlapping = await find_overlapping(
@@ -229,7 +231,7 @@ async def create_reservation(
     )
 
     if overlapping:
-        raise HTTPException(status_code=409, detail="Selected dates are already taken")
+        raise conflict("dates_taken", "Selected dates are already taken")
 
     nights = count_nights(request_body.check_in, request_body.check_out)
 
@@ -362,7 +364,7 @@ async def get_reservation_by_id(
     ).first()
 
     if not reservation:
-        raise HTTPException(status_code=404, detail="Reservation not found")
+        raise not_found("reservation_not_found", "Reservation not found")
 
     await ensure_can_see(session, reservation, current_user)
 
@@ -389,13 +391,13 @@ async def update_reservation_status(
     ).first()
 
     if not reservation:
-        raise HTTPException(status_code=404, detail="Reservation not found")
+        raise not_found("reservation_not_found", "Reservation not found")
 
     is_guest = reservation.user_id == current_user.id
     is_host = await owns_apartment(session, reservation.apartment_id, current_user.id)
 
     if not is_guest and not is_host:
-        raise HTTPException(status_code=403, detail="Not allowed")
+        raise forbidden("not_allowed", "Not allowed")
 
     await apply_status_change(session, reservation, request_body.status, is_host)
 
@@ -414,11 +416,11 @@ async def apply_status_change(
     confirmed from an email is handled exactly like one confirmed in the app.
     """
     if reservation.status == STATUS_CANCELLED:
-        raise HTTPException(status_code=400, detail="Cancelled reservation cannot be changed")
+        raise bad_request("reservation_cancelled", "Cancelled reservation cannot be changed")
 
     # Only the host decides whether a booking is accepted.
     if new_status == STATUS_CONFIRMED and not is_host:
-        raise HTTPException(status_code=403, detail="Only the host can confirm a reservation")
+        raise forbidden("only_host_confirms", "Only the host can confirm a reservation")
 
     previous_status = reservation.status
     reservation.status = new_status
@@ -464,7 +466,7 @@ async def ensure_can_see(
     if await owns_apartment(session, reservation.apartment_id, current_user.id):
         return
 
-    raise HTTPException(status_code=403, detail="Not allowed")
+    raise forbidden("not_allowed", "Not allowed")
 
 
 # --- the links that go out in the mails ---------------------------------
@@ -486,7 +488,7 @@ async def load_reservation_with_relations(
     ).first()
 
     if not reservation:
-        raise HTTPException(status_code=404, detail="Reservation not found")
+        raise not_found("reservation_not_found", "Reservation not found")
 
     return reservation
 
@@ -513,7 +515,7 @@ async def resolve_link_access(
     if is_host or reservation.user_id == current_user.id:
         return is_host
 
-    raise HTTPException(status_code=403, detail="This reservation belongs to a different account")
+    raise forbidden("reservation_other_account", "This reservation belongs to a different account")
 
 
 @router.get("/link/{token}", response_model=ReservationLinkDto)
@@ -551,7 +553,7 @@ async def update_reservation_by_link(
 
     # The guest opens the link to follow the booking, not to answer it.
     if not is_host:
-        raise HTTPException(status_code=403, detail="Only the host can answer this reservation")
+        raise forbidden("only_host_answers", "Only the host can answer this reservation")
 
     await apply_status_change(session, reservation, request_body.status, is_host=True)
 
