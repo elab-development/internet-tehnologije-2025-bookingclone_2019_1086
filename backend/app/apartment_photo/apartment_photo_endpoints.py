@@ -43,7 +43,11 @@ async def apartment_belongs_to_host(
     current_user: User = Depends(get_current_user),
 ) -> Apartment:
     apt = (
-        await session.exec(select(Apartment).where(Apartment.id == apartment_id))
+        await session.exec(
+            select(Apartment)
+            .where(Apartment.id == apartment_id)
+            .where(Apartment.deleted_at.is_(None))
+        )
     ).first()
 
     if not apt:
@@ -61,7 +65,11 @@ async def get_apartment_main_photo(
     session: SessionDep,
 ):
     apt = (
-        await session.exec(select(Apartment).where(Apartment.id == apartment_id))
+        await session.exec(
+            select(Apartment)
+            .where(Apartment.id == apartment_id)
+            .where(Apartment.deleted_at.is_(None))
+        )
     ).first()
 
     if not apt:

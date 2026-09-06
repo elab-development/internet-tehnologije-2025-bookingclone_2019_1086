@@ -1,8 +1,11 @@
 import { apiRequest } from "../../../shared/api/apiClient";
+import { toApiDate } from "../../../shared/utils/date";
 import { resolveImageUrl } from "../../apartments/services/apartmentService";
 import type { BasePagedResponse } from "../../apartments/services/apartmentService";
 
 export type ReservationStatus = "pending" | "confirmed" | "cancelled";
+
+const DEFAULT_PAGE_SIZE = 10;
 
 export type ReservationApartmentDto = {
   id: number;
@@ -10,6 +13,7 @@ export type ReservationApartmentDto = {
   city: string;
   country: string;
   image_url: string | null;
+  is_deleted: boolean;
 };
 
 export type ReservationDto = {
@@ -25,6 +29,14 @@ export type ReservationDto = {
   created_at: string;
   apartment: ReservationApartmentDto | null;
   guest_name: string | null;
+};
+
+export type ReservationSearchParams = {
+  page_number?: number;
+  page_size?: number;
+  status?: ReservationStatus;
+  date_from?: string;
+  date_to?: string;
 };
 
 export type CreateReservationRequest = {
@@ -69,14 +81,7 @@ function buildQuery(params: Record<string, string | number | undefined>) {
   return queryString ? `?${queryString}` : "";
 }
 
-/** Dates are sent as plain YYYY-MM-DD so the timezone cannot shift the day. */
-export function toApiDate(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
+export { toApiDate };
 
 export async function createReservation(body: CreateReservationRequest) {
   const created = await apiRequest<ReservationDto>("/reservations", {
@@ -88,26 +93,35 @@ export async function createReservation(body: CreateReservationRequest) {
   return normalizeReservation(created);
 }
 
-export async function getMyReservations(status?: ReservationStatus) {
-  const query = buildQuery({ page_number: 1, page_size: 50, status });
+async function getReservationsPage(
+  path: string,
+  args?: ReservationSearchParams
+): Promise<BasePagedResponse<ReservationDto>> {
+  const query = buildQuery({
+    page_number: args?.page_number ?? 1,
+    page_size: args?.page_size ?? DEFAULT_PAGE_SIZE,
+    status: args?.status,
+    date_from: args?.date_from,
+    date_to: args?.date_to,
+  });
 
   const response = await apiRequest<BasePagedResponse<ReservationDto>>(
-    `/reservations${query}`,
+    `${path}${query}`,
     { method: "GET", auth: true }
   );
 
-  return (response.items ?? []).map(normalizeReservation);
+  return {
+    ...response,
+    items: (response.items ?? []).map(normalizeReservation),
+  };
 }
 
-export async function getHostReservations(status?: ReservationStatus) {
-  const query = buildQuery({ page_number: 1, page_size: 50, status });
+export async function getMyReservations(args?: ReservationSearchParams) {
+  return getReservationsPage("/reservations", args);
+}
 
-  const response = await apiRequest<BasePagedResponse<ReservationDto>>(
-    `/reservations/host${query}`,
-    { method: "GET", auth: true }
-  );
-
-  return (response.items ?? []).map(normalizeReservation);
+export async function getHostReservations(args?: ReservationSearchParams) {
+  return getReservationsPage("/reservations/host", args);
 }
 
 export async function updateReservationStatus(
@@ -135,4 +149,43 @@ export async function getRentedDays(
     `/apartments/${apartmentId}/rented-days?year=${year}&month=${month}`,
     { method: "GET" }
   );
+}
+
+// --- the page behind a link from a reservation mail ---
+
+export type ReservationLinkDto = {
+  reservation: ReservationDto;
+  can_manage: boolean;
+};
+
+function normalizeLink(value: ReservationLinkDto): ReservationLinkDto {
+  return {
+    ...value,
+    reservation: normalizeReservation(value.reservation),
+  };
+}
+
+export async function getReservationByLink(token: string) {
+  const response = await apiRequest<ReservationLinkDto>(
+    `/reservations/link/${token}`,
+    { method: "GET", auth: true }
+  );
+
+  return normalizeLink(response);
+}
+
+export async function updateReservationByLink(
+  token: string,
+  status: "confirmed" | "cancelled"
+) {
+  const response = await apiRequest<ReservationLinkDto>(
+    `/reservations/link/${token}`,
+    {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  return normalizeLink(response);
 }

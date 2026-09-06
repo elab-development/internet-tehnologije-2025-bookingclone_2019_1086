@@ -5,6 +5,9 @@ import ReactDatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
+import { useDateRange } from "../../shared/hooks/useDateRange";
+import { toApiDate } from "../../shared/utils/date";
+
 const DatePicker = ReactDatePicker as unknown as React.FC<any>;
 
 export default function HomeSearchForm() {
@@ -14,33 +17,14 @@ export default function HomeSearchForm() {
   const [location, setLocation] = useState("");
   const [guests, setGuests] = useState("");
 
-  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
-  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
-
-  function handleCheckInChange(date: Date | null) {
-    setCheckInDate(date);
-
-    if (!date) {
-      return;
-    }
-
-    if (checkOutDate && date >= checkOutDate) {
-      setCheckOutDate(null);
-    }
-  }
-
-  function handleCheckOutChange(date: Date | null) {
-    if (!date) {
-      setCheckOutDate(null);
-      return;
-    }
-
-    if (checkInDate && date <= checkInDate) {
-      return;
-    }
-
-    setCheckOutDate(date);
-  }
+  const {
+    checkInDate,
+    checkOutDate,
+    handleCheckInChange,
+    handleCheckOutChange,
+    getCheckInMinDate,
+    getCheckOutMinDate,
+  } = useDateRange();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,6 +39,12 @@ export default function HomeSearchForm() {
 
     if (guests.trim()) {
       searchParams.set("guests", guests.trim());
+    }
+
+    // Only a full range can be searched, a single date says nothing about a stay.
+    if (checkInDate && checkOutDate) {
+      searchParams.set("check_in", toApiDate(checkInDate));
+      searchParams.set("check_out", toApiDate(checkOutDate));
     }
 
     navigate({
@@ -86,7 +76,7 @@ export default function HomeSearchForm() {
           selectsStart
           startDate={checkInDate}
           endDate={checkOutDate}
-          minDate={new Date()}
+          minDate={getCheckInMinDate()}
           dateFormat="dd.MM.yyyy"
           placeholderText="dd.mm.yyyy"
           className="home-search__input"
@@ -104,7 +94,7 @@ export default function HomeSearchForm() {
           selectsEnd
           startDate={checkInDate}
           endDate={checkOutDate}
-          minDate={checkInDate ?? new Date()}
+          minDate={getCheckOutMinDate()}
           dateFormat="dd.MM.yyyy"
           placeholderText="dd.mm.yyyy"
           className="home-search__input"

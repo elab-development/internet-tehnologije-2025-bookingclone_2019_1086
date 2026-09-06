@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import * as apartmentService from "../../../apartments/services/apartmentService";
-import { getTags, type TagDto } from "../../../tags/services/tagService";
+import { getAllTags, type TagDto } from "../../../tags/services/tagService";
 import type { ApartmentDetailsState } from "../steps/StepApartmentDetails";
 
 import {
@@ -64,7 +64,7 @@ export function useCreateApartmentWizard() {
         setError(null);
         setBusy(true);
 
-        const tags = await getTags();
+        const tags = await getAllTags();
 
         if (cancelled) {
           return;

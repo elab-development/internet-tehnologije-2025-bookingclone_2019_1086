@@ -41,6 +41,26 @@ export default function ReservationCard({
     return `reservation-card__status reservation-card__status--${reservation.status}`;
   }
 
+  function renderTitle() {
+    if (!apartment) {
+      return t("reservations.deletedApartment");
+    }
+
+    // A deleted apartment keeps its name here, but it has no page to open.
+    if (apartment.is_deleted) {
+      return (
+        <>
+          {apartment.title}{" "}
+          <span className="reservation-card__removed">
+            ({t("reservations.deletedApartment")})
+          </span>
+        </>
+      );
+    }
+
+    return <Link to={`/apartments/${apartment.id}`}>{apartment.title}</Link>;
+  }
+
   function renderActions() {
     if (isCancelled) {
       return null;
@@ -83,13 +103,7 @@ export default function ReservationCard({
 
       <div className="reservation-card__body">
         <div className="reservation-card__top">
-          <h3 className="reservation-card__title">
-            {apartment ? (
-              <Link to={`/apartments/${apartment.id}`}>{apartment.title}</Link>
-            ) : (
-              t("reservations.deletedApartment")
-            )}
-          </h3>
+          <h3 className="reservation-card__title">{renderTitle()}</h3>
 
           <span className={getStatusClassName()}>
             {t(`reservations.status.${reservation.status}`)}

@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import ReactDatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
+
+import { useDateRange } from "../../shared/hooks/useDateRange";
+import { parseApiDate, toApiDate } from "../../shared/utils/date";
+
+const DatePicker = ReactDatePicker as unknown as React.FC<any>;
+
+export type ApartmentSearchValues = {
+  name: string;
+  city: string;
+  guests: string;
+  checkIn: string;
+  checkOut: string;
+};
 
 type Props = {
   name: string;
   city: string;
   guests: string;
+  checkIn: string;
+  checkOut: string;
   hasFilters: boolean;
-  onSearch: (next: { name: string; city: string; guests: string }) => void;
+  onSearch: (next: ApartmentSearchValues) => void;
   onReset: () => void;
 };
 
@@ -15,6 +33,8 @@ export default function ApartmentsSearchBar({
   name,
   city,
   guests,
+  checkIn,
+  checkOut,
   hasFilters,
   onSearch,
   onReset,
@@ -25,6 +45,16 @@ export default function ApartmentsSearchBar({
   const [cityValue, setCityValue] = useState(city);
   const [guestsValue, setGuestsValue] = useState(guests);
 
+  const {
+    checkInDate,
+    checkOutDate,
+    setRange,
+    handleCheckInChange,
+    handleCheckOutChange,
+    getCheckInMinDate,
+    getCheckOutMinDate,
+  } = useDateRange(parseApiDate(checkIn), parseApiDate(checkOut));
+
   // Keep the inputs in step when the URL changes (back button, home search).
   useEffect(() => {
     setNameValue(name);
@@ -32,13 +62,24 @@ export default function ApartmentsSearchBar({
     setGuestsValue(guests);
   }, [name, city, guests]);
 
+  useEffect(() => {
+    setRange(parseApiDate(checkIn), parseApiDate(checkOut));
+    // setRange only writes state, so it does not belong in the dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkIn, checkOut]);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    // A single date cannot say whether a stay fits, so both or neither is sent.
+    const hasRange = Boolean(checkInDate && checkOutDate);
 
     onSearch({
       name: nameValue.trim(),
       city: cityValue.trim(),
       guests: guestsValue.trim(),
+      checkIn: hasRange ? toApiDate(checkInDate as Date) : "",
+      checkOut: hasRange ? toApiDate(checkOutDate as Date) : "",
     });
   }
 
@@ -69,6 +110,44 @@ export default function ApartmentsSearchBar({
           value={cityValue}
           onChange={(event) => setCityValue(event.target.value)}
           placeholder={t("apartmentsPage.search.cityPlaceholder")}
+        />
+      </div>
+
+      <div className="apartments-search__field apartments-search__field--date">
+        <label className="apartments-search__label">
+          {t("apartmentsPage.search.checkIn")}
+        </label>
+
+        <DatePicker
+          selected={checkInDate}
+          onChange={handleCheckInChange}
+          selectsStart
+          startDate={checkInDate}
+          endDate={checkOutDate}
+          minDate={getCheckInMinDate()}
+          dateFormat="dd.MM.yyyy"
+          placeholderText="dd.mm.yyyy"
+          className="apartments-search__input"
+          isClearable
+        />
+      </div>
+
+      <div className="apartments-search__field apartments-search__field--date">
+        <label className="apartments-search__label">
+          {t("apartmentsPage.search.checkOut")}
+        </label>
+
+        <DatePicker
+          selected={checkOutDate}
+          onChange={handleCheckOutChange}
+          selectsEnd
+          startDate={checkInDate}
+          endDate={checkOutDate}
+          minDate={getCheckOutMinDate()}
+          dateFormat="dd.MM.yyyy"
+          placeholderText="dd.mm.yyyy"
+          className="apartments-search__input"
+          isClearable
         />
       </div>
 

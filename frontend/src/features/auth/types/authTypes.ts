@@ -28,3 +28,10 @@ export type LoginResponse = {
   expires_in: number;
   user: AuthUser;
 };
+
+// /auth/refresh only hands back a new access token, the user is already known.
+export type RefreshResponse = {
+  access_token: string;
+  token_type: "bearer";
+  expires_in: number;
+};

@@ -10,10 +10,14 @@ import {
   type TagPayload,
 } from "../../../tags/services/tagService";
 
+const PAGE_SIZE = 10;
+
 export function useAdminTags() {
   const { t } = useTranslation();
 
   const [tags, setTags] = useState<TagDto[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -25,17 +29,27 @@ export function useAdminTags() {
     setError(null);
 
     try {
-      setTags(await getTags());
+      const response = await getTags({
+        page_number: page,
+        page_size: PAGE_SIZE,
+      });
+
+      setTags(response.items);
+      setTotal(response.total);
     } catch (loadError) {
       setError(getMessage(loadError, t("admin.tags.errors.loadFailed")));
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [page, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+  }
 
   function getMessage(value: unknown, fallback: string) {
     if (value instanceof Error) {
@@ -52,18 +66,15 @@ export function useAdminTags() {
 
     try {
       if (editingId === null) {
-        const created = await createTag(payload);
-        setTags((current) => [...current, created]);
+        await createTag(payload);
         setMessage(t("admin.tags.created"));
       } else {
-        const updated = await updateTag(editingId, payload);
-
-        setTags((current) => {
-          return current.map((tag) => (tag.id === updated.id ? updated : tag));
-        });
-
+        await updateTag(editingId, payload);
         setMessage(t("admin.tags.updated"));
       }
+
+      // Tags are sorted by name, so a saved tag can land on any page.
+      await load();
 
       return true;
     } catch (saveError) {
@@ -86,8 +97,14 @@ export function useAdminTags() {
     try {
       await deleteTag(tag.id);
 
-      setTags((current) => current.filter((item) => item.id !== tag.id));
       setMessage(t("admin.tags.deleted"));
+
+      // Removing the last row of a page would leave it empty, so step back instead.
+      if (tags.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        await load();
+      }
     } catch (deleteError) {
       setError(getMessage(deleteError, t("admin.tags.errors.deleteFailed")));
     } finally {
@@ -97,6 +114,9 @@ export function useAdminTags() {
 
   return {
     tags,
+    page,
+    pageSize: PAGE_SIZE,
+    total,
     isLoading,
     error,
     message,
@@ -104,6 +124,7 @@ export function useAdminTags() {
     isSaving,
     save,
     remove,
+    goToPage,
     isEmpty: !isLoading && !error && tags.length === 0,
   };
 }

@@ -44,6 +44,10 @@ class Apartment(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
+    # Soft delete: the row stays so old reservations keep pointing at a real
+    # apartment, but everything that lists apartments skips it.
+    deleted_at: Optional[datetime] = Field(default=None, index=True)
+
     owner: Optional["User"] = Relationship(back_populates="apartments")
     photos: List["ApartmentPhoto"] = Relationship(back_populates="apartment")
     reservations: List["Reservation"] = Relationship(back_populates="apartment")

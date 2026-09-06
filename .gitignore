@@ -4,6 +4,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
 
 ############################
 # Virtual environments
@@ -43,7 +44,11 @@ backend/static/images/apartments/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage.xml
+junit.xml
 htmlcov/
+.tox/
 
 ############################
 # Node / Frontend
@@ -52,6 +57,7 @@ node_modules/
 dist/
 build/
 .vite/
+.eslintcache
 
 ############################
 # IDEs
@@ -65,3 +71,11 @@ build/
 ############################
 .DS_Store
 Thumbs.db
+
+############################
+# Docker
+############################
+# Local-only compose tweaks, never the committed docker-compose.yml
+docker-compose.override.yml
+docker-compose.*.local.yml
+TODO.md

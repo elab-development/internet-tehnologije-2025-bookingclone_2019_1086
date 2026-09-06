@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "../../../auth/hooks/useAuth";
 import {
@@ -12,10 +12,14 @@ export type HostMessage = {
   text: string;
 };
 
+const PAGE_SIZE = 12;
+
 export function useHostApartments() {
   const { user } = useAuth();
 
   const [items, setItems] = useState<ApartmentDto[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<HostMessage | null>(null);
@@ -26,54 +30,43 @@ export function useHostApartments() {
   const hasItems = items.length > 0;
   const showEmpty = !loading && !error && !hasItems;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMyApartments() {
-      if (!userId) {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await getMyApartments({
-          page_number: 1,
-          page_size: 50,
-        });
-
-        if (cancelled) {
-          return;
-        }
-
-        setItems(response.items);
-      } catch (loadError) {
-        if (cancelled) {
-          return;
-        }
-
-        if (loadError instanceof Error) {
-          setError(loadError.message);
-          return;
-        }
-
-        setError("Failed to load apartments");
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+  const load = useCallback(async () => {
+    if (!userId) {
+      setItems([]);
+      setTotal(0);
+      setLoading(false);
+      return;
     }
 
-    loadMyApartments();
+    setLoading(true);
+    setError(null);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+    try {
+      const response = await getMyApartments({
+        page_number: page,
+        page_size: PAGE_SIZE,
+      });
+
+      setItems(response.items);
+      setTotal(response.total);
+    } catch (loadError) {
+      if (loadError instanceof Error) {
+        setError(loadError.message);
+      } else {
+        setError("Failed to load apartments");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, page]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+  }
 
   async function deleteApartmentFromCard(apartment: ApartmentDto) {
     if (deleteBusyId !== null) {
@@ -86,16 +79,17 @@ export function useHostApartments() {
     try {
       await deleteApartment(apartment.id);
 
-      setItems((currentItems) => {
-        return currentItems.filter((currentApartment) => {
-          return currentApartment.id !== apartment.id;
-        });
-      });
-
       setMessage({
         type: "success",
         text: "Apartment deleted successfully.",
       });
+
+      // Removing the last card of a page would leave it empty, so step back instead.
+      if (items.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        await load();
+      }
     } catch (deleteError) {
       if (deleteError instanceof Error) {
         setMessage({
@@ -117,6 +111,9 @@ export function useHostApartments() {
 
   return {
     items,
+    page,
+    pageSize: PAGE_SIZE,
+    total,
     loading,
     error,
     message,
@@ -124,6 +121,7 @@ export function useHostApartments() {
     hasItems,
     showEmpty,
     deleteBusyId,
+    goToPage,
     deleteApartmentFromCard,
   };
 }

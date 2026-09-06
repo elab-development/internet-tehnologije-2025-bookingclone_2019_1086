@@ -2,6 +2,7 @@ import { apiRequest } from "../../../shared/api/apiClient";
 import type {
   AuthUser,
   LoginResponse,
+  RefreshResponse,
   RegisterPayload,
   RegisterResponse,
 } from "../types/authTypes";
@@ -9,6 +10,7 @@ import type {
 export type {
   AuthUser,
   LoginResponse,
+  RefreshResponse,
   RegisterPayload,
   RegisterResponse,
   Role,
@@ -45,8 +47,8 @@ export async function me(): Promise<AuthUser> {
   });
 }
 
-export async function refresh(): Promise<LoginResponse> {
-  return apiRequest<LoginResponse>("/auth/refresh", {
+export async function refresh(): Promise<RefreshResponse> {
+  return apiRequest<RefreshResponse>("/auth/refresh", {
     method: "POST",
   });
 }

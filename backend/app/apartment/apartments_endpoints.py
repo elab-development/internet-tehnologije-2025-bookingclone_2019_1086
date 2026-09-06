@@ -20,6 +20,7 @@ from app.enums.role_enum import Role
 from app.base_pagination_request import BasePaginationRequest
 from app.base_response import BasePagedResponse
 from app.services.geocoding import geocode_osm_nominatim
+from app.models.apartment import utcnow
 
 from datetime import datetime, date, UTC, timedelta
 from app.models.reservation import Reservation
@@ -43,6 +44,14 @@ class ApartmentFilter(BasePaginationRequest):
     max_guests: Optional[int] = Field(default=None, ge=1)
     rating_average_min: Optional[int] = Field(default=None, ge=0, le=5)
     rating_average_max: Optional[int] = Field(default=None, ge=0, le=5)
+
+    # Free between these two dates. Both have to be sent for the filter to apply.
+    check_in: Optional[date] = None
+    check_out: Optional[date] = None
+
+    @property
+    def has_date_range(self) -> bool:
+        return self.check_in is not None and self.check_out is not None
 
 
 # DTOs
@@ -158,14 +167,10 @@ def map_apartment_to_detail_dto(apartment: Apartment) -> ApartmentByIdDto:
     )
 
 
-@router.get("", response_model=BasePagedResponse[ApartmentDto])
-async def get_apartments(
-    session: SessionDep,
-    q: Annotated[ApartmentFilter, Depends()],
-):
-    query = select(Apartment)
+def apply_apartment_filters(query, q: ApartmentFilter):
+    # A soft deleted apartment is gone as far as any list is concerned.
+    query = query.where(Apartment.deleted_at.is_(None))
 
-    # filters
     if q.name:
         query = query.where(Apartment.title.ilike(f"%{q.name}%"))
 
@@ -192,6 +197,32 @@ async def get_apartments(
 
     if q.rating_average_max is not None:
         query = query.where(Apartment.rating_average <= q.rating_average_max)
+
+    if q.check_in and q.check_out and q.check_out <= q.check_in:
+        raise HTTPException(status_code=400, detail="check_out must be after check_in")
+
+    if q.has_date_range:
+        # An apartment is taken when a blocking reservation overlaps the wanted
+        # range: each side starts before the other one ends.
+        taken = (
+            select(Reservation.apartment_id)
+            .where(Reservation.status.in_(BLOCKING_STATUSES))
+            .where(Reservation.check_in < q.check_out)
+            .where(Reservation.check_out > q.check_in)
+        )
+
+        query = query.where(Apartment.id.not_in(taken))
+
+    return query
+
+
+@router.get("", response_model=BasePagedResponse[ApartmentDto])
+async def get_apartments(
+    session: SessionDep,
+    q: Annotated[ApartmentFilter, Depends()],
+):
+    query = apply_apartment_filters(select(Apartment), q)
+
 
     count_query = select(func.count()).select_from(query.subquery())
     total = (await session.exec(count_query)).one()
@@ -221,35 +252,10 @@ async def get_my_apartments(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
-    query = select(Apartment).where(Apartment.user_id == current_user.id)
+    query = apply_apartment_filters(
+        select(Apartment).where(Apartment.user_id == current_user.id), q
+    )
 
-    # filters (same as get_apartments)
-    if q.name:
-        query = query.where(Apartment.title.ilike(f"%{q.name}%"))
-
-    if q.address:
-        query = query.where(Apartment.address.ilike(f"%{q.address}%"))
-
-    if q.city:
-        query = query.where(Apartment.city.ilike(f"%{q.city}%"))
-
-    if q.country:
-        query = query.where(Apartment.country.ilike(f"%{q.country}%"))
-
-    if q.price_per_night_min is not None:
-        query = query.where(Apartment.price_per_night >= q.price_per_night_min)
-
-    if q.price_per_night_max is not None:
-        query = query.where(Apartment.price_per_night <= q.price_per_night_max)
-
-    if q.max_guests is not None:
-        query = query.where(Apartment.max_guests >= q.max_guests)
-
-    if q.rating_average_min is not None:
-        query = query.where(Apartment.rating_average >= q.rating_average_min)
-
-    if q.rating_average_max is not None:
-        query = query.where(Apartment.rating_average <= q.rating_average_max)
 
     count_query = select(func.count()).select_from(query.subquery())
     total = (await session.exec(count_query)).one()
@@ -341,6 +347,7 @@ async def get_apartment_by_id(
     result = await session.exec(
         select(Apartment)
         .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
         .options(
             selectinload(Apartment.photos),
             selectinload(Apartment.tags),
@@ -362,7 +369,9 @@ async def get_rented_days(
     year: int = Query(...),
 ):
     apartment_result = await session.exec(
-        select(Apartment).where(Apartment.id == apartment_id)
+        select(Apartment)
+        .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
     )
     apartment = apartment_result.first()
     if not apartment:
@@ -414,11 +423,6 @@ async def get_rented_days(
 from fastapi import Response
 
 
-from fastapi import Response
-from sqlalchemy import delete as sqldelete
-from app.models.apartment_photo import ApartmentPhoto
-
-
 @router.delete("/{apartment_id}", status_code=204)
 async def delete_apartment(
     apartment_id: int,
@@ -426,7 +430,19 @@ async def delete_apartment(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
-    result = await session.exec(select(Apartment).where(Apartment.id == apartment_id))
+    """Soft delete.
+
+    The row and its photos stay in the database because reservations point at
+    them: a guest still has to see where they stayed and the host still has to
+    see what was booked. Setting deleted_at takes the apartment out of every
+    list and makes it impossible to book again, which is all a delete has to do
+    here.
+    """
+    result = await session.exec(
+        select(Apartment)
+        .where(Apartment.id == apartment_id)
+        .where(Apartment.deleted_at.is_(None))
+    )
     apartment = result.first()
 
     if not apartment:
@@ -435,11 +451,11 @@ async def delete_apartment(
     if apartment.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    await session.exec(
-        sqldelete(ApartmentPhoto).where(ApartmentPhoto.apartment_id == apartment_id)
-    )
+    apartment.deleted_at = utcnow()
+    apartment.status = "inactive"
+    apartment.updated_at = utcnow()
 
-    await session.delete(apartment)
+    session.add(apartment)
     await session.commit()
 
     return Response(status_code=204)

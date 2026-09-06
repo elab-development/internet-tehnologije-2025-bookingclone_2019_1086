@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useAuth } from "../../../features/auth/hooks/useAuth";
+
 import "./Footer.css";
 
 export default function Footer() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -48,13 +51,17 @@ export default function Footer() {
               {t("footer.availableApartments")}
             </Link>
 
-            <Link to="/reservations" className="footer__link">
-              {t("nav.myReservations")}
-            </Link>
+            {user ? (
+              <Link to="/reservations" className="footer__link">
+                {t("nav.myReservations")}
+              </Link>
+            ) : null}
 
-            <Link to="/host/apartments" className="footer__link">
-              {t("nav.myApartments")}
-            </Link>
+            {user?.role === "HOST" ? (
+              <Link to="/host/apartments" className="footer__link">
+                {t("nav.myApartments")}
+              </Link>
+            ) : null}
           </div>
 
           <div className="footer__column">
