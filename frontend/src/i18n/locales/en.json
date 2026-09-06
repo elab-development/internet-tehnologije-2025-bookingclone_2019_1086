@@ -142,7 +142,19 @@
       "map": {
         "title": "Location",
         "coordinates": "Coordinates: {{latitude}}, {{longitude}}",
-        "approximateLocation": "Approximate location - the city centre is shown."
+        "approximateLocation": "Approximate location - the city centre is shown.",
+        "layers": {
+          "standard": "Standard",
+          "humanitarian": "Humanitarian",
+          "satellite": "Satellite",
+          "terrain": "Terrain"
+        },
+        "overlays": {
+          "walking": "Walking distance",
+          "walkingHint": "About a 5 minute walk from the apartment.",
+          "neighbourhood": "Wider area",
+          "neighbourhoodHint": "About a 20 minute walk from the apartment."
+        }
       }
     }
   },
