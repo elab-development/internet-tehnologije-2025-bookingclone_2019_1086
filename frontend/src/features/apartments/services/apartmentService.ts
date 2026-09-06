@@ -295,3 +295,38 @@ export async function deleteApartment(apartmentId: number) {
     auth: true,
   });
 }
+export type UpdateApartmentRequest = {
+  title?: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  price_per_night?: number;
+  max_guests?: number;
+  status?: "active" | "inactive";
+  tag_ids?: number[];
+};
+
+export async function updateApartment(
+  apartmentId: number,
+  body: UpdateApartmentRequest
+) {
+  const updated = await apiRequest<ApartmentDto>(`/apartments/${apartmentId}`, {
+    method: "PATCH",
+    auth: true,
+    body: JSON.stringify(body),
+  });
+
+  return normalizeApartment(updated);
+}
+
+export async function deleteApartmentPhotos(
+  apartmentId: number,
+  photoIds: number[]
+) {
+  await apiRequest<void>(`/apartments/${apartmentId}/photos`, {
+    method: "DELETE",
+    auth: true,
+    body: JSON.stringify({ apartment_photo_ids: photoIds }),
+  });
+}

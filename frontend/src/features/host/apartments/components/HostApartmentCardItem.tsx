@@ -1,4 +1,6 @@
 import type { MouseEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import ApartmentCard from "../../../apartments/components/ApartmentCard";
 import {
@@ -24,23 +26,17 @@ function isApartmentDeleting(
   return deleteBusyId === apartment.id;
 }
 
-function getDeleteButtonText(
-  apartment: ApartmentDto,
-  deleteBusyId: number | null
-) {
-  if (isApartmentDeleting(apartment, deleteBusyId)) {
-    return "Deleting...";
-  }
-
-  return "🗑️";
-}
-
 export default function HostApartmentCardItem({
   apartment,
   isHost,
   deleteBusyId,
   onDeleteClick,
 }: Props) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const busy = isApartmentDeleting(apartment, deleteBusyId);
+
   function handleDeleteClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
@@ -48,7 +44,14 @@ export default function HostApartmentCardItem({
     onDeleteClick(apartment);
   }
 
-  function renderDeleteButton() {
+  function handleEditClick(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    navigate(`/host/apartments/${apartment.id}/edit`);
+  }
+
+  function renderActions() {
     if (!isHost) {
       return null;
     }
@@ -58,11 +61,21 @@ export default function HostApartmentCardItem({
         <button
           type="button"
           className="btn btn-light border shadow-sm host-apartments-page__icon-button"
-          title="Delete"
-          disabled={isApartmentDeleting(apartment, deleteBusyId)}
+          title={t("hostApartments.actions.edit")}
+          disabled={busy}
+          onClick={handleEditClick}
+        >
+          ✏️
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-light border shadow-sm host-apartments-page__icon-button"
+          title={t("hostApartments.actions.delete")}
+          disabled={busy}
           onClick={handleDeleteClick}
         >
-          {getDeleteButtonText(apartment, deleteBusyId)}
+          {busy ? t("hostApartments.actions.deleting") : "🗑️"}
         </button>
       </div>
     );
@@ -80,7 +93,7 @@ export default function HostApartmentCardItem({
           pricePerNight={apartment.price_per_night}
         />
 
-        {renderDeleteButton()}
+        {renderActions()}
       </div>
     </div>
   );
