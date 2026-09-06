@@ -16,6 +16,7 @@ from app.auth.dependencies import get_auth_service
 from app.auth.auth_helper import AuthHelper
 from app.enums.role_enum import Role
 from app.auth.current_user import get_current_user
+from app.errors import conflict, unauthorized
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -90,7 +91,7 @@ async def register(
 
     except IntegrityError:
         await session.rollback()
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise conflict("email_taken", "Email already registered")
     except Exception:
         await session.rollback()
         raise
@@ -125,7 +126,7 @@ async def login(
     user = q.first()
 
     if not user or not auth.verify_password(password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise unauthorized("invalid_credentials", "Invalid credentials")
 
     refresh_raw = auth.create_refresh_token()
     refresh_hash = auth.hash_refresh_token(refresh_raw)
@@ -167,7 +168,7 @@ async def refresh(
 ):
     refresh_raw = request.cookies.get(auth.REFRESH_COOKIE_NAME)
     if not refresh_raw:
-        raise HTTPException(status_code=401, detail="Missing refresh token")
+        raise unauthorized("refresh_missing", "Missing refresh token")
 
     refresh_hash = auth.hash_refresh_token(refresh_raw)
 
@@ -177,15 +178,15 @@ async def refresh(
     old = q.first()
 
     if not old:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        raise unauthorized("refresh_invalid", "Invalid refresh token")
     if old.revoked_at is not None:
-        raise HTTPException(status_code=401, detail="Refresh token revoked")
+        raise unauthorized("refresh_revoked", "Refresh token revoked")
     if auth.as_utc(old.expires_at) <= auth.utcnow():
-        raise HTTPException(status_code=401, detail="Refresh token expired")
+        raise unauthorized("refresh_expired", "Refresh token expired")
 
     user = await session.get(User, old.user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise unauthorized("user_not_found", "User not found")
 
     old.revoked_at = auth.utcnow()
     session.add(old)

@@ -8,6 +8,7 @@ from app.db import db
 from app.models.user import User
 from app.auth.dependencies import get_auth_service
 from app.auth.auth_helper import AuthHelper
+from app.errors import unauthorized
 
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -23,6 +24,6 @@ async def get_current_user(
 
     user = await session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise unauthorized("user_not_found", "User not found")
 
     return user

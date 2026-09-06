@@ -26,6 +26,7 @@ from app.models.apartment import utcnow
 from datetime import datetime, date, UTC, timedelta
 from app.models.reservation import Reservation
 from app.enums.reservation_status_enum import BLOCKING_STATUSES
+from app.errors import bad_request, forbidden, not_found
 
 
 router = APIRouter(prefix="/apartments", tags=["apartments"])
@@ -200,7 +201,7 @@ def apply_apartment_filters(query, q: ApartmentFilter):
         query = query.where(Apartment.rating_average <= q.rating_average_max)
 
     if q.check_in and q.check_out and q.check_out <= q.check_in:
-        raise HTTPException(status_code=400, detail="check_out must be after check_in")
+        raise bad_request("checkout_before_checkin", "check_out must be after check_in")
 
     if q.has_date_range:
         # An apartment is taken when a blocking reservation overlaps the wanted
@@ -331,7 +332,7 @@ async def create_apartment(
         ).all()
 
         if len(tags) != len(set(request_body.tag_ids)):
-            raise HTTPException(status_code=400, detail="One or more tag_ids are invalid")
+            raise bad_request("tag_ids_invalid", "One or more tag_ids are invalid")
 
         apartment.tags = list(tags)
 
@@ -386,10 +387,10 @@ async def update_apartment(
     apartment = result.first()
 
     if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     if apartment.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not allowed")
+        raise forbidden("not_allowed", "Not allowed")
 
     changes = request_body.model_dump(exclude_unset=True, exclude_none=True)
     tag_ids = changes.pop("tag_ids", None)
@@ -417,7 +418,7 @@ async def update_apartment(
         tags = (await session.exec(select(Tag).where(Tag.id.in_(tag_ids)))).all()
 
         if len(tags) != len(set(tag_ids)):
-            raise HTTPException(status_code=400, detail="One or more tag_ids are invalid")
+            raise bad_request("tag_ids_invalid", "One or more tag_ids are invalid")
 
         apartment.tags = list(tags)
 
@@ -446,7 +447,7 @@ async def get_apartment_by_id(
     apartment = result.first()
 
     if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     return map_apartment_to_detail_dto(apartment)
 
@@ -465,14 +466,14 @@ async def get_rented_days(
     )
     apartment = apartment_result.first()
     if not apartment:
-        raise HTTPException(status_code=404, detail="Invalid apartment")
+        raise not_found("apartment_not_found", "Invalid apartment")
 
     month_start = date(year, month, 1)
 
     now = datetime.now(UTC)
     current_month_start = date(now.year, now.month, 1)
     if month_start < current_month_start:
-        raise HTTPException(status_code=400, detail="You can't query previous dates")
+        raise bad_request("past_month", "You can't query previous dates")
 
     month_end_exclusive = (month_start.replace(day=28) + timedelta(days=4)).replace(
         day=1
@@ -536,10 +537,10 @@ async def delete_apartment(
     apartment = result.first()
 
     if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+        raise not_found("apartment_not_found", "Apartment not found")
 
     if apartment.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not allowed")
+        raise forbidden("not_allowed", "Not allowed")
 
     apartment.deleted_at = utcnow()
     apartment.status = ApartmentStatus.INACTIVE.value

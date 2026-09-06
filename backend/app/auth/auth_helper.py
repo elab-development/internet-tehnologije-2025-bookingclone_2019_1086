@@ -10,6 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.user import User
 from app.env_loader import require_env
+from app.errors import unauthorized
 
 
 class AuthHelper:
@@ -69,12 +70,12 @@ class AuthHelper:
         try:
             payload = jwt.decode(token, self.JWT_SECRET, algorithms=[self.JWT_ALG])
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Access token expired")
+            raise unauthorized("access_expired", "Access token expired")
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid access token")
+            raise unauthorized("access_invalid", "Invalid access token")
 
         if payload.get("type") != "access":
-            raise HTTPException(status_code=401, detail="Invalid token type")
+            raise unauthorized("token_wrong_type", "Invalid token type")
 
         return payload
 
@@ -103,6 +104,6 @@ class AuthHelper:
 
         user = await session.get(User, user_id)
         if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+            raise unauthorized("user_not_found", "User not found")
 
         return user

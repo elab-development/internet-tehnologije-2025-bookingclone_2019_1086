@@ -7,6 +7,7 @@ import jwt
 from fastapi import HTTPException
 
 from app.auth.auth_helper import AuthHelper
+from app.errors import gone, not_found
 
 
 # The link only says which reservation it points at and which side it was
@@ -51,15 +52,15 @@ def decode_link_token(token: str) -> dict:
             token, AuthHelper.JWT_SECRET, algorithms=[AuthHelper.JWT_ALG]
         )
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=410, detail="This link has expired")
+        raise gone("link_expired", "This link has expired")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=404, detail="Invalid link")
+        raise not_found("invalid_link", "Invalid link")
 
     if payload.get("type") != TOKEN_TYPE:
-        raise HTTPException(status_code=404, detail="Invalid link")
+        raise not_found("invalid_link", "Invalid link")
 
     if payload.get("link_role") not in (LINK_ROLE_GUEST, LINK_ROLE_HOST):
-        raise HTTPException(status_code=404, detail="Invalid link")
+        raise not_found("invalid_link", "Invalid link")
 
     return payload
 
