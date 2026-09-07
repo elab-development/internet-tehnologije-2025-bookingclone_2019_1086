@@ -1,7 +1,13 @@
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { formatApartmentPrice } from "../services/apartmentService";
+import {
+  formatRating,
+  parseRating,
+  ratingWordKey,
+} from "../../reviews/utils/ratingFormat";
 
 import "./ApartmentCard.css";
 
@@ -12,6 +18,8 @@ type Props = {
   city: string;
   imageUrl: string;
   pricePerNight?: string | number;
+  ratingAverage?: string | number | null;
+  reviewsCount?: number;
 };
 
 export default function ApartmentCard({
@@ -21,8 +29,11 @@ export default function ApartmentCard({
   city,
   imageUrl,
   pricePerNight = 0,
+  ratingAverage = null,
+  reviewsCount = 0,
 }: Props) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   function openDetails() {
     navigate(`/apartments/${id}`);
@@ -32,6 +43,38 @@ export default function ApartmentCard({
     if (event.key === "Enter") {
       openDetails();
     }
+  }
+
+  function renderRating() {
+    const score = parseRating(ratingAverage);
+
+    if (score === null || reviewsCount === 0) {
+      return (
+        <div className="apartment-card__rating apartment-card__rating--empty">
+          <span className="apartment-card__rating-text">
+            {t("reviews.noRatingShort")}
+          </span>
+        </div>
+      );
+    }
+
+    const wordKey = ratingWordKey(score);
+
+    return (
+      <div className="apartment-card__rating">
+        <span className="apartment-card__rating-score">
+          {formatRating(score)}
+        </span>
+
+        <span className="apartment-card__rating-text">
+          {wordKey ? t(`reviews.words.${wordKey}`) : ""}
+        </span>
+
+        <span className="apartment-card__rating-count">
+          {t("reviews.countShort", { count: reviewsCount })}
+        </span>
+      </div>
+    );
   }
 
   function handleFavoriteClick(event: MouseEvent<HTMLButtonElement>) {
@@ -63,10 +106,7 @@ export default function ApartmentCard({
           {formatApartmentPrice(pricePerNight)} / night
         </p>
 
-        <div className="apartment-card__rating">
-          <span className="apartment-card__rating-score">10</span>
-          <span className="apartment-card__rating-text">Exceptional</span>
-        </div>
+        {renderRating()}
       </div>
     </div>
   );

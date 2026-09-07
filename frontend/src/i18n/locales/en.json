@@ -364,6 +364,38 @@
       "update": "The reservation could not be updated."
     }
   },
+  "reviews": {
+    "title": "Guest reviews",
+    "loading": "Loading reviews...",
+    "noRating": "No reviews yet.",
+    "noRatingShort": "No reviews",
+    "anonymous": "Guest",
+    "rateStay": "Rate your stay",
+    "editMine": "Change my rating",
+    "count": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "countShort": "{{count}} review",
+    "countShort_other": "{{count}} reviews",
+    "words": {
+      "exceptional": "Exceptional",
+      "veryGood": "Very good",
+      "good": "Good",
+      "pleasant": "Pleasant",
+      "poor": "Poor"
+    },
+    "dialog": {
+      "title": "Rate your stay",
+      "subtitle": "How was it at {{apartment}}?",
+      "pick": "Pick a score from 1 to 10.",
+      "commentPlaceholder": "Say a few words about the stay (optional)",
+      "submit": "Send rating",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "loadFailed": "Could not load the reviews.",
+      "saveFailed": "Could not save the rating."
+    }
+  },
   "stats": {
     "title": "Earnings",
     "subtitle": "How much your apartments brought in, over the period you pick.",
@@ -575,6 +607,10 @@
     "not_authenticated": "You need to sign in first.",
     "route_not_found": "That page does not exist.",
     "method_not_allowed": "That action is not supported.",
-    "photo_not_found": "That photo does not belong to this apartment."
+    "photo_not_found": "That photo does not belong to this apartment.",
+    "review_not_your_stay": "You can only rate your own stay.",
+    "review_not_confirmed": "Only a confirmed reservation can be rated.",
+    "review_stay_not_over": "You can rate the stay after checking out.",
+    "review_not_found": "That review no longer exists."
   }
 }

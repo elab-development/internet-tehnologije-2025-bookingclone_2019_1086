@@ -16,6 +16,12 @@ export type ReservationApartmentDto = {
   is_deleted: boolean;
 };
 
+export type ReservationReviewDto = {
+  id: number;
+  rating: number;
+  comment: string | null;
+};
+
 export type ReservationDto = {
   id: number;
   apartment_id: number;
@@ -29,6 +35,8 @@ export type ReservationDto = {
   created_at: string;
   apartment: ReservationApartmentDto | null;
   guest_name: string | null;
+  review: ReservationReviewDto | null;
+  is_reviewable: boolean;
 };
 
 export type ReservationSearchParams = {

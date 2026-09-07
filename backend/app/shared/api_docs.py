@@ -84,6 +84,14 @@ TAGS_METADATA = [
         ),
     },
     {
+        "name": "reviews",
+        "description": (
+            "Ocene boravka, od 1 do 10. Ocenjuje gost sa rezervacije i tek "
+            "kad se boravak završio, jednu po boravku. Svaki upis odmah "
+            "preračunava prosečnu ocenu apartmana."
+        ),
+    },
+    {
         "name": "health",
         "description": "Provera da li aplikacija radi.",
     },

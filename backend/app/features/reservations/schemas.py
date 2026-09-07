@@ -21,6 +21,12 @@ class ReservationApartmentDto(BaseModel):
     # A soft deleted apartment has no page left to open, so the card must know.
     is_deleted: bool
 
+class ReservationReviewDto(BaseModel):
+    id: int
+    rating: int
+    comment: Optional[str]
+
+
 class ReservationDto(BaseModel):
     id: int
     apartment_id: int
@@ -34,6 +40,9 @@ class ReservationDto(BaseModel):
     created_at: datetime
     apartment: Optional[ReservationApartmentDto]
     guest_name: Optional[str]
+    review: Optional[ReservationReviewDto]
+    # True once the stay is confirmed, over, and not rated yet.
+    is_reviewable: bool
 
 class ReservationLinkDto(BaseModel):
     """What the page behind a mail link shows."""

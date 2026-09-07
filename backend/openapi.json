@@ -2936,6 +2936,240 @@
         }
       }
     },
+    "/reviews": {
+      "post": {
+        "tags": [
+          "reviews"
+        ],
+        "summary": "Ocenjivanje boravka",
+        "description": "Upisuje ocenu boravka, od 1 do 10, uz opcioni komentar.\n\nOcenjuje gost sa te rezervacije, i to tek pošto se boravak završio.\nPonovno slanje menja postojeću ocenu umesto da pravi novu, jer po\nboravku ide tačno jedna.\n\nPosle upisa se prosečna ocena apartmana i broj ocena preračunavaju u\nistoj transakciji, pa lista apartmana i pretraga po oceni odmah vide\nnovo stanje.",
+        "operationId": "create_or_update_review_reviews_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/apartments/{apartment_id}/reviews": {
+      "get": {
+        "tags": [
+          "reviews"
+        ],
+        "summary": "Ocene jednog apartmana",
+        "description": "Javna lista ocena apartmana, najnovije prvo.",
+        "operationId": "get_apartment_reviews_apartments__apartment_id__reviews_get",
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          },
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_ReviewDto_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{review_id}": {
+      "delete": {
+        "tags": [
+          "reviews"
+        ],
+        "summary": "Brisanje ocene",
+        "description": "Uklanja ocenu. Sme samo administrator, kao mera protiv zloupotrebe.\n\nGost svoju ocenu može da izmeni, ali ne i da je obriše, da se ne bi\nocenjivanje koristilo kao pretnja domaćinu.",
+        "operationId": "delete_review_reviews__review_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -3589,6 +3823,37 @@
         ],
         "title": "BasePagedResponse[ReservationDto]"
       },
+      "BasePagedResponse_ReviewDto_": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewDto"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "BasePagedResponse[ReviewDto]"
+      },
       "BasePagedResponse_TagDto_": {
         "properties": {
           "page_number": {
@@ -4031,6 +4296,20 @@
               }
             ],
             "title": "Guest Name"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReservationReviewDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_reviewable": {
+            "type": "boolean",
+            "title": "Is Reviewable"
           }
         },
         "type": "object",
@@ -4046,7 +4325,9 @@
           "status",
           "created_at",
           "apartment",
-          "guest_name"
+          "guest_name",
+          "review",
+          "is_reviewable"
         ],
         "title": "ReservationDto"
       },
@@ -4068,6 +4349,36 @@
         "title": "ReservationLinkDto",
         "description": "What the page behind a mail link shows."
       },
+      "ReservationReviewDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "rating": {
+            "type": "integer",
+            "title": "Rating"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rating",
+          "comment"
+        ],
+        "title": "ReservationReviewDto"
+      },
       "ReservationStatusRequest": {
         "properties": {
           "status": {
@@ -4080,6 +4391,107 @@
           "status"
         ],
         "title": "ReservationStatusRequest"
+      },
+      "ReviewCreateRequest": {
+        "properties": {
+          "reservation_id": {
+            "type": "integer",
+            "title": "Reservation Id"
+          },
+          "rating": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Rating"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reservation_id",
+          "rating"
+        ],
+        "title": "ReviewCreateRequest"
+      },
+      "ReviewDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "reservation_id": {
+            "type": "integer",
+            "title": "Reservation Id"
+          },
+          "apartment_id": {
+            "type": "integer",
+            "title": "Apartment Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "rating": {
+            "type": "integer",
+            "title": "Rating"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "reservation_id",
+          "apartment_id",
+          "user_id",
+          "author_name",
+          "rating",
+          "comment",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ReviewDto"
       },
       "Role": {
         "type": "string",
@@ -4358,6 +4770,10 @@
     {
       "name": "stats",
       "description": "Zarada domaćina po periodu i po apartmanu. Računaju se samo potvrđene rezervacije, a rezervacija pripada periodu svog dolaska."
+    },
+    {
+      "name": "reviews",
+      "description": "Ocene boravka, od 1 do 10. Ocenjuje gost sa rezervacije i tek kad se boravak završio, jednu po boravku. Svaki upis odmah preračunava prosečnu ocenu apartmana."
     },
     {
       "name": "health",
