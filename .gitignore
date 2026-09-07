@@ -20,21 +20,17 @@ env/
 .env.*
 
 ############################
-# Databases
+# Databases (local only)
 ############################
-# Radna baza ide u repozitorijum, da klon odmah ima podatke za prikaz.
-# Rucne kopije napravljene pre migracija ostaju samo lokalno.
 *.db
 *.sqlite
 *.sqlite3
-!backend/database.db
-backend/database.backup-*.db
 
 ############################
-# Runtime uploads
+# Runtime uploads (keep static assets!)
 ############################
-# Slike apartmana idu uz bazu, jer bez njih klon prikazuje prazne kartice.
 backend/static/uploads/
+backend/static/images/apartments/
 
 ############################
 # Logs
