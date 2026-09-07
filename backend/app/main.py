@@ -24,6 +24,7 @@ from app.apartment_photo.apartment_photo_endpoints import (
 )
 from app.tag.tag_endpoints import router as tag_router
 from app.reservation.reservation_endpoints import router as reservation_router
+from app.stats.stats_endpoints import router as stats_router
 from app.outbox.outbox_worker import OutboxWorker
 from app.exception_handlers import ExceptionHandlers
 
@@ -78,6 +79,7 @@ app.include_router(apartments_router)
 app.include_router(apartment_photo_router)
 app.include_router(tag_router)
 app.include_router(reservation_router)
+app.include_router(stats_router)
 
 # Serves ./static at /static
 app.mount("/static", StaticFiles(directory="static"), name="static")

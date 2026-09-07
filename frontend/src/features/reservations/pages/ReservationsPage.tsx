@@ -21,6 +21,7 @@ export default function ReservationsPage({ scope }: Props) {
   const {
     items,
     filters,
+    apartmentOptions,
     hasFilters,
     applyFilters,
     resetFilters,
@@ -95,6 +96,7 @@ export default function ReservationsPage({ scope }: Props) {
 
       <ReservationsFilterBar
         filters={filters}
+        apartmentOptions={apartmentOptions}
         hasFilters={hasFilters}
         onApply={applyFilters}
         onReset={resetFilters}

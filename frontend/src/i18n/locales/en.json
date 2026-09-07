@@ -14,7 +14,8 @@
     "apartmentManagement": "Apartment management",
     "tagManagement": "Tag management",
     "userManagement": "User management",
-    "accountDetails": "Account details"
+    "accountDetails": "Account details",
+    "statistics": "Statistics"
   },
   "language": {
     "sr": "Serbian",
@@ -343,7 +344,9 @@
       "from": "From",
       "to": "To",
       "apply": "Show",
-      "reset": "Clear"
+      "reset": "Clear",
+      "apartment": "Apartment",
+      "apartmentAll": "All apartments"
     }
   },
   "reservationLink": {
@@ -354,6 +357,70 @@
     "errors": {
       "load": "This reservation could not be opened.",
       "update": "The reservation could not be updated."
+    }
+  },
+  "stats": {
+    "title": "Earnings",
+    "subtitle": "How much your apartments brought in, over the period you pick.",
+    "loading": "Loading statistics...",
+    "empty": "No confirmed reservations in the chosen period.",
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "groupBy": "Show",
+      "byMonth": "By month",
+      "byYear": "By year",
+      "apartment": "Apartment",
+      "apartmentAll": "All apartments",
+      "apply": "Show",
+      "reset": "Reset"
+    },
+    "presets": {
+      "thisYear": "This year",
+      "lastYear": "Last year",
+      "last12Months": "Last 12 months",
+      "allYears": "Last 6 years"
+    },
+    "summary": {
+      "total": "Total earned",
+      "reservations": "Reservations",
+      "nights": "Nights booked",
+      "bestMonth": "Best month",
+      "bestYear": "Best year"
+    },
+    "charts": {
+      "byMonth": "Earnings per month",
+      "byYear": "Earnings per year",
+      "note": "Only confirmed reservations count, in the month they start.",
+      "noteYear": "Only confirmed reservations count, in the year they start.",
+      "byApartment": "Share of each apartment",
+      "byApartmentNote": "The darker the slice, the bigger the share."
+    },
+    "share": {
+      "other": "Other apartments"
+    },
+    "tooltip": {
+      "reservations": "{{count}} reservation",
+      "reservations_other": "{{count}} reservations",
+      "nights": "{{count}} night",
+      "nights_other": "{{count}} nights"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    },
+    "errors": {
+      "loadFailed": "Could not load the statistics."
     }
   },
   "admin": {
@@ -483,6 +550,7 @@
     "too_many_guests": "This apartment takes at most {{max_guests}} guests.",
     "checkout_before_checkin": "Check-out must be after check-in.",
     "date_to_before_from": "The end date cannot be before the start date.",
+    "bad_group_by": "That grouping is not supported.",
     "past_month": "You cannot look at months that have already passed.",
     "not_an_image": "Only images can be uploaded. Invalid file: {{filename}}",
     "invalid_link": "This link is not valid.",

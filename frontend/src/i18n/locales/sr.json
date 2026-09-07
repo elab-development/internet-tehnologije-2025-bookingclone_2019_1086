@@ -14,7 +14,8 @@
     "apartmentManagement": "Upravljanje apartmanima",
     "tagManagement": "Upravljanje tagovima",
     "userManagement": "Upravljanje korisnicima",
-    "accountDetails": "Detalji naloga"
+    "accountDetails": "Detalji naloga",
+    "statistics": "Statistika"
   },
   "footer": {
     "description": "Pronađite i rezervišite apartmane lako, uz jednostavno i pouzdano iskustvo rezervacije.",
@@ -345,7 +346,9 @@
       "from": "Od",
       "to": "Do",
       "apply": "Prikaži",
-      "reset": "Poništi"
+      "reset": "Poništi",
+      "apartment": "Apartman",
+      "apartmentAll": "Svi apartmani"
     }
   },
   "reservationLink": {
@@ -356,6 +359,72 @@
     "errors": {
       "load": "Ova rezervacija ne može da se otvori.",
       "update": "Rezervacija ne može da se izmeni."
+    }
+  },
+  "stats": {
+    "title": "Zarada",
+    "subtitle": "Koliko su vaši apartmani doneli, za period koji izaberete.",
+    "loading": "Učitavanje statistike...",
+    "empty": "Nema potvrđenih rezervacija u izabranom periodu.",
+    "filters": {
+      "from": "Od",
+      "to": "Do",
+      "groupBy": "Prikaz",
+      "byMonth": "Po mesecima",
+      "byYear": "Po godinama",
+      "apartment": "Apartman",
+      "apartmentAll": "Svi apartmani",
+      "apply": "Prikaži",
+      "reset": "Poništi"
+    },
+    "presets": {
+      "thisYear": "Ova godina",
+      "lastYear": "Prošla godina",
+      "last12Months": "Poslednjih 12 meseci",
+      "allYears": "Poslednjih 6 godina"
+    },
+    "summary": {
+      "total": "Ukupna zarada",
+      "reservations": "Rezervacije",
+      "nights": "Rezervisanih noćenja",
+      "bestMonth": "Najbolji mesec",
+      "bestYear": "Najbolja godina"
+    },
+    "charts": {
+      "byMonth": "Zarada po mesecima",
+      "byYear": "Zarada po godinama",
+      "note": "Računaju se samo potvrđene rezervacije, u mesecu u kom počinju.",
+      "noteYear": "Računaju se samo potvrđene rezervacije, u godini u kojoj počinju.",
+      "byApartment": "Udeo svakog apartmana",
+      "byApartmentNote": "Što je isečak tamniji, to je udeo veći."
+    },
+    "share": {
+      "other": "Ostali apartmani"
+    },
+    "tooltip": {
+      "reservations": "{{count}} rezervacija",
+      "reservations_few": "{{count}} rezervacije",
+      "reservations_other": "{{count}} rezervacija",
+      "nights": "{{count}} noćenje",
+      "nights_few": "{{count}} noćenja",
+      "nights_other": "{{count}} noćenja"
+    },
+    "months": {
+      "jan": "jan",
+      "feb": "feb",
+      "mar": "mar",
+      "apr": "apr",
+      "may": "maj",
+      "jun": "jun",
+      "jul": "jul",
+      "aug": "avg",
+      "sep": "sep",
+      "oct": "okt",
+      "nov": "nov",
+      "dec": "dec"
+    },
+    "errors": {
+      "loadFailed": "Statistika nije mogla da se učita."
     }
   },
   "admin": {
@@ -485,6 +554,7 @@
     "too_many_guests": "Ovaj apartman prima najviše {{max_guests}} gostiju.",
     "checkout_before_checkin": "Datum odjave mora biti posle datuma prijave.",
     "date_to_before_from": "Krajnji datum ne može biti pre početnog.",
+    "bad_group_by": "Taj način grupisanja nije podržan.",
     "past_month": "Ne možete gledati mesece koji su prošli.",
     "not_an_image": "Mogu se otpremati samo slike. Neispravan fajl: {{filename}}",
     "invalid_link": "Ovaj link nije ispravan.",

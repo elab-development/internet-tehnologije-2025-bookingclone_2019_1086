@@ -6,6 +6,7 @@ import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { parseApiDate, toApiDate } from "../../../shared/utils/date";
+import type { ApartmentOption } from "../../host/apartments/hooks/useHostApartmentOptions";
 import type { ReservationFilters } from "../hooks/useReservationList";
 import type { ReservationStatus } from "../services/reservationService";
 
@@ -15,6 +16,7 @@ const STATUSES: ReservationStatus[] = ["pending", "confirmed", "cancelled"];
 
 type Props = {
   filters: ReservationFilters;
+  apartmentOptions: ApartmentOption[];
   hasFilters: boolean;
   onApply: (next: ReservationFilters) => void;
   onReset: () => void;
@@ -22,6 +24,7 @@ type Props = {
 
 export default function ReservationsFilterBar({
   filters,
+  apartmentOptions,
   hasFilters,
   onApply,
   onReset,
@@ -31,12 +34,13 @@ export default function ReservationsFilterBar({
   const [status, setStatus] = useState(filters.status);
   const [dateFrom, setDateFrom] = useState(parseApiDate(filters.dateFrom));
   const [dateTo, setDateTo] = useState(parseApiDate(filters.dateTo));
+  const [apartmentId, setApartmentId] = useState(filters.apartmentId);
 
-  // Follow the hook when the filters are cleared from outside.
   useEffect(() => {
     setStatus(filters.status);
     setDateFrom(parseApiDate(filters.dateFrom));
     setDateTo(parseApiDate(filters.dateTo));
+    setApartmentId(filters.apartmentId);
   }, [filters]);
 
   function handleFromChange(date: Date | null) {
@@ -54,7 +58,42 @@ export default function ReservationsFilterBar({
       status,
       dateFrom: dateFrom ? toApiDate(dateFrom) : "",
       dateTo: dateTo ? toApiDate(dateTo) : "",
+      apartmentId,
     });
+  }
+
+  function renderApartmentField() {
+    if (apartmentOptions.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="reservations-filters__field reservations-filters__field--wide">
+        <label
+          className="reservations-filters__label"
+          htmlFor="filter-apartment"
+        >
+          {t("reservations.filters.apartment")}
+        </label>
+
+        <select
+          id="filter-apartment"
+          className="reservations-filters__input"
+          value={apartmentId ?? ""}
+          onChange={(event) =>
+            setApartmentId(event.target.value ? Number(event.target.value) : null)
+          }
+        >
+          <option value="">{t("reservations.filters.apartmentAll")}</option>
+
+          {apartmentOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.title}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
   }
 
   return (
@@ -81,6 +120,8 @@ export default function ReservationsFilterBar({
           ))}
         </select>
       </div>
+
+      {renderApartmentField()}
 
       <div className="reservations-filters__field">
         <label className="reservations-filters__label">

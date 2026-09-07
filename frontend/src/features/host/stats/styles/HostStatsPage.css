@@ -1,0 +1,317 @@
+.host-stats {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.host-stats__header {
+  margin-bottom: 24px;
+}
+
+.host-stats__title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.host-stats__subtitle {
+  color: #6c757d;
+  margin: 0;
+}
+
+/* --- filters --- */
+
+.host-stats__filters {
+  padding: 14px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+}
+
+.host-stats__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.host-stats__preset {
+  padding: 6px 14px;
+  border: 1px solid #d5d5d5;
+  border-radius: 999px;
+  background: #fff;
+  color: #495057;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-stats__preset:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+
+.host-stats__preset:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.host-stats__filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.host-stats__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.host-stats__field--wide {
+  flex: 2 1 220px;
+}
+
+.host-stats__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.host-stats__input {
+  padding: 9px 12px;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  font-size: 14px;
+  width: 100%;
+  background: #fff;
+}
+
+.host-stats__input:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+.host-stats__field .react-datepicker-wrapper,
+.host-stats__field .react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.host-stats__field .react-datepicker__close-icon {
+  padding-right: 8px;
+}
+
+.host-stats__field .react-datepicker__close-icon::after {
+  background: #adb5bd;
+  font-size: 14px;
+}
+
+.host-stats__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.host-stats__button {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-stats__button:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.host-stats__reset {
+  padding: 9px 16px;
+  border: 1px solid #d5d5d5;
+  border-radius: 10px;
+  background: #fff;
+  color: #495057;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.host-stats__reset:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+
+.host-stats__button:disabled,
+.host-stats__reset:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* --- state --- */
+
+.host-stats__state {
+  padding: 24px;
+  text-align: center;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.host-stats__state--error {
+  color: #b02a37;
+  background: #f8d7da;
+}
+
+/* --- headline numbers --- */
+
+.host-stats__summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.host-stats__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+}
+
+.host-stats__tile-label {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.host-stats__tile-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* --- chart cards --- */
+
+.host-stats__card {
+  padding: 18px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+}
+
+.host-stats__card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.host-stats__card-note {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0 0 16px;
+}
+
+.host-stats__chart {
+  width: 100%;
+}
+
+.host-stats__tooltip {
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.host-stats__tooltip-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.host-stats__tooltip-value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.host-stats__tooltip-meta {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+/* --- share of each apartment --- */
+
+.host-stats__share {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  align-items: center;
+  gap: 20px;
+}
+
+.host-stats__share-chart {
+  min-width: 0;
+}
+
+.host-stats__legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.host-stats__legend-row {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.host-stats__legend-row:last-child {
+  border-bottom: none;
+}
+
+.host-stats__legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.host-stats__legend-title {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host-stats__legend-value {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.host-stats__legend-percent {
+  font-size: 13px;
+  color: #6c757d;
+  white-space: nowrap;
+  min-width: 48px;
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .host-stats__summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .host-stats__share {
+    grid-template-columns: 1fr;
+  }
+}
