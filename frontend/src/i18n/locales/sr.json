@@ -366,6 +366,40 @@
       "update": "Rezervacija ne može da se izmeni."
     }
   },
+  "reviews": {
+    "title": "Ocene gostiju",
+    "loading": "Učitavanje ocena...",
+    "noRating": "Još nema ocena.",
+    "noRatingShort": "Nema ocena",
+    "anonymous": "Gost",
+    "rateStay": "Oceni boravak",
+    "editMine": "Izmeni ocenu",
+    "count": "{{count}} ocena",
+    "count_few": "{{count}} ocene",
+    "count_other": "{{count}} ocena",
+    "countShort": "{{count}} ocena",
+    "countShort_few": "{{count}} ocene",
+    "countShort_other": "{{count}} ocena",
+    "words": {
+      "exceptional": "Izvanredno",
+      "veryGood": "Vrlo dobro",
+      "good": "Dobro",
+      "pleasant": "Prijatno",
+      "poor": "Slabo"
+    },
+    "dialog": {
+      "title": "Ocenite boravak",
+      "subtitle": "Kako je bilo u „{{apartment}}“?",
+      "pick": "Izaberite ocenu od 1 do 10.",
+      "commentPlaceholder": "Napišite par reči o boravku (opciono)",
+      "submit": "Pošalji ocenu",
+      "saving": "Čuvanje..."
+    },
+    "errors": {
+      "loadFailed": "Ocene nisu mogle da se učitaju.",
+      "saveFailed": "Ocena nije mogla da se sačuva."
+    }
+  },
   "stats": {
     "title": "Zarada",
     "subtitle": "Koliko su vaši apartmani doneli, za period koji izaberete.",
@@ -579,6 +613,10 @@
     "not_authenticated": "Morate prvo da se prijavite.",
     "route_not_found": "Ta stranica ne postoji.",
     "method_not_allowed": "Ta radnja nije podržana.",
-    "photo_not_found": "Ta slika ne pripada ovom apartmanu."
+    "photo_not_found": "Ta slika ne pripada ovom apartmanu.",
+    "review_not_your_stay": "Možete oceniti samo sopstveni boravak.",
+    "review_not_confirmed": "Ocenjuje se samo potvrđena rezervacija.",
+    "review_stay_not_over": "Boravak možete oceniti tek posle odjave.",
+    "review_not_found": "Ta ocena više ne postoji."
   }
 }

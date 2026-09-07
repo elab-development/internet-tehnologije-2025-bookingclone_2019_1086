@@ -12,6 +12,7 @@ type Props = {
   busy?: boolean;
   onConfirm?: (reservation: ReservationDto) => void;
   onCancel?: (reservation: ReservationDto) => void;
+  onReview?: (reservation: ReservationDto) => void;
 };
 
 function formatDate(value: string) {
@@ -30,6 +31,7 @@ export default function ReservationCard({
   busy,
   onConfirm,
   onCancel,
+  onReview,
 }: Props) {
   const { t } = useTranslation();
 
@@ -61,6 +63,46 @@ export default function ReservationCard({
     return <Link to={`/apartments/${apartment.id}`}>{apartment.title}</Link>;
   }
 
+  function renderReview() {
+    if (!onReview) {
+      return null;
+    }
+
+    if (reservation.review) {
+      return (
+        <div className="reservation-card__review">
+          <span className="reservation-card__review-score">
+            {reservation.review.rating}
+          </span>
+
+          <button
+            type="button"
+            className="btn btn-sm btn-link p-0"
+            disabled={busy}
+            onClick={() => onReview(reservation)}
+          >
+            {t("reviews.editMine")}
+          </button>
+        </div>
+      );
+    }
+
+    if (!reservation.is_reviewable) {
+      return null;
+    }
+
+    return (
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-primary"
+        disabled={busy}
+        onClick={() => onReview(reservation)}
+      >
+        {t("reviews.rateStay")}
+      </button>
+    );
+  }
+
   function renderActions() {
     if (isCancelled) {
       return null;
@@ -68,6 +110,8 @@ export default function ReservationCard({
 
     return (
       <div className="reservation-card__actions">
+        {renderReview()}
+
         {onConfirm && isPending ? (
           <button
             type="button"

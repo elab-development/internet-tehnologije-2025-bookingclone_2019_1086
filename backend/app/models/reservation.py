@@ -6,6 +6,7 @@ from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
     from .apartment import Apartment
+    from .review import Review
     from .user import User
 
 
@@ -32,3 +33,4 @@ class Reservation(SQLModel, table=True):
 
     apartment: Optional["Apartment"] = Relationship(back_populates="reservations")
     guest: Optional["User"] = Relationship(back_populates="reservations")
+    review: Optional["Review"] = Relationship(back_populates="reservation")

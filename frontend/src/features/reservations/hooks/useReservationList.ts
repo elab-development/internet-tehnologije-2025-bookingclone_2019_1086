@@ -149,6 +149,7 @@ export function useReservationList(scope: ReservationScope) {
     error,
     busyId,
     changeStatus,
+    reload: load,
     goToPage,
     isEmpty: !isLoading && !error && items.length === 0,
   };

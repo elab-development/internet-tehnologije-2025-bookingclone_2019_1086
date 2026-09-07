@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .user import User
     from .apartment_photo import ApartmentPhoto
     from .reservation import Reservation
+    from .review import Review
     from .tag import Tag
 
 
@@ -38,7 +39,7 @@ class Apartment(SQLModel, table=True):
     latitude: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(10, 6)))
     longitude: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(10, 6)))
 
-    rating_average: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(3, 2)))
+    rating_average: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(4, 2)))
     reviews_count: int = Field(default=0)
 
     created_at: datetime = Field(default_factory=utcnow)
@@ -51,4 +52,5 @@ class Apartment(SQLModel, table=True):
     owner: Optional["User"] = Relationship(back_populates="apartments")
     photos: List["ApartmentPhoto"] = Relationship(back_populates="apartment")
     reservations: List["Reservation"] = Relationship(back_populates="apartment")
+    reviews: List["Review"] = Relationship(back_populates="apartment")
     tags: List["Tag"] = Relationship(back_populates="apartments", link_model=ApartmentTag)

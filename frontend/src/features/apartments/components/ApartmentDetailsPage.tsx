@@ -10,6 +10,7 @@ import ApartmentDetailsSummary from "./details/ApartmentDetailsSummary";
 import ApartmentDetailsBookingCard from "./details/ApartmentDetailsBookingCard";
 import ApartmentDetailsInfo from "./details/ApartmentDetailsInfo";
 import ApartmentDetailsMap from "./details/ApartmentDetailsMap";
+import ApartmentReviews from "../../reviews/components/ApartmentReviews";
 
 import "./ApartmentDetailsPage.css";
 
@@ -135,6 +136,12 @@ export default function ApartmentDetailsPage() {
         </div>
 
         <ApartmentDetailsMap apartment={apartment} />
+
+        <ApartmentReviews
+          apartmentId={apartment.id}
+          ratingAverage={apartment.rating_average}
+          reviewsCount={apartment.reviews_count}
+        />
       </div>
     </main>
   );
