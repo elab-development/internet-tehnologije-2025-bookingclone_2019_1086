@@ -1,0 +1,60 @@
+services:
+  backend:
+    build: ./backend
+    container_name: bookingclone-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Baza stoji na volumenu, ne u sloju kontejnera, da prezivi ponovnu gradnju.
+      DATABASE_URL: sqlite+aiosqlite:////data/database.db
+
+      JWT_SECRET: ${JWT_SECRET:-promeni_me_dugacak_nasumican_niz_123456789}
+      JWT_ALG: ${JWT_ALG:-HS256}
+      ACCESS_TTL_MIN: ${ACCESS_TTL_MIN:-15}
+      REFRESH_TTL_DAYS: ${REFRESH_TTL_DAYS:-14}
+      REFRESH_COOKIE_NAME: ${REFRESH_COOKIE_NAME:-refresh_token}
+      REFRESH_COOKIE_PATH: ${REFRESH_COOKIE_PATH:-/auth}
+      REFRESH_HASH_PEPPER: ${REFRESH_HASH_PEPPER:-promeni_me_pepper_123456}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+
+      # Iskljuceno po podrazumevanom, da pokretanje kontejnera nikom ne posalje mejl.
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Booking}
+
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      RESERVATION_LINK_TTL_DAYS: ${RESERVATION_LINK_TTL_DAYS:-30}
+    volumes:
+      - db-data:/data
+      - apartment-images:/app/static/images/apartments
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Adresu poziva pretrazivac, ne kontejner, pa ovde ide adresa hosta
+        # umesto imena servisa iz compose mreze.
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    container_name: bookingclone-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  apartment-images:
