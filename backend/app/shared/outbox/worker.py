@@ -12,8 +12,7 @@ from sqlmodel import select
 
 from app.enums.outbox_status_enum import OutboxStatus
 from app.models.outbox_event import OutboxEvent
-from app.services.mailer import is_mail_enabled, send_email
-from app.services.reservation_email import build_message
+from app.shared.integrations.mailer import is_mail_enabled, send_email
 
 
 logger = logging.getLogger("app.outbox")
@@ -55,8 +54,9 @@ class OutboxWorker:
     next pass tries again until it either succeeds or runs out of attempts.
     """
 
-    def __init__(self, session_factory):
+    def __init__(self, session_factory, build_message):
         self.session_factory = session_factory
+        self.build_message = build_message
         self.task: Optional[asyncio.Task] = None
         self.stopping = asyncio.Event()
 
@@ -155,7 +155,7 @@ class OutboxWorker:
 
         # Raises on an event type nothing knows how to write, which lands in
         # last_error instead of being quietly dropped.
-        subject, text_body, html_body = build_message(event.event_type, payload)
+        subject, text_body, html_body = self.build_message(event.event_type, payload)
 
         if not is_mail_enabled():
             logger.info(

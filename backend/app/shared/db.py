@@ -1,5 +1,5 @@
-from app.database_connection import DatabaseConnection
-from app.env_loader import require_env
+from app.shared.database_connection import DatabaseConnection
+from app.shared.env_loader import require_env
 
 
 DATABASE_URL = require_env("DATABASE_URL")

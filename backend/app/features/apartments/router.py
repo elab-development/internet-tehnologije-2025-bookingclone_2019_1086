@@ -1,228 +1,66 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Annotated, Optional, List
+import logging
+from datetime import datetime, date, UTC, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
+from fastapi import APIRouter, Depends, Query, Response
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 
-from app.db import db
-from app.models.apartment import Apartment
+from app.shared.db import db
+from app.shared.responses import BasePagedResponse
+from app.shared.errors import bad_request, forbidden, not_found
+from app.shared.api_docs import error_responses
+from app.shared.integrations.geocoding import geocode_osm_nominatim
+from app.models.apartment import Apartment, utcnow
+from app.models.reservation import Reservation
 from app.models.tag import Tag
 from app.models.user import User
-from app.auth.authorization import Policy
-from app.auth.current_user import get_current_user
 from app.enums.role_enum import Role
-from app.enums.apartment_status_enum import ApartmentStatus, SETTABLE_STATUSES
-from app.base_pagination_request import BasePaginationRequest
-from app.base_response import BasePagedResponse
-from app.services.geocoding import geocode_osm_nominatim
-from app.models.apartment import utcnow
-
-from datetime import datetime, date, UTC, timedelta
-from app.models.reservation import Reservation
+from app.enums.apartment_status_enum import ApartmentStatus
 from app.enums.reservation_status_enum import BLOCKING_STATUSES
-from app.errors import bad_request, forbidden, not_found
+from app.features.auth.dependencies import Policy, get_current_user
 
+from app.features.apartments.schemas import (
+    ApartmentByIdDto,
+    ApartmentCreateRequest,
+    ApartmentDto,
+    ApartmentFilter,
+    ApartmentUpdateRequest,
+    RentedDayDto,
+)
+from app.features.apartments.service import (
+    apply_apartment_filters,
+    map_apartment_to_detail_dto,
+    map_apartment_to_list_dto,
+    map_apartment_to_list_dto_without_photos,
+)
+
+logger = logging.getLogger("app.apartments")
 
 router = APIRouter(prefix="/apartments", tags=["apartments"])
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
 
-# Filters
-class ApartmentFilter(BasePaginationRequest):
-    name: Optional[str] = Field(default=None, max_length=255)
-    address: Optional[str] = Field(default=None, max_length=255)
-    city: Optional[str] = Field(default=None, max_length=100)
-    country: Optional[str] = Field(default=None, max_length=100)
-
-    price_per_night_min: Optional[Decimal] = None
-    price_per_night_max: Optional[Decimal] = None
-
-    max_guests: Optional[int] = Field(default=None, ge=1)
-    rating_average_min: Optional[int] = Field(default=None, ge=0, le=5)
-    rating_average_max: Optional[int] = Field(default=None, ge=0, le=5)
-
-    # Free between these two dates. Both have to be sent for the filter to apply.
-    check_in: Optional[date] = None
-    check_out: Optional[date] = None
-
-    @property
-    def has_date_range(self) -> bool:
-        return self.check_in is not None and self.check_out is not None
-
-
-# DTOs
-class ApartmentPhotoDto(BaseModel):
-    id: int
-    image_url: str
-    is_main: bool
-
-
-class ApartmentDto(BaseModel):
-    id: int
-    user_id: int
-    title: str
-    description: str
-    address: str
-    city: str
-    country: str
-    price_per_night: Decimal
-    max_guests: int
-    status: str
-    latitude: Optional[Decimal]
-    longitude: Optional[Decimal]
-    rating_average: Optional[Decimal]
-    reviews_count: int
-    photos: List[ApartmentPhotoDto]
-
-
-class TagDto(BaseModel):
-    id: int
-    name: str
-    svg_icon: Optional[str]
-
-
-class ApartmentByIdDto(BaseModel):
-    id: int
-    user_id: int
-    title: str
-    description: str
-    address: str
-    city: str
-    country: str
-    price_per_night: Decimal
-    max_guests: int
-    status: str
-    latitude: Optional[Decimal]
-    longitude: Optional[Decimal]
-    rating_average: Optional[Decimal]
-    reviews_count: int
-    photos: List[ApartmentPhotoDto]
-    tags: List[TagDto]
-
-
-# Mappers
-def map_apartment_to_list_dto(apartment: Apartment) -> ApartmentDto:
-    return ApartmentDto(
-        id=apartment.id,
-        user_id=apartment.user_id,
-        title=apartment.title,
-        description=apartment.description,
-        address=apartment.address,
-        city=apartment.city,
-        country=apartment.country,
-        price_per_night=apartment.price_per_night,
-        max_guests=apartment.max_guests,
-        status=apartment.status,
-        latitude=apartment.latitude,
-        longitude=apartment.longitude,
-        rating_average=apartment.rating_average,
-        reviews_count=apartment.reviews_count,
-        photos=[
-            ApartmentPhotoDto(
-                id=photo.id,
-                image_url=photo.image_url,
-                is_main=photo.is_main,
-            )
-            for photo in apartment.photos
-        ],
-    )
-
-
-def map_apartment_to_detail_dto(apartment: Apartment) -> ApartmentByIdDto:
-    return ApartmentByIdDto(
-        id=apartment.id,
-        user_id=apartment.user_id,
-        title=apartment.title,
-        description=apartment.description,
-        address=apartment.address,
-        city=apartment.city,
-        country=apartment.country,
-        price_per_night=apartment.price_per_night,
-        max_guests=apartment.max_guests,
-        status=apartment.status,
-        latitude=apartment.latitude,
-        longitude=apartment.longitude,
-        rating_average=apartment.rating_average,
-        reviews_count=apartment.reviews_count,
-        photos=[
-            ApartmentPhotoDto(
-                id=photo.id,
-                image_url=photo.image_url,
-                is_main=photo.is_main,
-            )
-            for photo in apartment.photos
-        ],
-        tags=[
-            TagDto(
-                id=tag.id,
-                name=tag.name,
-                svg_icon=tag.svg_icon,
-            )
-            for tag in apartment.tags
-        ],
-    )
-
-
-def apply_apartment_filters(query, q: ApartmentFilter):
-    # A soft deleted apartment is gone as far as any list is concerned.
-    query = query.where(Apartment.deleted_at.is_(None))
-
-    if q.name:
-        query = query.where(Apartment.title.ilike(f"%{q.name}%"))
-
-    if q.address:
-        query = query.where(Apartment.address.ilike(f"%{q.address}%"))
-
-    if q.city:
-        query = query.where(Apartment.city.ilike(f"%{q.city}%"))
-
-    if q.country:
-        query = query.where(Apartment.country.ilike(f"%{q.country}%"))
-
-    if q.price_per_night_min is not None:
-        query = query.where(Apartment.price_per_night >= q.price_per_night_min)
-
-    if q.price_per_night_max is not None:
-        query = query.where(Apartment.price_per_night <= q.price_per_night_max)
-
-    if q.max_guests is not None:
-        query = query.where(Apartment.max_guests >= q.max_guests)
-
-    if q.rating_average_min is not None:
-        query = query.where(Apartment.rating_average >= q.rating_average_min)
-
-    if q.rating_average_max is not None:
-        query = query.where(Apartment.rating_average <= q.rating_average_max)
-
-    if q.check_in and q.check_out and q.check_out <= q.check_in:
-        raise bad_request("checkout_before_checkin", "check_out must be after check_in")
-
-    if q.has_date_range:
-        # An apartment is taken when a blocking reservation overlaps the wanted
-        # range: each side starts before the other one ends.
-        taken = (
-            select(Reservation.apartment_id)
-            .where(Reservation.status.in_(BLOCKING_STATUSES))
-            .where(Reservation.check_in < q.check_out)
-            .where(Reservation.check_out > q.check_in)
-        )
-
-        query = query.where(Apartment.id.not_in(taken))
-
-    return query
-
-
-@router.get("", response_model=BasePagedResponse[ApartmentDto])
+@router.get(
+    "",
+    response_model=BasePagedResponse[ApartmentDto],
+    summary="Pretraga apartmana",
+    responses=error_responses(400),
+)
 async def get_apartments(
     session: SessionDep,
     q: Annotated[ApartmentFilter, Depends()],
 ):
+    """Javna, paginirana lista aktivnih apartmana.
+
+    Filteri se slažu jedan na drugi. Ako se pošalju oba datuma, u rezultatu
+    ostaju samo apartmani slobodni za ceo taj raspon. Obrisani apartmani se ne
+    prikazuju nigde.
+    """
     # Only the public list hides inactive apartments. The host keeps seeing
     # them under /my, otherwise a paused listing could never be switched back on.
     query = apply_apartment_filters(
@@ -250,14 +88,22 @@ async def get_apartments(
 
 
 @router.get(
-    "/my", response_model=BasePagedResponse[ApartmentDto]
-)  # this endpoint is used for filtering only apparmets that belongs to host
+    "/my",
+    response_model=BasePagedResponse[ApartmentDto],
+    summary="Apartmani prijavljenog domaćina",
+    responses=error_responses(401, 403),
+)
 async def get_my_apartments(
     session: SessionDep,
     q: Annotated[ApartmentFilter, Depends()],
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
+    """Apartmani prijavljenog domaćina, sa istim filterima kao javna lista.
+
+    Za razliku od javne liste, ovde se vide i neaktivni apartmani —
+    inače pauzirani oglas ne bi imao odakle da se vrati u promet.
+    """
     query = apply_apartment_filters(
         select(Apartment).where(Apartment.user_id == current_user.id), q
     )
@@ -282,26 +128,28 @@ async def get_my_apartments(
     }
 
 
-class ApartmentCreateRequest(BaseModel):
-    title: str = Field(max_length=255)
-    description: str = Field(max_length=5000)
-    address: str = Field(max_length=255)
-    city: str = Field(max_length=100)
-    country: str = Field(max_length=100)
-
-    price_per_night: Decimal = Field(gt=0)
-    max_guests: int = Field(ge=1)
-
-    tag_ids: list[int] = Field(default_factory=list)
-
-
-@router.post("", status_code=201)
+@router.post(
+    "",
+    status_code=201,
+    response_model=ApartmentDto,
+    summary="Kreiranje apartmana",
+    responses=error_responses(400, 401, 403),
+)
 async def create_apartment(
     session: SessionDep,
     request_body: ApartmentCreateRequest,
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
+    """Pravi apartman i odmah ga postavlja kao aktivan.
+
+    Adresa se pri upisu geokodira preko OpenStreetMap Nominatim servisa.
+    Ako geokodiranje ne uspe, apartman se svejedno pravi, samo bez
+    koordinata: nedostupan spoljni servis ne sme da obori kreiranje.
+
+    Novi apartman nema slike, pa je lista `photos` prazna. Slike se
+    dodaju posebno, preko `POST /apartments/{id}/photos`.
+    """
     coords = None
     try:
         coords = await geocode_osm_nominatim(
@@ -309,8 +157,8 @@ async def create_apartment(
             city=request_body.city,
             country=request_body.country,
         )
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+    except Exception as error:
+        logger.warning("Geocoding failed on create: %s", error)
 
     apartment = Apartment(
         user_id=current_user.id,
@@ -340,34 +188,18 @@ async def create_apartment(
     await session.commit()
     await session.refresh(apartment)
 
-    return apartment
+    # A brand new apartment has no photos, so the list is empty by fact rather
+    # than by omission. Saying so keeps it off a lazy load the async session
+    # cannot serve anyway.
+    return map_apartment_to_list_dto_without_photos(apartment)
 
 
-class ApartmentUpdateRequest(BaseModel):
-    """Every field is optional: only what is sent gets changed."""
-
-    title: Optional[str] = Field(default=None, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=5000)
-    address: Optional[str] = Field(default=None, max_length=255)
-    city: Optional[str] = Field(default=None, max_length=100)
-    country: Optional[str] = Field(default=None, max_length=100)
-
-    price_per_night: Optional[Decimal] = Field(default=None, gt=0)
-    max_guests: Optional[int] = Field(default=None, ge=1)
-
-    status: Optional[str] = None
-    tag_ids: Optional[list[int]] = None
-
-    @field_validator("status")
-    @classmethod
-    def check_status(cls, value: Optional[str]) -> Optional[str]:
-        if value is not None and value not in SETTABLE_STATUSES:
-            raise ValueError("status must be 'active' or 'inactive'")
-
-        return value
-
-
-@router.patch("/{apartment_id}", response_model=ApartmentByIdDto)
+@router.patch(
+    "/{apartment_id}",
+    response_model=ApartmentByIdDto,
+    summary="Izmena apartmana",
+    responses=error_responses(400, 401, 403, 404),
+)
 async def update_apartment(
     apartment_id: int,
     session: SessionDep,
@@ -375,6 +207,11 @@ async def update_apartment(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
+    """Menja apartman. Šalje se samo ono što se menja.
+
+    Promena adrese, grada ili države pokreće ponovno geokodiranje.
+    Ako se pošalje `tag_ids`, oznake se zamenjuju u celini, a ne dodaju.
+    """
     result = await session.exec(
         select(Apartment)
         .where(Apartment.id == apartment_id)
@@ -411,8 +248,8 @@ async def update_apartment(
 
             if coords:
                 apartment.latitude, apartment.longitude = coords
-        except Exception as e:
-            print(f"Geocoding failed on update: {e}")
+        except Exception as error:
+            logger.warning("Geocoding failed on update: %s", error)
 
     if tag_ids is not None:
         tags = (await session.exec(select(Tag).where(Tag.id.in_(tag_ids)))).all()
@@ -430,11 +267,20 @@ async def update_apartment(
     return map_apartment_to_detail_dto(apartment)
 
 
-@router.get("/{apartment_id}", response_model=ApartmentByIdDto)
+@router.get(
+    "/{apartment_id}",
+    response_model=ApartmentByIdDto,
+    summary="Jedan apartman sa oznakama i slikama",
+    responses=error_responses(404),
+)
 async def get_apartment_by_id(
     apartment_id: int,
     session: SessionDep,
 ):
+    """Jedan apartman sa svojim oznakama i slikama.
+
+    Obrisan apartman se ne vraća: za njega više ne postoji stranica.
+    """
     result = await session.exec(
         select(Apartment)
         .where(Apartment.id == apartment_id)
@@ -452,13 +298,24 @@ async def get_apartment_by_id(
     return map_apartment_to_detail_dto(apartment)
 
 
-@router.get("/{apartment_id}/rented-days")
+@router.get(
+    "/{apartment_id}/rented-days",
+    response_model=list[RentedDayDto],
+    summary="Kalendar zauzetih dana za jedan mesec",
+    responses=error_responses(400, 404),
+)
 async def get_rented_days(
     apartment_id: int,
     session: SessionDep,
     month: int = Query(..., ge=1, le=12),
     year: int = Query(...),
 ):
+    """Dan po dan za traženi mesec, sa oznakom da li je zauzet.
+
+    Zauzimaju i rezervacije na čekanju, ne samo potvrđene, da dva gosta
+    ne bi tražila iste datume dok domaćin razmišlja. Prošli meseci se ne
+    mogu tražiti, jer kalendar služi za rezervisanje unapred.
+    """
     apartment_result = await session.exec(
         select(Apartment)
         .where(Apartment.id == apartment_id)
@@ -511,10 +368,12 @@ async def get_rented_days(
     return result
 
 
-from fastapi import Response
-
-
-@router.delete("/{apartment_id}", status_code=204)
+@router.delete(
+    "/{apartment_id}",
+    status_code=204,
+    summary="Meko brisanje apartmana",
+    responses=error_responses(401, 403, 404),
+)
 async def delete_apartment(
     apartment_id: int,
     session: SessionDep,

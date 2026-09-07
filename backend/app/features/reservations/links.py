@@ -4,10 +4,9 @@ import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import HTTPException
 
-from app.auth.auth_helper import AuthHelper
-from app.errors import gone, not_found
+from app.features.auth.service import AuthHelper
+from app.shared.errors import gone, not_found
 
 
 # The link only says which reservation it points at and which side it was

@@ -1,34 +1,45 @@
 # loading .env file
-from app.env_loader import load_env
+from app.shared.env_loader import load_env
 
 load_env()
 
 
-from typing import Annotated, List
+from typing import Annotated
 from contextlib import asynccontextmanager
 from pathlib import Path
-from uuid import uuid4
 
-from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.db import db
+from app.shared.db import db
 import app.models  # IMPORTANT: ensures SQLModel metadata is populated
-from app.seed import seed_database
+from app.shared.seed import seed_database
 
-from app.auth.auth_endpoints import router as auth_router
-from app.apartment.apartments_endpoints import router as apartments_router
-from app.apartment_photo.apartment_photo_endpoints import (
+from app.features.auth.router import router as auth_router
+from app.features.apartments.router import router as apartments_router
+from app.features.apartment_photos.router import (
     router as apartment_photo_router,
 )
-from app.tag.tag_endpoints import router as tag_router
-from app.reservation.reservation_endpoints import router as reservation_router
-from app.stats.stats_endpoints import router as stats_router
-from app.outbox.outbox_worker import OutboxWorker
-from app.exception_handlers import ExceptionHandlers
+from app.features.tags.router import router as tag_router
+from app.features.reservations.router import router as reservation_router
+from app.features.stats.router import router as stats_router
+from app.shared.outbox.worker import OutboxWorker
+from app.features.reservations.emails import build_message
+from app.shared.exception_handlers import ExceptionHandlers
+from app.shared.api_docs import (
+    API_DESCRIPTION,
+    API_TITLE,
+    API_VERSION,
+    TAGS_METADATA,
+)
 
 
+# Photos are uploaded by the photo router, which has its own copy of this path.
+# The folder is still made here because StaticFiles refuses to mount a directory
+# that does not exist, and on a fresh checkout nothing else has created it yet.
 UPLOAD_DIR = Path("static/images/apartments")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -46,7 +57,7 @@ async def lifespan(app: FastAPI):
         await session.commit()
 
     # background delivery of everything sitting in the outbox table
-    outbox_worker = OutboxWorker(db.session_factory)
+    outbox_worker = OutboxWorker(db.session_factory, build_message)
     outbox_worker.start()
 
     yield
@@ -55,9 +66,13 @@ async def lifespan(app: FastAPI):
     await db.engine.dispose()
 
 
-app = FastAPI(lifespan=lifespan)
-
-from fastapi.middleware.cors import CORSMiddleware
+app = FastAPI(
+    lifespan=lifespan,
+    title=API_TITLE,
+    version=API_VERSION,
+    description=API_DESCRIPTION,
+    openapi_tags=TAGS_METADATA,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,49 +100,11 @@ app.include_router(stats_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/health")
+class HealthResponse(BaseModel):
+    status: str
+
+
+@app.get("/health", response_model=HealthResponse, tags=["health"])
 async def health():
+    """Says the application is up. Nothing behind it is checked."""
     return {"status": "ok"}
-
-
-@app.post("/pictures/{apartment_id}")
-async def upload_apartment_images(
-    apartment_id: int,
-    files: List[UploadFile] = File(...),
-):
-    apartment_dir = UPLOAD_DIR / str(apartment_id)
-    apartment_dir.mkdir(parents=True, exist_ok=True)
-
-    # validate all first
-    for file in files:
-        if not file.content_type or not file.content_type.startswith("image/"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Only image files are allowed. Invalid: {file.filename}",
-            )
-
-    saved = []
-    for file in files:
-        file_ext = Path(file.filename).suffix.lower()
-        filename = f"{uuid4()}{file_ext}"
-        file_path = apartment_dir / filename
-
-        with file_path.open("wb") as buffer:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                buffer.write(chunk)
-
-        saved.append(
-            {
-                "original_name": file.filename,
-                "filename": filename,
-                "relative_path": f"images/apartments/{apartment_id}/{filename}",
-                "url": f"/static/images/apartments/{apartment_id}/{filename}",
-            }
-        )
-
-        await file.close()
-
-    return {"apartment_id": apartment_id, "count": len(saved), "files": saved}
