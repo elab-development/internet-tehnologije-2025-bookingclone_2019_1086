@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useHostApartmentOptions } from "../../host/apartments/hooks/useHostApartmentOptions";
 import {
   getHostReservations,
   getMyReservations,
@@ -15,12 +16,14 @@ export type ReservationFilters = {
   status: ReservationStatus | "";
   dateFrom: string;
   dateTo: string;
+  apartmentId: number | null;
 };
 
 export const EMPTY_RESERVATION_FILTERS: ReservationFilters = {
   status: "",
   dateFrom: "",
   dateTo: "",
+  apartmentId: null,
 };
 
 const PAGE_SIZE = 10;
@@ -38,6 +41,8 @@ export function useReservationList(scope: ReservationScope) {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
+  const { options: apartmentOptions } = useHostApartmentOptions(scope === "host");
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -48,6 +53,7 @@ export function useReservationList(scope: ReservationScope) {
       status: filters.status || undefined,
       date_from: filters.dateFrom || undefined,
       date_to: filters.dateTo || undefined,
+      apartment_id: filters.apartmentId ?? undefined,
     };
 
     try {
@@ -123,12 +129,16 @@ export function useReservationList(scope: ReservationScope) {
   }
 
   const hasFilters = Boolean(
-    filters.status || filters.dateFrom || filters.dateTo
+    filters.status ||
+      filters.dateFrom ||
+      filters.dateTo ||
+      filters.apartmentId !== null
   );
 
   return {
     items,
     filters,
+    apartmentOptions,
     hasFilters,
     applyFilters,
     resetFilters,

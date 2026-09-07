@@ -39,6 +39,10 @@
   min-width: 0;
 }
 
+.reservations-filters__field--wide {
+  flex: 2 1 220px;
+}
+
 .reservations-filters__label {
   font-size: 13px;
   font-weight: 600;

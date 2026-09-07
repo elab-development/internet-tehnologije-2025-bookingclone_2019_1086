@@ -16,6 +16,7 @@ export function getMenuByRole(role: string): MenuItem[] {
       return [
         { labelKey: "nav.myApartments", to: "/host/apartments" },
         { labelKey: "nav.reservations", to: "/host/reservations" },
+        { labelKey: "nav.statistics", to: "/host/statistika" },
         { labelKey: "nav.payments", to: "/host/payments" },
       ];
 

@@ -22,6 +22,7 @@ function getNavigationItems(logged: boolean, role?: string): NavigationItem[] {
       ...baseItems,
       { labelKey: "nav.myApartments", to: "/host/apartments" },
       { labelKey: "nav.reservations", to: "/host/reservations" },
+      { labelKey: "nav.statistics", to: "/host/statistika" },
       { labelKey: "nav.contact", to: "/contact" },
     ];
   }

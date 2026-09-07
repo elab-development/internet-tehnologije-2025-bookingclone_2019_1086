@@ -112,6 +112,7 @@ class ReservationFilter(BasePaginationRequest):
     date_from: Optional[date] = None
     date_to: Optional[date] = None
 
+    apartment_id: Optional[int] = None
 
 def apply_reservation_filters(query, q: ReservationFilter):
     if q.date_from and q.date_to and q.date_to < q.date_from:
@@ -119,6 +120,9 @@ def apply_reservation_filters(query, q: ReservationFilter):
 
     if q.status:
         query = query.where(Reservation.status == q.status)
+
+    if q.apartment_id is not None:
+        query = query.where(Reservation.apartment_id == q.apartment_id)
 
     # A stay belongs to the period when it overlaps it, not only when it fits
     # inside it, so a booking that started earlier still shows up.
