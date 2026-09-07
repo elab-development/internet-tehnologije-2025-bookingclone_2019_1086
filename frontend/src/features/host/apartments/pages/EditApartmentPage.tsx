@@ -25,6 +25,7 @@ export default function EditApartmentPage() {
     photoBusy,
     addPhotos,
     removePhoto,
+    chooseMainPhoto,
     availableTags,
     selectedTagIds,
     isLoading,
@@ -212,7 +213,14 @@ export default function EditApartmentPage() {
           ) : (
             <div className="d-flex flex-wrap gap-3 mb-3">
               {photos.map((photo) => (
-                <div key={photo.id} className="edit-apartment__photo">
+                <div
+                  key={photo.id}
+                  className={
+                    photo.is_main
+                      ? "edit-apartment__photo edit-apartment__photo--main"
+                      : "edit-apartment__photo"
+                  }
+                >
                   <img src={photo.image_url} alt="" />
 
                   <button
@@ -224,6 +232,21 @@ export default function EditApartmentPage() {
                   >
                     ✕
                   </button>
+
+                  {photo.is_main ? (
+                    <span className="edit-apartment__photo-main-badge">
+                      {t("editApartment.photos.mainBadge")}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light edit-apartment__photo-main-button"
+                      disabled={photoBusy || isSaving}
+                      onClick={() => chooseMainPhoto(photo.id)}
+                    >
+                      {t("editApartment.photos.setMain")}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

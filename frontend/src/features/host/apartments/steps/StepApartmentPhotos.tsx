@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-import { uploadApartmentPhotos } from "../../../apartments/services/apartmentService";
+import {
+  setMainApartmentPhoto,
+  uploadApartmentPhotos,
+} from "../../../apartments/services/apartmentService";
 
 import { usePendingPhotos } from "../hooks/usePendingPhotos";
 import PhotoUploadToolbar from "./components/PhotoUploadToolbar";
@@ -31,9 +34,12 @@ export default function StepApartmentPhotos({
 
   const {
     pendingPhotos,
+    mainPhotoId,
     addFiles,
     removePendingPhoto,
     clearPendingPhotos,
+    chooseMainPhoto,
+    getMainPhotoIndex,
     hasPendingPhotos,
     getPendingFiles,
   } = usePendingPhotos();
@@ -76,7 +82,17 @@ export default function StepApartmentPhotos({
 
       setBusy(true);
 
-      await uploadApartmentPhotos(apartmentId, getPendingFiles());
+      const created = await uploadApartmentPhotos(
+        apartmentId,
+        getPendingFiles()
+      );
+
+      const mainIndex = getMainPhotoIndex();
+      const chosen = mainIndex > 0 ? created[mainIndex] : null;
+
+      if (chosen) {
+        await setMainApartmentPhoto(apartmentId, chosen.id);
+      }
 
       clearPendingPhotos();
       onFinish();
@@ -107,7 +123,9 @@ export default function StepApartmentPhotos({
       <PendingPhotoGrid
         photos={pendingPhotos}
         busy={busy}
+        mainPhotoId={mainPhotoId}
         onRemove={removePendingPhoto}
+        onChooseMain={chooseMainPhoto}
       />
 
       <WizardStepActions>

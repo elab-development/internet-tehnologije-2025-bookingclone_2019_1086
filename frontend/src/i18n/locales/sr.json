@@ -218,7 +218,9 @@
       "empty": "Još uvek nije izabrana nijedna slika.",
       "selectedTitle": "Izabrane slike koje još nisu otpremljene",
       "staged": "spremno",
-      "addAtLeastOne": "Dodajte bar jednu sliku"
+      "addAtLeastOne": "Dodajte bar jednu sliku",
+      "setMain": "Postavi kao naslovnu",
+      "mainBadge": "Naslovna"
     },
     "errors": {
       "requiredFields": "Sva polja su obavezna.",
@@ -254,7 +256,9 @@
       "working": "Radim na slikama...",
       "remove": "Ukloni",
       "confirmTitle": "Ukloniti sliku?",
-      "confirmMessage": "Slika se briše sa apartmana i sa servera."
+      "confirmMessage": "Slika se briše sa apartmana i sa servera.",
+      "setMain": "Postavi kao naslovnu",
+      "mainBadge": "Naslovna"
     },
     "errors": {
       "load": "Ovaj apartman ne može da se otvori.",
@@ -263,7 +267,8 @@
       "photoDelete": "Slika nije mogla da se ukloni.",
       "titleRequired": "Naziv ne sme biti prazan.",
       "priceInvalid": "Cena mora biti veća od nule.",
-      "guestsInvalid": "Apartman mora primati bar jednog gosta."
+      "guestsInvalid": "Apartman mora primati bar jednog gosta.",
+      "photoMain": "Naslovna slika nije mogla da se promeni."
     }
   },
   "hostApartments": {
@@ -573,6 +578,7 @@
     "token_wrong_type": "Sesija nije ispravna. Prijavite se ponovo.",
     "not_authenticated": "Morate prvo da se prijavite.",
     "route_not_found": "Ta stranica ne postoji.",
-    "method_not_allowed": "Ta radnja nije podržana."
+    "method_not_allowed": "Ta radnja nije podržana.",
+    "photo_not_found": "Ta slika ne pripada ovom apartmanu."
   }
 }

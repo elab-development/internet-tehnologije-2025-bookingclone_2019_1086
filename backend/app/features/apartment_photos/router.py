@@ -20,8 +20,14 @@ from app.enums.role_enum import Role
 from app.features.apartment_photos.schemas import (
     ApartmentPhotoItemDto,
     DeleteApartmentPhotosRequest,
+    SetMainPhotoRequest,
 )
-from app.features.apartment_photos.service import apartment_belongs_to_host
+from app.features.apartment_photos.service import (
+    apartment_belongs_to_host,
+    ensure_apartment_has_main_photo,
+    get_photos_of,
+    mark_photo_as_main,
+)
 
 router = APIRouter(
     prefix="/apartments/{apartment_id}/photos", tags=["apartments_photo"]
@@ -121,13 +127,46 @@ async def upload_apartment_photos(
 
         await file.close()
 
+    await session.flush()
+    await ensure_apartment_has_main_photo(session, apartment.id)
     await session.commit()
 
     for p in created:
         await session.refresh(p)
 
     return [
-        ApartmentPhotoItemDto(id=p.id, path=p.image_url, is_main=False) for p in created
+        ApartmentPhotoItemDto(id=p.id, path=p.image_url, is_main=p.is_main)
+        for p in created
+    ]
+
+
+@router.patch(
+    "/main",
+    response_model=list[ApartmentPhotoItemDto],
+    summary="Biranje naslovne slike",
+    responses=error_responses(401, 403, 404),
+)
+async def set_main_apartment_photo(
+    apartment_id: int,
+    session: SessionDep,
+    request_body: SetMainPhotoRequest,
+    apartment: Apartment = Depends(apartment_belongs_to_host),
+    allowed: bool = Depends(Policy({Role.HOST}).check_access),
+):
+    """Postavlja jednu sliku kao naslovnu, a sa ostalih tu oznaku skida.
+
+    Naslovna je ona koja se vidi na kartici apartmana u pretrazi. Uvek je
+    tačno jedna, pa slanje identifikatora slike koja nije sa ovog apartmana
+    ne menja ništa nego vraća grešku.
+    """
+    await mark_photo_as_main(session, apartment_id, request_body.apartment_photo_id)
+    await session.commit()
+
+    photos = await get_photos_of(session, apartment_id)
+
+    return [
+        ApartmentPhotoItemDto(id=p.id, path=p.image_url, is_main=p.is_main)
+        for p in photos
     ]
 
 
@@ -165,6 +204,8 @@ async def delete_apartment_photos(
         return
 
     await session.exec(delete(ApartmentPhoto).where(ApartmentPhoto.id.in_(matched_ids)))
+    await session.flush()
+    await ensure_apartment_has_main_photo(session, apartment_id)
     await session.commit()
 
     # delete files from disk

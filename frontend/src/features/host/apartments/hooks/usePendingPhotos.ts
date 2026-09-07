@@ -29,6 +29,7 @@ export function formatFileSize(size: number) {
 
 export function usePendingPhotos() {
   const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([]);
+  const [mainPhotoId, setMainPhotoId] = useState<string | null>(null);
   const pendingPhotosRef = useRef<PendingPhoto[]>([]);
 
   useEffect(() => {
@@ -55,6 +56,10 @@ export function usePendingPhotos() {
     setPendingPhotos((currentPendingPhotos) => {
       return [...currentPendingPhotos, ...nextPhotos];
     });
+
+    setMainPhotoId((current) => {
+      return current ?? nextPhotos[0]?.id ?? null;
+    });
   }
 
   function removePendingPhoto(id: string) {
@@ -67,9 +72,19 @@ export function usePendingPhotos() {
         revokePhotoPreview(itemToRemove);
       }
 
-      return currentPendingPhotos.filter((photo) => {
+      const remaining = currentPendingPhotos.filter((photo) => {
         return photo.id !== id;
       });
+
+      setMainPhotoId((currentMainId) => {
+        if (currentMainId !== id) {
+          return currentMainId;
+        }
+
+        return remaining[0]?.id ?? null;
+      });
+
+      return remaining;
     });
   }
 
@@ -81,6 +96,16 @@ export function usePendingPhotos() {
 
       return [];
     });
+
+    setMainPhotoId(null);
+  }
+
+  function chooseMainPhoto(id: string) {
+    setMainPhotoId(id);
+  }
+
+  function getMainPhotoIndex() {
+    return pendingPhotos.findIndex((photo) => photo.id === mainPhotoId);
   }
 
   function hasPendingPhotos() {
@@ -95,9 +120,12 @@ export function usePendingPhotos() {
 
   return {
     pendingPhotos,
+    mainPhotoId,
     addFiles,
     removePendingPhoto,
     clearPendingPhotos,
+    chooseMainPhoto,
+    getMainPhotoIndex,
     hasPendingPhotos,
     getPendingFiles,
   };

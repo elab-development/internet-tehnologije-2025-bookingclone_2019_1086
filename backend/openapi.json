@@ -1356,6 +1356,98 @@
         }
       }
     },
+    "/apartments/{apartment_id}/photos/main": {
+      "patch": {
+        "tags": [
+          "apartments_photo"
+        ],
+        "summary": "Biranje naslovne slike",
+        "description": "Postavlja jednu sliku kao naslovnu, a sa ostalih tu oznaku skida.\n\nNaslovna je ona koja se vidi na kartici apartmana u pretrazi. Uvek je\ntačno jedna, pa slanje identifikatora slike koja nije sa ovog apartmana\nne menja ništa nego vraća grešku.",
+        "operationId": "set_main_apartment_photo_apartments__apartment_id__photos_main_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMainPhotoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApartmentPhotoItemDto"
+                  },
+                  "title": "Response Set Main Apartment Photo Apartments  Apartment Id  Photos Main Patch"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tags": {
       "get": {
         "tags": [
@@ -3997,6 +4089,19 @@
           "ADMIN"
         ],
         "title": "Role"
+      },
+      "SetMainPhotoRequest": {
+        "properties": {
+          "apartment_photo_id": {
+            "type": "integer",
+            "title": "Apartment Photo Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apartment_photo_id"
+        ],
+        "title": "SetMainPhotoRequest"
       },
       "StatusResponse": {
         "properties": {
