@@ -1,70 +1,44 @@
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from pathlib import Path
+from typing import Annotated, List
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlmodel import select, delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.db import db
+from app.shared.db import db
+from app.shared.errors import bad_request, not_found
+from app.shared.api_docs import error_responses
 from app.models.apartment import Apartment
-from sqlalchemy import func
+from app.models.apartment_photo import ApartmentPhoto
 
-from app.auth.authorization import Policy
-from app.auth.current_user import get_current_user
+from app.features.auth.dependencies import Policy
 from app.enums.role_enum import Role
-from app.models.user import User
 
+from app.features.apartment_photos.schemas import (
+    ApartmentPhotoItemDto,
+    DeleteApartmentPhotosRequest,
+)
+from app.features.apartment_photos.service import apartment_belongs_to_host
 
 router = APIRouter(
     prefix="/apartments/{apartment_id}/photos", tags=["apartments_photo"]
 )
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
-
-class ApartmentPhotoResponse(BaseModel):
-    items: list[ApartmentPhotoDto] = []
-
-
-class ApartmentPhotoDto(BaseModel):
-    id: int
-    path: str
-    is_main: bool
-
-
-from fastapi import Depends, HTTPException
-from sqlmodel import select
-from app.errors import bad_request, forbidden, not_found
-
-
-async def apartment_belongs_to_host(
-    apartment_id: int,
-    session: SessionDep,
-    current_user: User = Depends(get_current_user),
-) -> Apartment:
-    apt = (
-        await session.exec(
-            select(Apartment)
-            .where(Apartment.id == apartment_id)
-            .where(Apartment.deleted_at.is_(None))
-        )
-    ).first()
-
-    if not apt:
-        raise not_found("apartment_not_found", "Apartment not found")
-
-    if apt.user_id != current_user.id:
-        raise forbidden("apartment_not_yours", "This apartment is not yours")
-
-    return apt
-
-
-@router.get("", response_model=list[ApartmentPhotoDto])
+@router.get(
+    "",
+    response_model=list[ApartmentPhotoItemDto],
+    summary="Sve slike jednog apartmana",
+    responses=error_responses(404),
+)
 async def get_apartment_main_photo(
     apartment_id: int,
     session: SessionDep,
 ):
+    """Vraća slike apartmana. Javno, jer se iste slike vide i na stranici apartmana."""
     apt = (
         await session.exec(
             select(Apartment)
@@ -82,9 +56,9 @@ async def get_apartment_main_photo(
         )
     ).all()
 
-    result: list[ApartmentPhotoDto] = []
+    result: list[ApartmentPhotoItemDto] = []
     for item in photos:
-        photo_dto = ApartmentPhotoDto(
+        photo_dto = ApartmentPhotoItemDto(
             id=item.id, path=item.image_url, is_main=item.is_main
         )
         result.append(photo_dto)
@@ -92,25 +66,27 @@ async def get_apartment_main_photo(
     return result
 
 
-from pathlib import Path
-from fastapi import UploadFile, File
-from fastapi.staticfiles import StaticFiles
-from typing import Annotated, List
-from uuid import uuid4
-from app.models.apartment_photo import ApartmentPhoto
-
-
 UPLOAD_DIR = Path("static/images/apartments")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
-@router.post("", response_model=list[ApartmentPhotoDto])
+@router.post(
+    "",
+    response_model=list[ApartmentPhotoItemDto],
+    summary="Otpremanje slika apartmana",
+    responses=error_responses(400, 401, 403, 404),
+)
 async def upload_apartment_photos(
     session: SessionDep,
     photos: List[UploadFile] = File(...),
     apartment: Apartment = Depends(apartment_belongs_to_host),
     allowed: bool = Depends(Policy({Role.HOST}).check_access),
 ):
+    """Otprema jednu ili više slika za apartman.
+
+    Svi fajlovi se prvo provere pa tek onda upisuju, da otpremanje ne
+    ostavi pola slika na disku ako je poslednja pogrešnog tipa.
+    """
     apartment_dir = UPLOAD_DIR / str(apartment.id)
     apartment_dir.mkdir(parents=True, exist_ok=True)
 
@@ -126,8 +102,7 @@ async def upload_apartment_photos(
 
     for file in photos:
         ext = Path(file.filename).suffix.lower()
-        # filename = f"{uuid4().hex}{ext}"
-        filename = file.filename
+        filename = f"{uuid4().hex}{ext}"
 
         file_path = apartment_dir / filename
         url = f"/static/images/apartments/{apartment.id}/{filename}"
@@ -152,24 +127,29 @@ async def upload_apartment_photos(
         await session.refresh(p)
 
     return [
-        ApartmentPhotoDto(id=p.id, path=p.image_url, is_main=False) for p in created
+        ApartmentPhotoItemDto(id=p.id, path=p.image_url, is_main=False) for p in created
     ]
 
 
-from fastapi import Body
 
 
-class DeleteApartmentPhotosRequest(BaseModel):
-    apartment_photo_ids: List[int]
-
-
-@router.delete("", status_code=204)
-async def delete_appartment_photo(
+@router.delete(
+    "",
+    status_code=204,
+    summary="Brisanje slika apartmana",
+    responses=error_responses(401, 403, 404),
+)
+async def delete_apartment_photos(
     apartment_id: int,
     session: SessionDep,
     delete_body: DeleteApartmentPhotosRequest,
     apartment: Apartment = Depends(apartment_belongs_to_host),
 ):
+    """Briše slike po identifikatorima, i iz baze i sa diska.
+
+    Prolaze samo slike koje stvarno pripadaju tom apartmanu, pa tuđi
+    identifikator ne briše ništa.
+    """
     results = await session.exec(
         select(ApartmentPhoto).where(
             ApartmentPhoto.id.in_(delete_body.apartment_photo_ids),

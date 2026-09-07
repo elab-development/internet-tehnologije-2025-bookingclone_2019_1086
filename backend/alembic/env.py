@@ -9,7 +9,7 @@ from sqlmodel import SQLModel
 BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(BASE_DIR))
 
-from app.env_loader import load_env, require_env
+from app.shared.env_loader import load_env, require_env
 
 load_env()
 import app.models  # noqa

@@ -4,13 +4,13 @@ import hmac
 import secrets
 
 import jwt
-from fastapi import HTTPException, Response
+from fastapi import Response
 from passlib.context import CryptContext
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.user import User
-from app.env_loader import require_env
-from app.errors import unauthorized
+from app.shared.env_loader import require_env
+from app.shared.errors import unauthorized
 
 
 class AuthHelper:

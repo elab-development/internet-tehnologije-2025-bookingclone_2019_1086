@@ -1,0 +1,4262 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Booking Clone API",
+    "description": "REST API za aplikaciju za rezervaciju apartmana.\n\nTri uloge: **USER** rezerviše, **HOST** izdaje i vodi svoje apartmane,\n**ADMIN** upravlja šifarnicima.\n\n**Autentifikacija.** Prijava vraća *access token* koji traje 15 minuta i putuje\nu zaglavlju `Authorization: Bearer <token>`. Uz njega ide i *refresh token*, ali\non stoji u `httponly` kolačiću i ne čita se iz JavaScript-a; `POST /auth/refresh`\nga troši i izdaje nov par, pa jedan refresh token vredi tačno jednom.\n\nU Swagger UI-ju se prijavljujete dugmetom **Authorize**, unosom email adrese i\nlozinke.\n\n**Greške.** Svaka greška ima isti oblik: `detail` je rečenica na engleskom,\n`code` je stabilna oznaka koju frontend prevodi na jezik korisnika, a `params`\nnosi vrednosti koje ulaze u prevedenu rečenicu. Zahvaljujući tome poruka o\ngrešci nikad nije sklopljena od engleskih parčića unutar srpske rečenice.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Registracija novog korisnika",
+        "description": "Pravi nalog i odmah prijavljuje korisnika.\n\nUloga se bira pri registraciji, ali **ADMIN** ne prolazi: administrator se\nne dodeljuje sam sebi. Nalog i prva sesija se upisuju u istoj transakciji,\npa registracija ne može da ostavi korisnika bez sesije.",
+        "operationId": "register_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sudar sa postojećim stanjem, npr. datumi su već zauzeti.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Prijava i preuzimanje tokena",
+        "description": "Proverava lozinku i otvara novu sesiju.\n\nTelo je `application/x-www-form-urlencoded`, kako Swagger UI očekuje: polje\n`username` je zapravo email adresa. Pogrešna lozinka i nepostojeći nalog\nvraćaju istu grešku, da odgovor ne bi odao koje adrese postoje.",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Osvežavanje isteklog access tokena",
+        "description": "Menja refresh token iz kolačića za nov par tokena.\n\nStari token se poništava u istom potezu, pa svaki vredi tačno jednom. Ako\nse isti token pojavi drugi put, sesija je ili istekla ili ukradena, i u oba\nslučaja odgovor je 401.",
+        "operationId": "refresh_auth_refresh_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Odjava i poništavanje refresh tokena",
+        "description": "Poništava sesiju i briše kolačić.\n\nOdjava bez važećeg tokena nije greška: cilj je da korisnik na kraju bude\nodjavljen, a to je već ispunjeno.",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Podaci o prijavljenom korisniku",
+        "description": "Vraća prijavljenog korisnika, čime ujedno proverava da token još važi.",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/apartments": {
+      "get": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Pretraga apartmana",
+        "description": "Javna, paginirana lista aktivnih apartmana.\n\nFilteri se slažu jedan na drugi. Ako se pošalju oba datuma, u rezultatu\nostaju samo apartmani slobodni za ceo taj raspon. Obrisani apartmani se ne\nprikazuju nigde.",
+        "operationId": "get_apartments_apartments_get",
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Country"
+            }
+          },
+          {
+            "name": "price_per_night_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price Per Night Min"
+            }
+          },
+          {
+            "name": "price_per_night_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price Per Night Max"
+            }
+          },
+          {
+            "name": "max_guests",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Guests"
+            }
+          },
+          {
+            "name": "rating_average_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rating Average Min"
+            }
+          },
+          {
+            "name": "rating_average_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rating Average Max"
+            }
+          },
+          {
+            "name": "check_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Check In"
+            }
+          },
+          {
+            "name": "check_out",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Check Out"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_ApartmentDto_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Kreiranje apartmana",
+        "description": "Pravi apartman i odmah ga postavlja kao aktivan.\n\nAdresa se pri upisu geokodira preko OpenStreetMap Nominatim servisa.\nAko geokodiranje ne uspe, apartman se svejedno pravi, samo bez\nkoordinata: nedostupan spoljni servis ne sme da obori kreiranje.\n\nNovi apartman nema slike, pa je lista `photos` prazna. Slike se\ndodaju posebno, preko `POST /apartments/{id}/photos`.",
+        "operationId": "create_apartment_apartments_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApartmentCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApartmentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apartments/my": {
+      "get": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Apartmani prijavljenog domaćina",
+        "description": "Apartmani prijavljenog domaćina, sa istim filterima kao javna lista.\n\nZa razliku od javne liste, ovde se vide i neaktivni apartmani —\ninače pauzirani oglas ne bi imao odakle da se vrati u promet.",
+        "operationId": "get_my_apartments_apartments_my_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Country"
+            }
+          },
+          {
+            "name": "price_per_night_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price Per Night Min"
+            }
+          },
+          {
+            "name": "price_per_night_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price Per Night Max"
+            }
+          },
+          {
+            "name": "max_guests",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Guests"
+            }
+          },
+          {
+            "name": "rating_average_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rating Average Min"
+            }
+          },
+          {
+            "name": "rating_average_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rating Average Max"
+            }
+          },
+          {
+            "name": "check_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Check In"
+            }
+          },
+          {
+            "name": "check_out",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Check Out"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_ApartmentDto_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apartments/{apartment_id}": {
+      "patch": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Izmena apartmana",
+        "description": "Menja apartman. Šalje se samo ono što se menja.\n\nPromena adrese, grada ili države pokreće ponovno geokodiranje.\nAko se pošalje `tag_ids`, oznake se zamenjuju u celini, a ne dodaju.",
+        "operationId": "update_apartment_apartments__apartment_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApartmentUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApartmentByIdDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Jedan apartman sa oznakama i slikama",
+        "description": "Jedan apartman sa svojim oznakama i slikama.\n\nObrisan apartman se ne vraća: za njega više ne postoji stranica.",
+        "operationId": "get_apartment_by_id_apartments__apartment_id__get",
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApartmentByIdDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Meko brisanje apartmana",
+        "description": "Soft delete.\n\nThe row and its photos stay in the database because reservations point at\nthem: a guest still has to see where they stayed and the host still has to\nsee what was booked. Setting deleted_at takes the apartment out of every\nlist and makes it impossible to book again, which is all a delete has to do\nhere.",
+        "operationId": "delete_apartment_apartments__apartment_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apartments/{apartment_id}/rented-days": {
+      "get": {
+        "tags": [
+          "apartments"
+        ],
+        "summary": "Kalendar zauzetih dana za jedan mesec",
+        "description": "Dan po dan za traženi mesec, sa oznakom da li je zauzet.\n\nZauzimaju i rezervacije na čekanju, ne samo potvrđene, da dva gosta\nne bi tražila iste datume dok domaćin razmišlja. Prošli meseci se ne\nmogu tražiti, jer kalendar služi za rezervisanje unapred.",
+        "operationId": "get_rented_days_apartments__apartment_id__rented_days_get",
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Month"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RentedDayDto"
+                  },
+                  "title": "Response Get Rented Days Apartments  Apartment Id  Rented Days Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apartments/{apartment_id}/photos": {
+      "get": {
+        "tags": [
+          "apartments_photo"
+        ],
+        "summary": "Sve slike jednog apartmana",
+        "description": "Vraća slike apartmana. Javno, jer se iste slike vide i na stranici apartmana.",
+        "operationId": "get_apartment_main_photo_apartments__apartment_id__photos_get",
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApartmentPhotoItemDto"
+                  },
+                  "title": "Response Get Apartment Main Photo Apartments  Apartment Id  Photos Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "apartments_photo"
+        ],
+        "summary": "Otpremanje slika apartmana",
+        "description": "Otprema jednu ili više slika za apartman.\n\nSvi fajlovi se prvo provere pa tek onda upisuju, da otpremanje ne\nostavi pola slika na disku ako je poslednja pogrešnog tipa.",
+        "operationId": "upload_apartment_photos_apartments__apartment_id__photos_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_apartment_photos_apartments__apartment_id__photos_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApartmentPhotoItemDto"
+                  },
+                  "title": "Response Upload Apartment Photos Apartments  Apartment Id  Photos Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "apartments_photo"
+        ],
+        "summary": "Brisanje slika apartmana",
+        "description": "Briše slike po identifikatorima, i iz baze i sa diska.\n\nProlaze samo slike koje stvarno pripadaju tom apartmanu, pa tuđi\nidentifikator ne briše ništa.",
+        "operationId": "delete_apartment_photos_apartments__apartment_id__photos_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "apartment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteApartmentPhotosRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Lista oznaka",
+        "description": "Paginirana lista oznaka, uz pretragu po nazivu. Javno.",
+        "operationId": "list_tags_tags_get",
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_TagDto_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Nova oznaka (ADMIN)",
+        "description": "Pravi novu oznaku.\n\nI naziv i `icon_key` moraju biti jedinstveni, pa se dve oznake nikad\nne mogu naći sa istom ikonicom.",
+        "operationId": "create_tag_tags_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sudar sa postojećim stanjem, npr. datumi su već zauzeti.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags/{tag_id}": {
+      "get": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Jedna oznaka",
+        "description": "Jedna oznaka sa ikonicom. Javno.",
+        "operationId": "get_tag_by_id_tags__tag_id__get",
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tag Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Zamena oznake u celini (ADMIN)",
+        "description": "Menja oznaku u celini: sva polja se šalju, i sva se upisuju.",
+        "operationId": "update_tag_tags__tag_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tag Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sudar sa postojećim stanjem, npr. datumi su već zauzeti.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Izmena pojedinih polja oznake (ADMIN)",
+        "description": "Menja samo poslata polja oznake, ostala ostaju kakva jesu.",
+        "operationId": "patch_tag_tags__tag_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tag Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagPatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sudar sa postojećim stanjem, npr. datumi su već zauzeti.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tags"
+        ],
+        "summary": "Brisanje oznake (ADMIN)",
+        "description": "Briše oznaku i skida je sa svih apartmana koji su je nosili.",
+        "operationId": "delete_tag_tags__tag_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tag Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "post": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Nova rezervacija",
+        "description": "Gost traži termin; rezervacija kreće u stanju `pending`.\n\nOdbija se ako se datumi preklapaju sa postojećom rezervacijom, ako\nje gostiju više nego što apartman prima, i ako gost pokuša da\nrezerviše sopstveni apartman.\n\nMejlovi gostu i domaćinu se upisuju u outbox u istoj transakciji kao\ni rezervacija, pa mejl ne može biti obećan za rezervaciju koja nije\nprošla. Samo slanje ide kasnije, u pozadini.",
+        "operationId": "create_reservation_reservations_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sudar sa postojećim stanjem, npr. datumi su već zauzeti.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Moje rezervacije (kao gost)",
+        "description": "Rezervacije koje je prijavljeni korisnik napravio kao gost.\n\nFilter po periodu hvata boravke koji ga dodiruju, ne samo one koji\nceli staju unutra, pa se vidi i boravak započet ranije.",
+        "operationId": "get_my_reservations_reservations_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "apartment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_ReservationDto_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations/host": {
+      "get": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Rezervacije na mojim apartmanima (kao domaćin)",
+        "description": "Rezervacije na apartmanima prijavljenog domaćina.\n\nIsti filteri kao na gostinskoj listi, uz `apartment_id` kad domaćin\nhoće da vidi samo jedan apartman.",
+        "operationId": "get_reservations_for_my_apartments_reservations_host_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page Number"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "apartment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BasePagedResponse_ReservationDto_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations/{reservation_id}": {
+      "get": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Jedna rezervacija",
+        "description": "Jedna rezervacija. Vide je samo gost koji ju je napravio i domaćin\napartmana na kom stoji.",
+        "operationId": "get_reservation_by_id_reservations__reservation_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reservation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reservation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Potvrda ili otkazivanje rezervacije",
+        "description": "Potvrda ili otkazivanje.\n\nPotvrditi može samo domaćin. Otkazati mogu obojica, ali otkazana\nrezervacija se posle ne vraća ni u jedno drugo stanje.\n\nOdgovor domaćina gostu ide mejlom; gost koji otkaže sam sebi ne\nšalje ništa, jer to već zna.",
+        "operationId": "update_reservation_status_reservations__reservation_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reservation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reservation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations/link/{token}": {
+      "get": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Rezervacija otvorena linkom iz mejla",
+        "description": "Rezervacija otvorena linkom iz mejla.\n\nToken kaže samo o kojoj je rezervaciji reč. Ko sme da je vidi odlučuje\nprijava, pa ukraden link sam po sebi ne vredi ništa: onaj ko ga otvori\nmora biti prijavljen kao taj gost ili kao domaćin tog apartmana.",
+        "operationId": "get_reservation_by_link_reservations_link__token__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationLinkDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Link je istekao i više ne važi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "reservations"
+        ],
+        "summary": "Odgovor domaćina sa linka iz mejla",
+        "description": "Domaćin odgovara na rezervaciju pravo iz mejla.\n\nIsta provera kao pri čitanju linka, uz jedno više: gost otvara link da\nprati rezervaciju, ne da na nju odgovori.",
+        "operationId": "update_reservation_by_link_reservations_link__token__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationLinkDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Traženi resurs ne postoji.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Link je istekao i više ne važi.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats/host/earnings": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Zarada domaćina po mesecima ili godinama",
+        "description": "Earnings of the signed in host, one row per month or per year.\n\nThe adding up happens in Python on purpose. Grouping by month in SQL means\n`strftime` on SQLite and `date_trunc` on Postgres, so the query would have\nto be rewritten the day the database changes. For the number of bookings a\nsingle host has, reading them and summing them here costs nothing.",
+        "operationId": "get_host_earnings_stats_host_earnings_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "month",
+              "title": "Group By"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "apartment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EarningsPointDto"
+                  },
+                  "title": "Response Get Host Earnings Stats Host Earnings Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats/host/by-apartment": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "summary": "Udeo svakog apartmana u zaradi",
+        "description": "How the same money splits over the host's apartments, with percentages.\n\nAn apartment that earned nothing in the period is left out: a slice of zero\nis not a slice, it is only a name taking up room in the legend.",
+        "operationId": "get_host_earnings_by_apartment_stats_host_by_apartment_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "month",
+              "title": "Group By"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "apartment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Apartment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApartmentShareDto"
+                  },
+                  "title": "Response Get Host Earnings By Apartment Stats Host By Apartment Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zahtev je neispravan, npr. datum odjave pre datuma prijave.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Niste prijavljeni ili je token istekao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prijavljeni ste, ali nemate pravo na ovu radnju.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "description": "Says the application is up. Nothing behind it is checked.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApartmentByIdDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "price_per_night": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price Per Night"
+          },
+          "max_guests": {
+            "type": "integer",
+            "title": "Max Guests"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "rating_average": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Average"
+          },
+          "reviews_count": {
+            "type": "integer",
+            "title": "Reviews Count"
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/ApartmentPhotoDto"
+            },
+            "type": "array",
+            "title": "Photos"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/ApartmentTagDto"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "title",
+          "description",
+          "address",
+          "city",
+          "country",
+          "price_per_night",
+          "max_guests",
+          "status",
+          "latitude",
+          "longitude",
+          "rating_average",
+          "reviews_count",
+          "photos",
+          "tags"
+        ],
+        "title": "ApartmentByIdDto"
+      },
+      "ApartmentCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Description"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Address"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Country"
+          },
+          "price_per_night": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Price Per Night"
+          },
+          "max_guests": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Max Guests"
+          },
+          "tag_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Tag Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "address",
+          "city",
+          "country",
+          "price_per_night",
+          "max_guests"
+        ],
+        "title": "ApartmentCreateRequest"
+      },
+      "ApartmentDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "price_per_night": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price Per Night"
+          },
+          "max_guests": {
+            "type": "integer",
+            "title": "Max Guests"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "rating_average": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Average"
+          },
+          "reviews_count": {
+            "type": "integer",
+            "title": "Reviews Count"
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/ApartmentPhotoDto"
+            },
+            "type": "array",
+            "title": "Photos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "title",
+          "description",
+          "address",
+          "city",
+          "country",
+          "price_per_night",
+          "max_guests",
+          "status",
+          "latitude",
+          "longitude",
+          "rating_average",
+          "reviews_count",
+          "photos"
+        ],
+        "title": "ApartmentDto"
+      },
+      "ApartmentPhotoDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "is_main": {
+            "type": "boolean",
+            "title": "Is Main"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "image_url",
+          "is_main"
+        ],
+        "title": "ApartmentPhotoDto"
+      },
+      "ApartmentPhotoItemDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "is_main": {
+            "type": "boolean",
+            "title": "Is Main"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "is_main"
+        ],
+        "title": "ApartmentPhotoItemDto",
+        "description": "One stored photo. `path` is a url under /static, not a disk path."
+      },
+      "ApartmentShareDto": {
+        "properties": {
+          "apartment_id": {
+            "type": "integer",
+            "title": "Apartment Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "reservations": {
+            "type": "integer",
+            "title": "Reservations"
+          },
+          "share_percent": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Share Percent"
+          },
+          "is_deleted": {
+            "type": "boolean",
+            "title": "Is Deleted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apartment_id",
+          "title",
+          "total",
+          "nights",
+          "reservations",
+          "share_percent",
+          "is_deleted"
+        ],
+        "title": "ApartmentShareDto"
+      },
+      "ApartmentTagDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "svg_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Svg Icon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "svg_icon"
+        ],
+        "title": "ApartmentTagDto",
+        "description": "A tag as it hangs off an apartment, without the icon key."
+      },
+      "ApartmentUpdateRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "price_per_night": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Per Night"
+          },
+          "max_guests": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Guests"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "tag_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag Ids"
+          }
+        },
+        "type": "object",
+        "title": "ApartmentUpdateRequest",
+        "description": "Every field is optional: only what is sent gets changed."
+      },
+      "AuthUserDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role"
+        ],
+        "title": "AuthUserDto",
+        "description": "The signed in user, as every auth route reports them."
+      },
+      "BasePagedResponse_ApartmentDto_": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ApartmentDto"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "BasePagedResponse[ApartmentDto]"
+      },
+      "BasePagedResponse_ReservationDto_": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReservationDto"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "BasePagedResponse[ReservationDto]"
+      },
+      "BasePagedResponse_TagDto_": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TagDto"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "BasePagedResponse[TagDto]"
+      },
+      "Body_login_auth_login_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_auth_login_post"
+      },
+      "Body_upload_apartment_photos_apartments__apartment_id__photos_post": {
+        "properties": {
+          "photos": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Photos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "photos"
+        ],
+        "title": "Body_upload_apartment_photos_apartments__apartment_id__photos_post"
+      },
+      "DeleteApartmentPhotosRequest": {
+        "properties": {
+          "apartment_photo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Apartment Photo Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apartment_photo_ids"
+        ],
+        "title": "DeleteApartmentPhotosRequest"
+      },
+      "EarningsPointDto": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Period"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "reservations": {
+            "type": "integer",
+            "title": "Reservations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "total",
+          "nights",
+          "reservations"
+        ],
+        "title": "EarningsPointDto"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "Rečenica na engleskom, čitljiva i bez prevoda."
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Stabilna oznaka greške koju frontend prevodi."
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params",
+            "description": "Vrednosti koje ulaze u prevedenu poruku, npr. `max_guests`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail",
+          "code"
+        ],
+        "title": "ErrorResponse",
+        "description": "The one shape every failed request comes back in.\n\nBuilt by `ExceptionHandlers`, which is the only place that knows what an\nerror looks like on the wire. Declaring it here as well is what puts it in\nthe specification, where it is otherwise invisible.",
+        "example": {
+          "code": "too_many_guests",
+          "detail": "This apartment allows at most 4 guests",
+          "params": {
+            "max_guests": 4
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse"
+      },
+      "RefreshResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "RefreshResponse",
+        "description": "Same as a login, minus the user: whoever asks already knows who they are."
+      },
+      "RegisterRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role",
+            "default": "USER"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest"
+      },
+      "RentedDayDto": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "rented": {
+            "type": "boolean",
+            "title": "Rented"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "rented"
+        ],
+        "title": "RentedDayDto",
+        "description": "One day of the asked month and whether anything is holding it."
+      },
+      "ReservationApartmentDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_deleted": {
+            "type": "boolean",
+            "title": "Is Deleted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "city",
+          "country",
+          "image_url",
+          "is_deleted"
+        ],
+        "title": "ReservationApartmentDto"
+      },
+      "ReservationCreateRequest": {
+        "properties": {
+          "apartment_id": {
+            "type": "integer",
+            "title": "Apartment Id"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "guests_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Guests Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apartment_id",
+          "check_in",
+          "check_out",
+          "guests_count"
+        ],
+        "title": "ReservationCreateRequest"
+      },
+      "ReservationDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "apartment_id": {
+            "type": "integer",
+            "title": "Apartment Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "guests_count": {
+            "type": "integer",
+            "title": "Guests Count"
+          },
+          "total_price": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Price"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "apartment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReservationApartmentDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "guest_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "apartment_id",
+          "user_id",
+          "check_in",
+          "check_out",
+          "nights",
+          "guests_count",
+          "total_price",
+          "status",
+          "created_at",
+          "apartment",
+          "guest_name"
+        ],
+        "title": "ReservationDto"
+      },
+      "ReservationLinkDto": {
+        "properties": {
+          "reservation": {
+            "$ref": "#/components/schemas/ReservationDto"
+          },
+          "can_manage": {
+            "type": "boolean",
+            "title": "Can Manage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reservation",
+          "can_manage"
+        ],
+        "title": "ReservationLinkDto",
+        "description": "What the page behind a mail link shows."
+      },
+      "ReservationStatusRequest": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReservationStatusRequest"
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "HOST",
+          "ADMIN"
+        ],
+        "title": "Role"
+      },
+      "StatusResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StatusResponse"
+      },
+      "TagCreateRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "icon_key": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Icon Key"
+          },
+          "svg_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Svg Icon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "icon_key"
+        ],
+        "title": "TagCreateRequest"
+      },
+      "TagDto": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "icon_key": {
+            "type": "string",
+            "title": "Icon Key"
+          },
+          "svg_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Svg Icon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "icon_key",
+          "svg_icon"
+        ],
+        "title": "TagDto"
+      },
+      "TagPatchRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "icon_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Key"
+          },
+          "svg_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Svg Icon"
+          }
+        },
+        "type": "object",
+        "title": "TagPatchRequest"
+      },
+      "TagUpdateRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "icon_key": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Icon Key"
+          },
+          "svg_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Svg Icon"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "icon_key"
+        ],
+        "title": "TagUpdateRequest"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "TokenResponse",
+        "description": "A fresh access token plus who it belongs to.\n\nThe refresh token is deliberately absent: it goes back in an httponly\ncookie, never in the body, so no script can read it."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/auth/login"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Registracija, prijava, odjava i osvežavanje sesije. `GET /auth/me` vraća prijavljenog korisnika i koristi se za proveru tokena."
+    },
+    {
+      "name": "apartments",
+      "description": "Apartmani: javna pretraga sa filterima, kalendar zauzetih dana i upravljanje sopstvenim apartmanima za ulogu HOST. Brisanje je meko (*soft delete*) — red ostaje u bazi da bi stare rezervacije i dalje pokazivale na postojeći apartman."
+    },
+    {
+      "name": "apartments_photo",
+      "description": "Slike apartmana. Otpremanje i brisanje sme samo vlasnik apartmana; same slike se posle čitaju kao statički fajlovi sa `/static`."
+    },
+    {
+      "name": "tags",
+      "description": "Šifarnik oznaka (Wi-Fi, parking, klima). Čitanje je javno, izmene su dozvoljene samo ulozi ADMIN."
+    },
+    {
+      "name": "reservations",
+      "description": "Rezervacije. Gost pravi zahtev, domaćin ga potvrđuje ili odbija. Rute `/reservations/link/{token}` stoje iza linka iz mejla: token kaže samo o kojoj je rezervaciji reč, a ko sme da je vidi odlučuje prijava, ne posedovanje linka."
+    },
+    {
+      "name": "stats",
+      "description": "Zarada domaćina po periodu i po apartmanu. Računaju se samo potvrđene rezervacije, a rezervacija pripada periodu svog dolaska."
+    },
+    {
+      "name": "health",
+      "description": "Provera da li aplikacija radi."
+    }
+  ]
+}
