@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  docker:
+    name: Build and start containers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build both images
+        run: docker compose build
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Wait for the backend to become healthy
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format='{{.State.Health.Status}}' bookingclone-backend 2>/dev/null || echo starting)
+            echo "attempt $i: $status"
+            if [ "$status" = "healthy" ]; then exit 0; fi
+            if [ "$status" = "unhealthy" ]; then break; fi
+            sleep 5
+          done
+          echo "backend never became healthy"
+          docker compose logs backend
+          exit 1
+
+      - name: Check that both services respond
+        run: |
+          curl -sf http://localhost:8000/health
+          curl -sf http://localhost:8000/openapi.json > /dev/null && echo "API responds"
+          curl -sf http://localhost:3000/ > /dev/null && echo "frontend responds"
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Shut down
+        if: always()
+        run: docker compose down -v
