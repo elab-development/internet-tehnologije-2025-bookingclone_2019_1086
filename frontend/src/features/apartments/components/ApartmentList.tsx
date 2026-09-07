@@ -133,6 +133,8 @@ export default function ApartmentList({
             city={apartment.city}
             imageUrl={getMainPhotoUrl(apartment)}
             pricePerNight={apartment.price_per_night}
+            ratingAverage={apartment.rating_average}
+            reviewsCount={apartment.reviews_count}
           />
         ))}
       </div>

@@ -7,6 +7,7 @@ from app.enums.role_enum import Role
 if TYPE_CHECKING:
     from .apartment import Apartment
     from .reservation import Reservation
+    from .review import Review
     from .user_session import UserSession
 
 
@@ -29,4 +30,5 @@ class User(SQLModel, table=True):
 
     apartments: List["Apartment"] = Relationship(back_populates="owner")
     reservations: List["Reservation"] = Relationship(back_populates="guest")
+    reviews: List["Review"] = Relationship(back_populates="author")
     sessions: List["UserSession"] = Relationship(back_populates="user")

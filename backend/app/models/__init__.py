@@ -4,5 +4,6 @@ from .apartment_photo import ApartmentPhoto
 from .tag import Tag
 from .apartment_tag import ApartmentTag
 from .reservation import Reservation
+from .review import Review
 from .user_session import UserSession
 from .outbox_event import OutboxEvent

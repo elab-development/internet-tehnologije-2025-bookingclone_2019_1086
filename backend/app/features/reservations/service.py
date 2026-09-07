@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, UTC
 from typing import Optional
 
 from sqlmodel import select
@@ -19,6 +19,7 @@ from app.features.reservations.schemas import (
     ReservationApartmentDto,
     ReservationDto,
     ReservationFilter,
+    ReservationReviewDto,
 )
 
 
@@ -49,6 +50,16 @@ def apply_reservation_filters(query, q: ReservationFilter):
 def count_nights(check_in: date, check_out: date) -> int:
     return (check_out - check_in).days
 
+def is_reviewable(reservation: Reservation) -> bool:
+    if reservation.status != STATUS_CONFIRMED:
+        return False
+
+    if reservation.review is not None:
+        return False
+
+    return reservation.check_out <= datetime.now(UTC).date()
+
+
 def map_reservation_to_dto(reservation: Reservation) -> ReservationDto:
     apartment_dto = None
 
@@ -68,6 +79,15 @@ def map_reservation_to_dto(reservation: Reservation) -> ReservationDto:
             is_deleted=reservation.apartment.deleted_at is not None,
         )
 
+    review_dto = None
+
+    if reservation.review:
+        review_dto = ReservationReviewDto(
+            id=reservation.review.id,
+            rating=reservation.review.rating,
+            comment=reservation.review.comment,
+        )
+
     return ReservationDto(
         id=reservation.id,
         apartment_id=reservation.apartment_id,
@@ -81,6 +101,8 @@ def map_reservation_to_dto(reservation: Reservation) -> ReservationDto:
         created_at=reservation.created_at,
         apartment=apartment_dto,
         guest_name=reservation.guest.name if reservation.guest else None,
+        review=review_dto,
+        is_reviewable=is_reviewable(reservation),
     )
 
 async def find_overlapping(
@@ -118,6 +140,7 @@ async def paginate_reservations(
         query.options(
             selectinload(Reservation.apartment).selectinload(Apartment.photos),
             selectinload(Reservation.guest),
+            selectinload(Reservation.review),
         )
         .order_by(Reservation.check_in.desc())
         .offset(offset)
@@ -206,6 +229,8 @@ async def load_reservation_with_relations(
                 selectinload(Reservation.apartment).selectinload(Apartment.photos),
                 selectinload(Reservation.apartment).selectinload(Apartment.owner),
                 selectinload(Reservation.guest),
+            selectinload(Reservation.review),
+                selectinload(Reservation.review),
             )
         )
     ).first()

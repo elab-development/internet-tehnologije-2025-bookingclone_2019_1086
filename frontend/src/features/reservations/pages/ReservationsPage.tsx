@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 import Pagination from "../../../shared/components/Pagination";
+import ReviewDialog from "../../reviews/components/ReviewDialog";
+import { useReviewDialog } from "../../reviews/hooks/useReviewDialog";
 import ReservationCard from "../components/ReservationCard";
 import ReservationsFilterBar from "../components/ReservationsFilterBar";
 import {
@@ -32,11 +34,13 @@ export default function ReservationsPage({ scope }: Props) {
     error,
     busyId,
     changeStatus,
+    reload,
     goToPage,
     isEmpty,
   } = useReservationList(scope);
 
   const isHost = scope === "host";
+  const review = useReviewDialog(reload);
 
   function handleConfirm(reservation: ReservationDto) {
     changeStatus(reservation, "confirmed");
@@ -113,6 +117,7 @@ export default function ReservationsPage({ scope }: Props) {
             busy={busyId === reservation.id}
             onConfirm={isHost ? handleConfirm : undefined}
             onCancel={handleCancel}
+            onReview={isHost ? undefined : review.open}
           />
         ))}
       </div>
@@ -123,6 +128,17 @@ export default function ReservationsPage({ scope }: Props) {
         total={total}
         disabled={isLoading || busyId !== null}
         onPageChange={goToPage}
+      />
+
+      <ReviewDialog
+        open={review.isOpen}
+        apartmentTitle={review.reservation?.apartment?.title ?? ""}
+        initialRating={review.reservation?.review?.rating ?? null}
+        initialComment={review.reservation?.review?.comment ?? null}
+        busy={review.busy}
+        error={review.error}
+        onSubmit={review.submit}
+        onCancel={review.close}
       />
     </main>
   );

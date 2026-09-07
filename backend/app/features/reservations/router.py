@@ -229,6 +229,8 @@ async def get_reservation_by_id(
             .options(
                 selectinload(Reservation.apartment).selectinload(Apartment.photos),
                 selectinload(Reservation.guest),
+            selectinload(Reservation.review),
+                selectinload(Reservation.review),
             )
         )
     ).first()
@@ -269,6 +271,8 @@ async def update_reservation_status(
                 selectinload(Reservation.apartment).selectinload(Apartment.photos),
                 selectinload(Reservation.apartment).selectinload(Apartment.owner),
                 selectinload(Reservation.guest),
+            selectinload(Reservation.review),
+                selectinload(Reservation.review),
             )
         )
     ).first()
