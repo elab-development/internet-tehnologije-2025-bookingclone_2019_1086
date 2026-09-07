@@ -37,6 +37,7 @@ export type ReservationSearchParams = {
   status?: ReservationStatus;
   date_from?: string;
   date_to?: string;
+  apartment_id?: number;
 };
 
 export type CreateReservationRequest = {
@@ -103,6 +104,7 @@ async function getReservationsPage(
     status: args?.status,
     date_from: args?.date_from,
     date_to: args?.date_to,
+    apartment_id: args?.apartment_id,
   });
 
   const response = await apiRequest<BasePagedResponse<ReservationDto>>(

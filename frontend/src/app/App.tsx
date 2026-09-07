@@ -15,6 +15,7 @@ import ApartmentDetailsPage from "../features/apartments/components/ApartmentDet
 import HostApartmentsPage from "../features/host/apartments/pages/HostApartmentsPage";
 import CreateApartmentWizard from "../features/host/apartments/pages/CreateApartmentWizard";
 import EditApartmentPage from "../features/host/apartments/pages/EditApartmentPage";
+import HostStatsPage from "../features/host/stats/pages/HostStatsPage";
 
 function NotFoundPage() {
   return (
@@ -67,6 +68,15 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={["HOST"]}>
                   <ReservationsPage scope="host" />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/host/statistika"
+              element={
+                <ProtectedRoute allowedRoles={["HOST"]}>
+                  <HostStatsPage />
                 </ProtectedRoute>
               }
             />
