@@ -12,3 +12,7 @@ class ApartmentPhotoItemDto(BaseModel):
 
 class DeleteApartmentPhotosRequest(BaseModel):
     apartment_photo_ids: List[int]
+
+
+class SetMainPhotoRequest(BaseModel):
+    apartment_photo_id: int

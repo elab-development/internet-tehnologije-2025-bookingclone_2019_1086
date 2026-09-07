@@ -6,13 +6,17 @@ import { formatFileSize } from "../../hooks/usePendingPhotos";
 type PendingPhotoGridProps = {
   photos: PendingPhoto[];
   busy: boolean;
+  mainPhotoId: string | null;
   onRemove: (id: string) => void;
+  onChooseMain: (id: string) => void;
 };
 
 export default function PendingPhotoGrid({
   photos,
   busy,
+  mainPhotoId,
   onRemove,
+  onChooseMain,
 }: PendingPhotoGridProps) {
   const { t } = useTranslation();
 
@@ -28,9 +32,35 @@ export default function PendingPhotoGrid({
     );
   }
 
-  function renderPhotoCard(photo: PendingPhoto) {
+  function renderMainControl(photo: PendingPhoto) {
+    if (photo.id === mainPhotoId) {
+      return (
+        <span className="apartment-wizard-step__photo-main-badge">
+          {t("createApartment.photos.mainBadge")}
+        </span>
+      );
+    }
+
     return (
-      <div key={photo.id} className="apartment-wizard-step__photo-card">
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-primary"
+        onClick={() => onChooseMain(photo.id)}
+        disabled={busy}
+      >
+        {t("createApartment.photos.setMain")}
+      </button>
+    );
+  }
+
+  function renderPhotoCard(photo: PendingPhoto) {
+    const isMain = photo.id === mainPhotoId;
+    const cardClassName = isMain
+      ? "apartment-wizard-step__photo-card apartment-wizard-step__photo-card--main"
+      : "apartment-wizard-step__photo-card";
+
+    return (
+      <div key={photo.id} className={cardClassName}>
         <img
           src={photo.previewUrl}
           alt={photo.file.name}
@@ -44,6 +74,10 @@ export default function PendingPhotoGrid({
 
           <div className="apartment-wizard-step__photo-size">
             {formatFileSize(photo.file.size)}
+          </div>
+
+          <div className="apartment-wizard-step__photo-main">
+            {renderMainControl(photo)}
           </div>
 
           <div className="apartment-wizard-step__photo-footer">

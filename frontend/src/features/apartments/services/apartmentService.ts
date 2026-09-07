@@ -330,3 +330,19 @@ export async function deleteApartmentPhotos(
     body: JSON.stringify({ apartment_photo_ids: photoIds }),
   });
 }
+
+export async function setMainApartmentPhoto(
+  apartmentId: number,
+  photoId: number
+) {
+  const photos = await apiRequest<unknown[]>(
+    `/apartments/${apartmentId}/photos/main`,
+    {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify({ apartment_photo_id: photoId }),
+    }
+  );
+
+  return (photos ?? []).map(normalizePhoto);
+}
