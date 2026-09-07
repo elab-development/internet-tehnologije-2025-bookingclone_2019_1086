@@ -30,7 +30,7 @@ function getNavigationItems(logged: boolean, role?: string): NavigationItem[] {
   if (logged && role === "ADMIN") {
     return [
       ...baseItems,
-      { labelKey: "nav.adminPanel", to: "/admin/apartments" },
+      { labelKey: "nav.tagManagement", to: "/admin/tags" },
       { labelKey: "nav.contact", to: "/contact" },
     ];
   }
