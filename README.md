@@ -18,12 +18,60 @@ Administrator upravlja šifarnikom oznaka.
 
 ## Šta je potrebno
 
-- Python 3.10 ili noviji
-- Node.js 18 ili noviji
+Za pokretanje kroz Docker dovoljan je samo Docker. Za pokretanje bez njega
+trebaju Python 3.10 ili noviji i Node.js 18 ili noviji.
+
+---
+
+## Pokretanje kroz Docker
+
+Najkraći put, ne traži ni Python ni Node na računaru:
+
+```bash
+docker compose up --build
+```
+
+Aplikacija je na `http://localhost:3000`, API na `http://localhost:8000`.
+Migracije se izvršavaju same pri podizanju kontejnera, a oznake za apartmane se
+upisuju pri pokretanju aplikacije, pa baza kreće spremna za rad.
+
+Gašenje:
+
+```bash
+docker compose down            # zaustavi, zadrži podatke
+docker compose down -v         # zaustavi i obriši bazu i otpremljene slike
+```
+
+**Podaci žive na volumenima**, ne u samom kontejneru: `db-data` drži SQLite bazu,
+a `apartment-images` otpremljene slike. Zato oba prežive `docker compose down` i
+ponovnu gradnju slika, i brišu se tek uz `-v`.
+
+Podrazumevana podešavanja su dovoljna za lokalni rad i **mejlovi su isključeni**,
+da podizanje kontejnera nikom ne pošalje poruku. Ako želite svoje vrednosti,
+napravite `.env` u korenu projekta; `docker-compose.yml` ga čita sam:
+
+```
+JWT_SECRET=nesto_dugacko_i_nasumicno
+REFRESH_HASH_PEPPER=jos_jedan_nasumican_niz
+MAIL_ENABLED=true
+SMTP_HOST=smtp.zoho.eu
+SMTP_USERNAME=vasa.adresa@zohomail.eu
+SMTP_PASSWORD=lozinka_za_aplikaciju
+```
+
+Adresa API-ja se u frontend upisuje **pri gradnji**, ne pri pokretanju, jer je
+Vite ugrađuje u sam paket. Ako aplikacija ne stoji na `localhost`, prosledite
+drugu adresu i ponovo izgradite:
+
+```bash
+VITE_API_BASE_URL=http://192.168.1.10:8000 docker compose up --build
+```
 
 ---
 
 ## Pokretanje backenda
+
+Ovo je put bez Docker-a, ako vam treba `--reload` i rad direktno u kodu.
 
 Sve komande se izvršavaju iz foldera `backend`.
 
@@ -193,4 +241,5 @@ frontend/
   radnik, sa ponovnim pokušajima ako slanje ne uspe.
 - Brisanje apartmana je meko: red ostaje u bazi da bi stare rezervacije i dalje
   pokazivale na postojeći apartman.
-- Pre postavljanja na produkciju prebaciti `COOKIE_SECURE` na `true`.
+- Pre postavljanja na produkciju prebaciti `COOKIE_SECURE` na `true` i
+  postaviti svoj `JWT_SECRET` i `REFRESH_HASH_PEPPER` umesto podrazumevanih.
