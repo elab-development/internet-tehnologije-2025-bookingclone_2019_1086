@@ -135,6 +135,24 @@
   margin-top: 2px;
 }
 
+.apartment-wizard-step__photo-card--main {
+  border: 2px solid #0d6efd;
+}
+
+.apartment-wizard-step__photo-main {
+  margin-top: 12px;
+}
+
+.apartment-wizard-step__photo-main-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .apartment-wizard-step__photo-footer {
   display: flex;
   align-items: center;

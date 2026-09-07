@@ -218,7 +218,9 @@
       "empty": "No photos selected yet.",
       "selectedTitle": "Selected photos (not uploaded yet)",
       "staged": "staged",
-      "addAtLeastOne": "Add at least one photo first"
+      "addAtLeastOne": "Add at least one photo first",
+      "setMain": "Set as cover",
+      "mainBadge": "Cover photo"
     },
     "errors": {
       "requiredFields": "All fields are required.",
@@ -254,7 +256,9 @@
       "working": "Working on the photos...",
       "remove": "Remove",
       "confirmTitle": "Remove photo?",
-      "confirmMessage": "The photo is deleted from the apartment and from the server."
+      "confirmMessage": "The photo is deleted from the apartment and from the server.",
+      "setMain": "Set as cover",
+      "mainBadge": "Cover photo"
     },
     "errors": {
       "load": "This apartment could not be opened.",
@@ -263,7 +267,8 @@
       "photoDelete": "The photo could not be removed.",
       "titleRequired": "Title cannot be empty.",
       "priceInvalid": "Price must be greater than zero.",
-      "guestsInvalid": "The apartment has to take at least one guest."
+      "guestsInvalid": "The apartment has to take at least one guest.",
+      "photoMain": "Could not change the cover photo."
     }
   },
   "hostApartments": {
@@ -569,6 +574,7 @@
     "token_wrong_type": "Your session is not valid. Please sign in again.",
     "not_authenticated": "You need to sign in first.",
     "route_not_found": "That page does not exist.",
-    "method_not_allowed": "That action is not supported."
+    "method_not_allowed": "That action is not supported.",
+    "photo_not_found": "That photo does not belong to this apartment."
   }
 }

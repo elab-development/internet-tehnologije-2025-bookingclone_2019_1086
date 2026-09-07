@@ -14,6 +14,39 @@
   display: block;
 }
 
+.edit-apartment__photo--main {
+  border: 2px solid #0d6efd;
+}
+
+.edit-apartment__photo-main-badge {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.edit-apartment__photo-main-button {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.edit-apartment__photo:hover .edit-apartment__photo-main-button,
+.edit-apartment__photo-main-button:focus-visible {
+  opacity: 1;
+}
+
 .edit-apartment__photo-remove {
   position: absolute;
   top: 4px;

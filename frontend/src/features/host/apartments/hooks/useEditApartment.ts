@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   deleteApartmentPhotos,
   getApartmentById,
+  setMainApartmentPhoto,
   updateApartment,
   uploadApartmentPhotos,
   type ApartmentDto,
@@ -138,12 +139,44 @@ export function useEditApartment(apartmentId: number) {
 
     try {
       await deleteApartmentPhotos(apartmentId, [photoId]);
-      setPhotos((current) => current.filter((photo) => photo.id !== photoId));
+
+      const remaining = photos.filter((photo) => photo.id !== photoId);
+      const lostMain = !remaining.some((photo) => photo.is_main);
+
+      setPhotos(
+        remaining.map((photo, index) => {
+          return lostMain && index === 0
+            ? { ...photo, is_main: true }
+            : photo;
+        })
+      );
     } catch (deleteError) {
       setError(
         deleteError instanceof Error
           ? deleteError.message
           : t("editApartment.errors.photoDelete")
+      );
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function chooseMainPhoto(photoId: number) {
+    if (photoBusy) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    setError(null);
+
+    try {
+      const updated = await setMainApartmentPhoto(apartmentId, photoId);
+      setPhotos(updated);
+    } catch (mainError) {
+      setError(
+        mainError instanceof Error
+          ? mainError.message
+          : t("editApartment.errors.photoMain")
       );
     } finally {
       setPhotoBusy(false);
@@ -216,6 +249,7 @@ export function useEditApartment(apartmentId: number) {
     photoBusy,
     addPhotos,
     removePhoto,
+    chooseMainPhoto,
     availableTags,
     selectedTagIds,
     isLoading,
