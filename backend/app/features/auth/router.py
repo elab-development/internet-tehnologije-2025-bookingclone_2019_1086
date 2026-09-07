@@ -3,55 +3,39 @@ from datetime import timedelta
 
 from sqlalchemy.exc import IntegrityError
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.db import db
+from app.shared.db import db
 from app.models.user import User
 from app.models.user_session import UserSession
-from app.auth.dependencies import get_auth_service
-from app.auth.auth_helper import AuthHelper
-from app.enums.role_enum import Role
-from app.auth.current_user import get_current_user
-from app.errors import conflict, unauthorized
+from app.features.auth.dependencies import get_auth_service
+from app.features.auth.service import AuthHelper
+from app.features.auth.dependencies import get_current_user
+from app.shared.errors import conflict, unauthorized
+from app.shared.api_docs import error_responses
 
+from app.features.auth.schemas import (
+    AuthUserDto,
+    RefreshResponse,
+    RegisterRequest,
+    StatusResponse,
+    TokenResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
 
-class RegisterRequest(BaseModel):
-    name: str = Field(min_length=2, max_length=255)
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
-    phone: str | None = Field(default=None, max_length=50)
-    role: Role = Role.USER
-
-    @field_validator("role")
-    @classmethod
-    def block_admin_self_registration(cls, value: Role) -> Role:
-        if value == Role.ADMIN:
-            raise ValueError("Role ADMIN cannot be assigned during registration")
-        return value
-
-    @field_validator("email")
-    @classmethod
-    def normalize_email(cls, value: str) -> str:
-        return value.strip().lower()
-
-    @field_validator("name")
-    @classmethod
-    def strip_name(cls, value: str) -> str:
-        stripped = value.strip()
-        if len(stripped) < 2:
-            raise ValueError("Name must be at least 2 characters long")
-        return stripped
-
-
-@router.post("/register", status_code=201)
+@router.post(
+    "/register",
+    status_code=201,
+    response_model=TokenResponse,
+    summary="Registracija novog korisnika",
+    responses=error_responses(409),
+)
 async def register(
     payload: RegisterRequest,
     response: Response,
@@ -59,6 +43,12 @@ async def register(
     session: SessionDep,
     auth: AuthHelper = Depends(get_auth_service),
 ):
+    """Pravi nalog i odmah prijavljuje korisnika.
+
+    Uloga se bira pri registraciji, ali **ADMIN** ne prolazi: administrator se
+    ne dodeljuje sam sebi. Nalog i prva sesija se upisuju u istoj transakciji,
+    pa registracija ne može da ostavi korisnika bez sesije.
+    """
     refresh_raw = auth.create_refresh_token()
     refresh_hash = auth.hash_refresh_token(refresh_raw)
 
@@ -111,7 +101,12 @@ async def register(
     }
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Prijava i preuzimanje tokena",
+    responses=error_responses(401),
+)
 async def login(
     response: Response,
     request: Request,
@@ -119,6 +114,12 @@ async def login(
     form: OAuth2PasswordRequestForm = Depends(),
     auth: AuthHelper = Depends(get_auth_service),
 ):
+    """Proverava lozinku i otvara novu sesiju.
+
+    Telo je `application/x-www-form-urlencoded`, kako Swagger UI očekuje: polje
+    `username` je zapravo email adresa. Pogrešna lozinka i nepostojeći nalog
+    vraćaju istu grešku, da odgovor ne bi odao koje adrese postoje.
+    """
     email = form.username.strip().lower()
     password = form.password
 
@@ -159,13 +160,24 @@ async def login(
     }
 
 
-@router.post("/refresh")
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    summary="Osvežavanje isteklog access tokena",
+    responses=error_responses(401),
+)
 async def refresh(
     response: Response,
     request: Request,
     session: SessionDep,
     auth: AuthHelper = Depends(get_auth_service),
 ):
+    """Menja refresh token iz kolačića za nov par tokena.
+
+    Stari token se poništava u istom potezu, pa svaki vredi tačno jednom. Ako
+    se isti token pojavi drugi put, sesija je ili istekla ili ukradena, i u oba
+    slučaja odgovor je 401.
+    """
     refresh_raw = request.cookies.get(auth.REFRESH_COOKIE_NAME)
     if not refresh_raw:
         raise unauthorized("refresh_missing", "Missing refresh token")
@@ -216,13 +228,22 @@ async def refresh(
     }
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    response_model=StatusResponse,
+    summary="Odjava i poništavanje refresh tokena",
+)
 async def logout(
     response: Response,
     request: Request,
     session: SessionDep,
     auth: AuthHelper = Depends(get_auth_service),
 ):
+    """Poništava sesiju i briše kolačić.
+
+    Odjava bez važećeg tokena nije greška: cilj je da korisnik na kraju bude
+    odjavljen, a to je već ispunjeno.
+    """
     refresh_raw = request.cookies.get(auth.REFRESH_COOKIE_NAME)
 
     if refresh_raw:
@@ -240,8 +261,14 @@ async def logout(
     return {"status": "ok"}
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    response_model=AuthUserDto,
+    summary="Podaci o prijavljenom korisniku",
+    responses=error_responses(401),
+)
 async def me(current_user: User = Depends(get_current_user)):
+    """Vraća prijavljenog korisnika, čime ujedno proverava da token još važi."""
     return {
         "id": current_user.id,
         "email": current_user.email,

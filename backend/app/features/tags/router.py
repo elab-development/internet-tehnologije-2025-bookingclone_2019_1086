@@ -1,110 +1,52 @@
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, Response
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import func
 
-from app.db import db
-from app.auth.authorization import Policy
-from app.auth.current_user import get_current_user
+from app.shared.db import db
+from app.features.auth.dependencies import Policy
+from app.features.auth.dependencies import get_current_user
 from app.enums.role_enum import Role
 from app.models.user import User
 from app.models.tag import Tag
-from app.base_pagination_request import BasePaginationRequest
-from app.base_response import BasePagedResponse
-from app.errors import conflict, not_found
+from app.shared.responses import BasePagedResponse
+from app.shared.errors import not_found
+from app.shared.api_docs import error_responses
 
+from app.features.tags.schemas import (
+    TagCreateRequest,
+    TagDto,
+    TagFilter,
+    TagPatchRequest,
+    TagUpdateRequest,
+)
+from app.features.tags.service import (
+    _ensure_unique_on_create,
+    _ensure_unique_on_update,
+    map_tag_to_dto,
+)
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 SessionDep = Annotated[AsyncSession, Depends(db.get_session)]
 
 
-# Filters
-class TagFilter(BasePaginationRequest):
-    name: Optional[str] = Field(default=None, max_length=100)
-
-
-# DTOs / Requests
-class TagDto(BaseModel):
-    id: int
-    name: str
-    icon_key: str
-    svg_icon: Optional[str]
-
-
-class TagCreateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    icon_key: str = Field(min_length=1, max_length=100)
-    svg_icon: Optional[str] = None
-
-
-class TagUpdateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    icon_key: str = Field(min_length=1, max_length=100)
-    svg_icon: Optional[str] = None
-
-
-class TagPatchRequest(BaseModel):
-    name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    icon_key: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    svg_icon: Optional[str] = None
-
-
-def map_tag_to_dto(tag: Tag) -> TagDto:
-    return TagDto(
-        id=tag.id,
-        name=tag.name,
-        icon_key=tag.icon_key,
-        svg_icon=tag.svg_icon,
-    )
-
-
-# Helpers
-async def _ensure_unique_on_create(
-    session: AsyncSession, name: str, icon_key: str
-) -> None:
-    existing_by_name = (await session.exec(select(Tag).where(Tag.name == name))).first()
-    if existing_by_name:
-        raise conflict("tag_name_taken", "Tag name already exists")
-
-    existing_by_key = (
-        await session.exec(select(Tag).where(Tag.icon_key == icon_key))
-    ).first()
-    if existing_by_key:
-        raise conflict("tag_icon_taken", "Tag icon_key already exists")
-
-
-async def _ensure_unique_on_update(
-    session: AsyncSession,
-    tag_id: int,
-    name: Optional[str],
-    icon_key: Optional[str],
-) -> None:
-    if name is not None:
-        existing_by_name = (
-            await session.exec(select(Tag).where(Tag.name == name))
-        ).first()
-        if existing_by_name and existing_by_name.id != tag_id:
-            raise conflict("tag_name_taken", "Tag name already exists")
-
-    if icon_key is not None:
-        existing_by_key = (
-            await session.exec(select(Tag).where(Tag.icon_key == icon_key))
-        ).first()
-        if existing_by_key and existing_by_key.id != tag_id:
-            raise conflict("tag_icon_taken", "Tag icon_key already exists")
-
-
 # Endpoints
-@router.get("", response_model=BasePagedResponse[TagDto])
+@router.get(
+    "",
+    response_model=BasePagedResponse[TagDto],
+    summary="Lista oznaka",
+    responses=error_responses(400),
+)
 async def list_tags(
     session: SessionDep,
     q: Annotated[TagFilter, Depends()],
 ):
+    """Paginirana lista oznaka, uz pretragu po nazivu. Javno.
+    """
     query = select(Tag)
 
     if q.name:
@@ -126,15 +68,28 @@ async def list_tags(
     }
 
 
-@router.get("/{tag_id}", response_model=TagDto)
+@router.get(
+    "/{tag_id}",
+    response_model=TagDto,
+    summary="Jedna oznaka",
+    responses=error_responses(404),
+)
 async def get_tag_by_id(tag_id: int, session: SessionDep):
+    """Jedna oznaka sa ikonicom. Javno.
+    """
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
         raise not_found("tag_not_found", "Tag not found")
     return map_tag_to_dto(tag)
 
 
-@router.post("", status_code=201, response_model=TagDto)
+@router.post(
+    "",
+    status_code=201,
+    response_model=TagDto,
+    summary="Nova oznaka (ADMIN)",
+    responses=error_responses(401, 403, 409),
+)
 async def create_tag(
     response: Response,
     session: SessionDep,
@@ -142,6 +97,11 @@ async def create_tag(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.ADMIN}).check_access),
 ):
+    """Pravi novu oznaku.
+
+    I naziv i `icon_key` moraju biti jedinstveni, pa se dve oznake nikad
+    ne mogu naći sa istom ikonicom.
+    """
     await _ensure_unique_on_create(session, request_body.name, request_body.icon_key)
 
     tag = Tag(
@@ -159,7 +119,12 @@ async def create_tag(
     return map_tag_to_dto(tag)
 
 
-@router.put("/{tag_id}", response_model=TagDto)
+@router.put(
+    "/{tag_id}",
+    response_model=TagDto,
+    summary="Zamena oznake u celini (ADMIN)",
+    responses=error_responses(401, 403, 404, 409),
+)
 async def update_tag(
     tag_id: int,
     session: SessionDep,
@@ -167,6 +132,8 @@ async def update_tag(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.ADMIN}).check_access),
 ):
+    """Menja oznaku u celini: sva polja se šalju, i sva se upisuju.
+    """
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
         raise not_found("tag_not_found", "Tag not found")
@@ -185,7 +152,12 @@ async def update_tag(
     return map_tag_to_dto(tag)
 
 
-@router.patch("/{tag_id}", response_model=TagDto)
+@router.patch(
+    "/{tag_id}",
+    response_model=TagDto,
+    summary="Izmena pojedinih polja oznake (ADMIN)",
+    responses=error_responses(401, 403, 404, 409),
+)
 async def patch_tag(
     tag_id: int,
     session: SessionDep,
@@ -193,6 +165,8 @@ async def patch_tag(
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.ADMIN}).check_access),
 ):
+    """Menja samo poslata polja oznake, ostala ostaju kakva jesu.
+    """
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
         raise not_found("tag_not_found", "Tag not found")
@@ -216,13 +190,20 @@ async def patch_tag(
     return map_tag_to_dto(tag)
 
 
-@router.delete("/{tag_id}", status_code=204)
+@router.delete(
+    "/{tag_id}",
+    status_code=204,
+    summary="Brisanje oznake (ADMIN)",
+    responses=error_responses(401, 403, 404),
+)
 async def delete_tag(
     tag_id: int,
     session: SessionDep,
     current_user: User = Depends(get_current_user),
     allowed: bool = Depends(Policy({Role.ADMIN}).check_access),
 ):
+    """Briše oznaku i skida je sa svih apartmana koji su je nosili.
+    """
     tag = (await session.exec(select(Tag).where(Tag.id == tag_id))).first()
     if not tag:
         raise not_found("tag_not_found", "Tag not found")
